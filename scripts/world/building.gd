@@ -17,6 +17,12 @@ var title := ""
 ## HP and storage before research bonuses; the Keep's grow with the tier.
 var base_hp := 200.0
 var base_capacity := 0
+## Homes: which needs are met, happiness, level (1..3) and their timers.
+var needs_met := {}
+var happiness := NeedDefs.BASE_HAPPINESS
+var level := 1
+var level_timer := 0.0
+var unhappy_time := 0.0
 
 var _attack_cooldown := 0.0
 
@@ -55,6 +61,30 @@ func refresh_max_hp() -> void:
 	health.max_hp = new_max
 	health.hp = clampf(health.hp + maxf(gain, 0.0), 0.0, new_max)
 	health.changed.emit()
+
+
+func is_home() -> bool:
+	return def.get("housing", 0) > 0
+
+
+func housing_capacity() -> int:
+	return def.get("housing", 0) + def.get("level_bonus", 0) * (level - 1)
+
+
+func level_name() -> String:
+	return NeedDefs.LEVELS[level - 1].name
+
+
+## Service buildings work only with road access and, if they have jobs, a
+## worker inside.
+func service_active() -> bool:
+	if not has_road:
+		return false
+	return def.get("jobs", 0) == 0 or stationed_count() > 0
+
+
+func covers(home: Building) -> bool:
+	return center().distance_to(home.center()) <= def.coverage * Terrain.TILE_SIZE
 
 
 func storage_capacity() -> int:
@@ -125,16 +155,20 @@ func status() -> String:
 		return "Guard on the way"
 	if def.get("work", "") == "study" and not is_manned():
 		return "Scholars on the way"
+	if def.get("work", "") == "service" and not is_manned():
+		return "Waiting for a worker"
 	return ""
 
 
 ## One-line summary for hover info.
 func describe() -> String:
 	var lines := PackedStringArray([title])
+	if is_home() and def.has("level_bonus"):
+		lines[0] = "%s (%s) — happiness %d" % [title, level_name(), happiness]
 	if health.is_damaged():
 		lines.append("HP: %d/%d" % [health.hp, health.max_hp])
-	if def.get("housing", 0) > 0:
-		lines.append("Residents: %d/%d" % [residents.size(), def.housing])
+	if is_home():
+		lines.append("Residents: %d/%d" % [residents.size(), housing_capacity()])
 	if def.get("jobs", 0) > 0:
 		lines.append("Workers: %d/%d" % [workers.size(), def.jobs])
 	var problem := status()
@@ -173,14 +207,29 @@ func inspect_text() -> String:
 		for category: String in def.accepts:
 			lines.append("Stores %s: %d/%d kingdom-wide" % [
 				category, GameState.used(category), GameState.capacity.get(category, 0)])
-	if def.has("coverage"):
-		lines.append("Covers homes within %d tiles." % def.coverage)
+	if def.has("provides"):
+		lines.append("Provides %s to homes within %d tiles%s." % [
+			NeedDefs.NEEDS[def.provides].name.to_lower(), def.coverage,
+			"" if service_active() else " (inactive: needs road access and a worker)"])
+	if is_home() and def.has("level_bonus"):
+		lines.append("")
+		lines.append("%s — happiness %d/100" % [level_name(), happiness])
+		for need: String in NeedDefs.ORDER:
+			lines.append("  %s %s" % ["✔" if needs_met.get(need, false) else "✘", NeedDefs.NEEDS[need].name])
+		if level < NeedDefs.LEVELS.size():
+			var next: Dictionary = NeedDefs.LEVELS[level]
+			var names := PackedStringArray()
+			for n: String in next.needs:
+				names.append(NeedDefs.NEEDS[n].name)
+			lines.append("Upgrades to %s with: %s" % [next.name, ", ".join(names)])
+		if happiness < NeedDefs.UNHAPPY:
+			lines.append("⚠ Miserable: pays no tax, residents will leave")
 	if base_capacity > 0:
 		lines.append("This building adds %d storage per category." % storage_capacity())
 
-	if def.get("housing", 0) > 0:
+	if is_home():
 		lines.append("")
-		lines.append("Residents: %d/%d" % [residents.size(), def.housing])
+		lines.append("Residents: %d/%d" % [residents.size(), housing_capacity()])
 		for v in residents:
 			var hunger := "  (hungry)" if v.missed_meals > 0 else ""
 			lines.append("  • %s%s" % [v.villager_name, hunger])
@@ -214,6 +263,11 @@ func _draw() -> void:
 		for i in 3:
 			draw_rect(Rect2(Vector2(3 + i * 10, 0), Vector2(6, 5)), base.darkened(0.4))
 		draw_circle(px * 0.5, 6, base.darkened(0.3))
+
+	if def.has("level_bonus"):
+		# One pip per house level, bottom-left.
+		for i in level:
+			draw_circle(Vector2(8 + i * 8, px.y - 8), 3, Color(1, 0.85, 0.3))
 
 	health.draw_bar(self, Vector2(px.x * 0.5, -7), minf(px.x - 4, 40))
 

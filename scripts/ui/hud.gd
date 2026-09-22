@@ -15,6 +15,8 @@ var military: Military
 var units: UnitController
 var progression: Progression
 var research: Research
+var needs: Needs
+var overlay: Overlay
 
 var _materials_label: Label
 var _food_label: Label
@@ -39,9 +41,11 @@ var _panel: BuildingPanel
 
 func setup(p_build: BuildController, p_world: WorldMap, p_citizens: CitizenManager,
 		p_raids: RaidDirector, p_military: Military, p_units: UnitController,
-		p_progression: Progression, p_research: Research) -> void:
+		p_progression: Progression, p_research: Research, p_needs: Needs, p_overlay: Overlay) -> void:
 	progression = p_progression
 	research = p_research
+	needs = p_needs
+	overlay = p_overlay
 	build = p_build
 	world = p_world
 	citizens = p_citizens
@@ -60,7 +64,7 @@ func _ready() -> void:
 	_msg_label.add_theme_font_size_override("font_size", 20)
 
 	_panel = BuildingPanel.new()
-	_panel.setup(build, world, military, progression, research)
+	_panel.setup(build, world, military, progression, research, needs)
 	add_child(_panel)
 
 	_tier_panel = TierPanel.new()
@@ -88,6 +92,8 @@ func _ready() -> void:
 	GameState.resources_changed.connect(_refresh_resources)
 	GameState.population_changed.connect(_refresh_population)
 	GameState.population_changed.connect(_refresh_resources)
+	GameState.happiness_changed.connect(_refresh_population)
+	GameState.happiness_changed.connect(_refresh_resources)
 	military.squads_changed.connect(_refresh_resources)
 	GameState.speed_changed.connect(_refresh_speed)
 	GameState.notified.connect(show_message)
@@ -121,6 +127,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.keycode == KEY_SPACE:
 		GameState.toggle_pause()
+	elif event.keycode == KEY_O:
+		GameState.notify(overlay.cycle())
 	elif event.keycode == KEY_T:
 		_tier_panel.toggle()
 	elif event.keycode == KEY_F9:
@@ -292,8 +300,10 @@ func _refresh_resources() -> void:
 			_stock_text(foods, true), GameState.used("food"), GameState.capacity.get("food", 0), minutes, GameState.population])
 	_food_label.add_theme_color_override("font_color", Color(1, 0.45, 0.35) if minutes < 2.0 else Color.WHITE)
 	var upkeep := military.upkeep_per_minute() if military != null else 0
-	_set_bar(_gold_label, "Gold %d" % GameState.count("gold") + (" (−%d/min)" % upkeep if upkeep > 0 else ""),
-		"Gold %d\nTroop upkeep %d gold/min\nTax: 1 gold per fed villager per meal" % [GameState.count("gold"), upkeep])
+	var tax := needs.tax_per_minute() if needs != null else 0
+	_set_bar(_gold_label, "Gold %d (%+d/min)" % [GameState.count("gold"), tax - upkeep],
+		"Gold %d\nTaxes about +%d/min (%s rate — change it on the Keep)\nTroop upkeep −%d/min" % [
+			GameState.count("gold"), tax, NeedDefs.TAX_RATES[GameState.tax_rate].name, upkeep])
 
 
 ## "Wood 120 · Stone 20". Without `include_empty`, items at 0 are left out
@@ -307,10 +317,10 @@ func _stock_text(items: Array[String], include_empty: bool) -> String:
 
 
 func _refresh_population() -> void:
-	_set_bar(_pop_label, "Pop %d/%d · Jobs %d/%d" % [
-		GameState.population, GameState.housing, GameState.employed, GameState.jobs],
-		"Population %d (housing for %d)\nWorkers %d of %d jobs filled" % [
-			GameState.population, GameState.housing, GameState.employed, GameState.jobs])
+	_set_bar(_pop_label, "Pop %d/%d · Jobs %d/%d · ☺%d" % [
+		GameState.population, GameState.housing, GameState.employed, GameState.jobs, GameState.happiness],
+		"Population %d (housing for %d)\nWorkers %d of %d jobs filled\nAverage happiness %d/100 (O shows the map)" % [
+			GameState.population, GameState.housing, GameState.employed, GameState.jobs, GameState.happiness])
 
 
 func _refresh_speed() -> void:

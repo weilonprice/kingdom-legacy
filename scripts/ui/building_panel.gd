@@ -11,6 +11,7 @@ var build: BuildController
 var military: Military
 var progression: Progression
 var research: Research
+var needs: Needs
 var building: Building
 
 var _title: Label
@@ -18,13 +19,16 @@ var _body: Label
 var _demolish: Button
 var _train_row: HBoxContainer
 var _train_buttons := {}  # unit id -> Button
+var _tax_row: HBoxContainer
+var _tax_buttons: Array[Button] = []
 var _research_box: VBoxContainer
 var _research_buttons := {}  # research id -> Button
 var _refresh_time := 0.0
 
 
 func setup(p_build: BuildController, p_world: WorldMap, p_military: Military,
-		p_progression: Progression, p_research: Research) -> void:
+		p_progression: Progression, p_research: Research, p_needs: Needs) -> void:
+	needs = p_needs
 	build = p_build
 	world = p_world
 	military = p_military
@@ -67,6 +71,24 @@ func _ready() -> void:
 		btn.pressed.connect(_on_train.bind(unit_id))
 		_train_row.add_child(btn)
 		_train_buttons[unit_id] = btn
+
+	_tax_row = HBoxContainer.new()
+	col.add_child(_tax_row)
+	var tax_label := Label.new()
+	tax_label.text = "Tax:"
+	_tax_row.add_child(tax_label)
+	for i in NeedDefs.TAX_RATES.size():
+		var rate: Dictionary = NeedDefs.TAX_RATES[i]
+		var tbtn := Button.new()
+		tbtn.text = rate.name
+		tbtn.toggle_mode = true
+		tbtn.focus_mode = Control.FOCUS_NONE
+		tbtn.tooltip_text = "%.1f gold per resident per minute, happiness %+d" % [rate.gold, rate.happiness]
+		tbtn.pressed.connect(func() -> void:
+			GameState.set_tax_rate(i)
+			_refresh())
+		_tax_row.add_child(tbtn)
+		_tax_buttons.append(tbtn)
 
 	_research_box = VBoxContainer.new()
 	col.add_child(_research_box)
@@ -119,6 +141,13 @@ func _refresh() -> void:
 			var locked := progression.locked_reason("units", unit_id)
 			btn.text = UnitDefs.get_def(unit_id).name + (" 🔒" if locked != "" else "")
 			btn.disabled = locked != "" or not GameState.can_afford(UnitDefs.get_def(unit_id).cost)
+	var is_keep := building == world.keep
+	_tax_row.visible = is_keep
+	if is_keep:
+		for i in _tax_buttons.size():
+			_tax_buttons[i].set_pressed_no_signal(i == GameState.tax_rate)
+		text += "\n\nTax rate: %s — about %d gold/min from homes\nAverage happiness: %d" % [
+			NeedDefs.TAX_RATES[GameState.tax_rate].name, needs.tax_per_minute(), GameState.happiness]
 	var studies: bool = building.def.get("work", "") == "study"
 	_research_box.visible = studies
 	if studies:

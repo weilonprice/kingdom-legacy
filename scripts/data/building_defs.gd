@@ -8,6 +8,9 @@ extends RefCounted
 ##   "produce" - fetch `input` from storage, work `work_time`, deliver `output`
 ## Storage buildings list the item categories they `accept` and their `capacity`
 ## per category.
+## Service buildings `provide` a need (water, religion, market, tavern) to homes
+## within `coverage` tiles; those with `jobs` only work while staffed.
+## Homes have `housing` and gain `level_bonus` residents per house level.
 
 const DEFS := {
 	"keep": {
@@ -28,14 +31,16 @@ const DEFS := {
 		"cost": {"wood": 20},
 		"color": Color(0.71, 0.51, 0.35),
 		"housing": 4,
+		"level_bonus": 2,
 		"hp": 150.0,
 	},
 	"well": {
 		"name": "Well",
-		"desc": "Provides water to nearby homes (needed from the Village tier).",
+		"desc": "Provides water to homes within 6 tiles.",
 		"size": Vector2i(1, 1),
 		"cost": {"stone": 10},
 		"color": Color(0.35, 0.50, 0.70),
+		"provides": "water",
 		"coverage": 6,
 	},
 	"stone_house": {
@@ -45,7 +50,44 @@ const DEFS := {
 		"cost": {"wood": 20, "stone": 30},
 		"color": Color(0.62, 0.58, 0.54),
 		"housing": 8,
+		"level_bonus": 2,
 		"hp": 350.0,
+	},
+	"chapel": {
+		"name": "Chapel",
+		"desc": "A priest tends to the faithful: provides religion to homes within 10 tiles.",
+		"size": Vector2i(2, 2),
+		"cost": {"wood": 40, "stone": 20},
+		"color": Color(0.85, 0.83, 0.75),
+		"jobs": 1,
+		"work": "service",
+		"provides": "religion",
+		"coverage": 10,
+		"hp": 300.0,
+	},
+	"market": {
+		"name": "Market",
+		"desc": "A merchant sells wares: provides market access to homes within 10 tiles.",
+		"size": Vector2i(2, 2),
+		"cost": {"wood": 50},
+		"color": Color(0.80, 0.45, 0.35),
+		"jobs": 1,
+		"work": "service",
+		"provides": "market",
+		"coverage": 10,
+		"hp": 250.0,
+	},
+	"tavern": {
+		"name": "Tavern",
+		"desc": "An innkeeper pours ale: provides a tavern to homes within 10 tiles.",
+		"size": Vector2i(2, 2),
+		"cost": {"wood": 40, "stone": 30},
+		"color": Color(0.55, 0.35, 0.20),
+		"jobs": 1,
+		"work": "service",
+		"provides": "tavern",
+		"coverage": 10,
+		"hp": 300.0,
 	},
 	"scholars_hall": {
 		"name": "Scholar's Hall",
@@ -212,7 +254,7 @@ const CATEGORIES := [
 	{"name": "Food", "items": ["farm", "fisher", "mill", "bakery"]},
 	{"name": "Storage", "items": ["stockpile", "granary", "warehouse"]},
 	{"name": "Defense", "items": ["guard_tower", "stone_tower", "barracks"]},
-	{"name": "Civic", "items": ["scholars_hall"]},
+	{"name": "Civic", "items": ["chapel", "market", "tavern", "scholars_hall"]},
 ]
 
 

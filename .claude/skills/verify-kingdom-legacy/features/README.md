@@ -42,6 +42,7 @@ tools/verify/run.sh`, `Gotchas`.
 - [Build and inspect](./build-and-inspect.md): build menu, placing buildings, dragging roads, villagers moving in, the building panel. Scenario `build-and-inspect.json`.
 - [Raids and towers](./raids-and-towers.md): guard towers, raid warning, raid banner, raid end. Scenario `raid-defense.json`.
 - [Squads](./squads.md): barracks training, squad selection, move orders, release to guard. Scenario `squads.json`.
+- [Needs and happiness](./needs-and-happiness.md): home needs, service coverage, house levels, tax rate, overlays. Scenario `needs-happiness.json`.
 - [Tiers and research](./tiers-and-research.md): locked content, tier panel, reaching Village, Scholar's Hall research. Scenario `tiers-research.json`.
 
 Not yet mapped: food chain (farm, mill, bakery, fisher), demolish, storage

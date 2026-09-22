@@ -2,7 +2,8 @@ class_name TierDefs
 extends RefCounted
 ## Settlement tiers. Reaching a tier needs every listed requirement; it then
 ## unlocks content and upgrades the Keep. Requirement keys:
-##   population, raids_survived, research (count completed), buildings (all built)
+##   population, raids_survived, research (count completed), buildings (all built),
+##   house_level ({level, count}: homes at that level or higher), happiness (average)
 
 const TIERS := [
 	{
@@ -18,7 +19,7 @@ const TIERS := [
 		"name": "Village",
 		"requires": {"population": 15, "buildings": ["well", "granary"]},
 		"unlocks": {
-			"buildings": ["barracks", "scholars_hall", "stone_house"],
+			"buildings": ["barracks", "scholars_hall", "stone_house", "chapel", "market"],
 			"units": ["militia", "spearman"],
 			"research": ["crop_rotation", "sharp_tools", "wheelbarrows", "fletching", "ledgers"],
 		},
@@ -26,9 +27,10 @@ const TIERS := [
 	},
 	{
 		"name": "Town",
-		"requires": {"population": 35, "raids_survived": 2, "buildings": ["barracks", "scholars_hall"]},
+		"requires": {"population": 35, "raids_survived": 2, "buildings": ["barracks", "scholars_hall"],
+			"house_level": {"level": 2, "count": 4}},
 		"unlocks": {
-			"buildings": ["stone_tower", "warehouse"],
+			"buildings": ["stone_tower", "warehouse", "tavern"],
 			"units": ["archer"],
 			"research": ["tempered_steel", "masonry"],
 		},
@@ -36,13 +38,14 @@ const TIERS := [
 	},
 	{
 		"name": "City",
-		"requires": {"population": 70, "raids_survived": 5, "research": 4, "buildings": ["warehouse", "stone_tower"]},
+		"requires": {"population": 70, "raids_survived": 5, "research": 4, "buildings": ["warehouse", "stone_tower"],
+			"house_level": {"level": 3, "count": 6}, "happiness": 60},
 		"unlocks": {},
 		"keep": {"title": "Castle", "hp": 2000.0, "capacity": 500},
 	},
 	{
 		"name": "Kingdom",
-		"requires": {"population": 120, "raids_survived": 8, "research": 6},
+		"requires": {"population": 120, "raids_survived": 8, "research": 6, "happiness": 65},
 		"unlocks": {},
 		"keep": {"title": "Citadel", "hp": 2500.0, "capacity": 600},
 	},

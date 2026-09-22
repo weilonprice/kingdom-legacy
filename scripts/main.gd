@@ -8,6 +8,8 @@ var military: Military
 var units: UnitController
 var research: Research
 var progression: Progression
+var needs: Needs
+var overlay: Overlay
 var build: BuildController
 var camera: CameraController
 var hud: HUD
@@ -30,6 +32,10 @@ func _ready() -> void:
 	raids.setup(world)
 	add_child(raids)
 
+	needs = Needs.new()
+	needs.setup(world, citizens)
+	add_child(needs)
+
 	research = Research.new()
 	research.setup(world)
 	add_child(research)
@@ -49,6 +55,10 @@ func _ready() -> void:
 	build.progression = progression
 	add_child(build)
 
+	overlay = Overlay.new()
+	overlay.world = world
+	add_child(overlay)
+
 	# Added after the build controller so it sees input first.
 	units = UnitController.new()
 	units.setup(world, build, military)
@@ -60,7 +70,7 @@ func _ready() -> void:
 	add_child(camera)
 
 	hud = HUD.new()
-	hud.setup(build, world, citizens, raids, military, units, progression, research)
+	hud.setup(build, world, citizens, raids, military, units, progression, research, needs, overlay)
 	add_child(hud)
 
 	world.keep_destroyed.connect(_on_defeat.bind("The Keep has fallen!"))

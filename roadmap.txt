@@ -173,19 +173,27 @@ M4 — TIERS & RESEARCH                              [DONE]
 
 
 ================================================================================
-M5 — NEEDS, HAPPINESS & GOLD                          Goal: deep city sim
+M5 — NEEDS, HAPPINESS & GOLD                          [~] core done
 ================================================================================
-  [ ] (M) Coverage service buildings (Well, Chapel, Market, Tavern): radius-
-          based, walked to by villagers, or "service walker" model
-  [ ] (M) House needs + happiness score per household
-  [ ] (M) House upgrades (hut -> house -> manor) when needs met: more
-          residents, more tax
-  [ ] (S) Taxes: gold income from happy houses; tax rate slider
-  [ ] (S) Unhappiness effects: slower work, emigration, (later) unrest
-  [ ] (M) Overlays: road access, service coverage, happiness heatmap
+  [x] (M) Coverage service buildings: Well (water), Chapel (religion),
+          Market (market), Tavern (tavern, Town); staffed by one worker who
+          works from inside; coverage is a circle from the building's center
+          -> scripts/systems/needs.gd, scripts/data/need_defs.gd
+  [x] (M) House needs + happiness score per household (0-100): needs met,
+          food, and the tax rate
+  [x] (M) House levels Cottage -> Townhouse -> Manor when needs are met: +2
+          residents per level, more tax; lose the needs and they downgrade
+  [x] (S) Taxes: per resident per minute x level; tax-rate buttons on the
+          Keep (None..Harsh) trade gold for happiness; miserable homes pay 0
+  [x] (S) Unhappiness: slower work (<40), no move-ins (<35), residents leave
+          after 45s below 25; happy homes (70+) work 15% faster
+  [x] (M) Overlays (O): happiness heatmap, service coverage, road access
           -> scripts/ui/overlay.gd
+  [x] (S) Tier requirements use needs: Town needs 4 Townhouses; City needs
+          6 Manors and 60 happiness; Kingdom needs 65 happiness
   [ ] (M) Haulers: dedicated job moving goods between buildings/storage
-  [ ] (S) Day/night cycle: villagers go home at night, lighting tint
+          -> M5b (pairs with per-building inventories from the backlog)
+  [ ] (S) Day/night cycle: villagers go home at night, lighting tint -> M5b
 
   Done when: a city's happiness visibly depends on layout and services,
   and gold comes from a well-served population.
@@ -266,6 +274,6 @@ BACKLOG / MAYBE LATER
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. M5: needs (water, religion, market) + happiness
-  2. M5: house upgrades + tax rate; tier requirements switch to needs
-  3. M5: haulers, overlays, day/night
+  1. M5b: haulers + per-building inventories
+  2. M5b: day/night cycle
+  3. M6: art pass (24 PixelLab generations left)

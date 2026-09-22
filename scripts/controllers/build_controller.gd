@@ -217,9 +217,15 @@ func _draw_selection(b: Building) -> void:
 	_draw_area(b.def, b.entrance())
 
 
-## Outlines the work radius (gatherers) or coverage radius (services).
+## Outlines the work radius (gatherers), or the coverage circle of services.
 func _draw_area(def: Dictionary, e: Vector2i) -> void:
-	var r: int = def.get("radius", def.get("coverage", def.get("range", 0)))
+	if def.has("coverage"):
+		# Coverage is measured from the building's center, as a circle.
+		var origin := e - Vector2i(int(def.size.x * 0.5), def.size.y)
+		var c := Vector2(origin * Terrain.TILE_SIZE) + Vector2(def.size * Terrain.TILE_SIZE) * 0.5
+		draw_arc(c, def.coverage * Terrain.TILE_SIZE, 0, TAU, 64, Color(0.5, 0.8, 1.0, 0.6), 2.0)
+		return
+	var r: int = def.get("radius", def.get("range", 0))
 	if r <= 0:
 		return
 	var tile := Terrain.TILE_SIZE

@@ -30,6 +30,8 @@ villagers fed, while goblins, orcs and trolls raid in escalating waves.
 | Cancel / deselect | Right-click / Esc |
 | Pause / speed | Space / top-bar buttons |
 | Tier progress | T |
+| Map overlays | O |
+| Tax rate | Click the Keep |
 | Call a raid now (testing) | F9 |
 
 ## Verification

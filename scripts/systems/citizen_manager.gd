@@ -12,8 +12,6 @@ const MISSED_MEALS_TO_LEAVE := 3
 ## The first few settlers arrive regardless of food; after that growth needs food.
 const FREE_SETTLERS := 4
 const MIN_FOOD_TO_GROW := 5
-## Gold each fed villager pays per meal.
-const TAX_PER_MEAL := 1
 
 var world: WorldMap
 var villagers: Array[Villager] = []
@@ -55,7 +53,8 @@ func _try_spawn() -> void:
 	if _settlers_arrived >= FREE_SETTLERS and GameState.edible_total() < MIN_FOOD_TO_GROW:
 		return
 	for b in world.buildings:
-		if b.has_road and b.residents.size() < b.def.get("housing", 0):
+		if b.has_road and b.residents.size() < b.housing_capacity() \
+				and b.happiness >= NeedDefs.MIN_TO_MOVE_IN:
 			var v := Villager.new()
 			v.setup(world, b)
 			v.died.connect(_on_villager_died)
@@ -75,8 +74,6 @@ func _feed() -> void:
 	for i in order.size():
 		var v: Villager = order[i]
 		v.set_missed_meals(0 if i < eaten else v.missed_meals + 1)
-	if eaten > 0:
-		GameState.add_resource("gold", eaten * TAX_PER_MEAL)
 	var hungry := order.size() - eaten
 	if hungry > 0:
 		GameState.notify("%d villager%s went hungry!" % [hungry, "" if hungry == 1 else "s"])
@@ -84,7 +81,7 @@ func _feed() -> void:
 	var leaving := villagers.filter(func(v: Villager) -> bool:
 		return v.missed_meals >= MISSED_MEALS_TO_LEAVE)
 	for v: Villager in leaving:
-		_remove_villager(v)
+		remove_villager(v)
 	if not leaving.is_empty():
 		GameState.notify("%d starving villager%s left the kingdom" % [leaving.size(), "" if leaving.size() == 1 else "s"])
 	_publish_stats()
@@ -118,7 +115,7 @@ func _publish_stats() -> void:
 	var housing := 0
 	var jobs := 0
 	for b in world.buildings:
-		housing += b.def.get("housing", 0)
+		housing += b.housing_capacity()
 		jobs += b.def.get("jobs", 0)
 	var employed := villagers.filter(func(v: Villager) -> bool: return v.job != null).size()
 	GameState.set_population(villagers.size(), housing, employed, jobs)
@@ -140,12 +137,12 @@ func draft_villager(near: Vector2i) -> bool:
 	for v: Villager in pool:
 		if v.position.distance_squared_to(target) < recruit.position.distance_squared_to(target):
 			recruit = v
-	_remove_villager(recruit)
+	remove_villager(recruit)
 	_publish_stats()
 	return true
 
 
-func _remove_villager(v: Villager) -> void:
+func remove_villager(v: Villager) -> void:
 	v.lose_job()
 	if is_instance_valid(v.home):
 		v.home.residents.erase(v)
@@ -155,7 +152,7 @@ func _remove_villager(v: Villager) -> void:
 
 func _on_villager_died(v: Villager) -> void:
 	GameState.notify("%s was killed by raiders!" % v.villager_name)
-	_remove_villager(v)
+	remove_villager(v)
 	_publish_stats()
 
 
@@ -163,5 +160,5 @@ func _on_building_removed(b: Building) -> void:
 	for v: Villager in b.workers.duplicate():
 		v.lose_job()
 	for v: Villager in b.residents.duplicate():
-		_remove_villager(v)
+		remove_villager(v)
 	_publish_stats()
