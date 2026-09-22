@@ -99,6 +99,16 @@ const DEFS := {
 		"work": "study",
 		"hp": 300.0,
 	},
+	"carter": {
+		"name": "Carter's Yard",
+		"desc": "Haulers empty workplace piles into storage and bring mills and bakeries their ingredients.",
+		"size": Vector2i(2, 2),
+		"cost": {"wood": 30},
+		"color": Color(0.58, 0.46, 0.30),
+		"jobs": 3,
+		"work": "haul",
+		"hp": 200.0,
+	},
 	"woodcutter": {
 		"name": "Woodcutter",
 		"desc": "Chops nearby trees for wood.",
@@ -252,7 +262,7 @@ const CATEGORIES := [
 	{"name": "Housing", "items": ["house", "stone_house", "well"]},
 	{"name": "Resources", "items": ["woodcutter", "quarry"]},
 	{"name": "Food", "items": ["farm", "fisher", "mill", "bakery"]},
-	{"name": "Storage", "items": ["stockpile", "granary", "warehouse"]},
+	{"name": "Storage", "items": ["stockpile", "granary", "warehouse", "carter"]},
 	{"name": "Defense", "items": ["guard_tower", "stone_tower", "barracks"]},
 	{"name": "Civic", "items": ["chapel", "market", "tavern", "scholars_hall"]},
 ]

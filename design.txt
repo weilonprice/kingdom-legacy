@@ -75,7 +75,9 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   (+market, tavern). Each level: +2 residents, more tax.
   Effects: 70+ works 15% faster; <40 works 25% slower; <35 nobody moves
   in; <25 pays no tax and loses a resident every 45s.
-  Planned: day/night cycle (villagers go home at night), aging, births.
+  Day/night (M5b): 150s day, 50s night. Villagers sleep at home at night;
+  guards, scholars and service workers stay at their posts.
+  Planned: aging, births.
 
 
 7. ECONOMY & SUPPLY CHAINS
@@ -98,8 +100,11 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     Bricks       Clay Pit -> Clay -> Kiln -> Bricks
     Gold         Market / Taxes on houses; Gold Mine -> Mint
 
-  Haulers: later, a dedicated hauler job moves goods between buildings and
-  storage so producers keep working.
+  Storage (M5b): goods sit in specific buildings. Workplaces keep a pile of
+  finished goods (16 max); storage buildings hold their own inventory; gold
+  is the Keep's treasury. Producers fetch inputs from storage or straight
+  from another workplace's pile. Haulers (Carter's Yard) empty piles into
+  storage and supply producers; without them, workers self-haul full piles.
   Gold: taxes each minute = residents x rate x house level multiplier (1 /
   1.5 / 2); set the rate on the Keep. Spent on troop upkeep, training and
   research.
@@ -253,13 +258,16 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   scripts/systems/progression.gd       Settlement tiers, unlocks, Keep upgrade
   scripts/systems/research.gd          Research queue, modifiers
   scripts/systems/needs.gd             Needs, happiness, house levels, taxes
+  scripts/systems/stock.gd             Per-building inventories, sources
+  scripts/systems/day_night.gd         Day/night cycle and world tint
   scripts/controllers/                 Camera, build tools, unit control
   scripts/ui/                          HUD, building panel, squad panel,
                                        raid arrow, game over
 
   Notes:
     - Pathfinding: AStarGrid2D, road weight 1.0, terrain 2.0–3.5.
-    - Stock is pooled kingdom-wide; per-building inventories are backlog.
+    - Goods live in per-building inventories (systems/stock.gd); GameState
+      caches kingdom totals for the HUD.
     - Performance target: 300+ agents; move to flow fields / path caching /
       staggered updates if needed.
     - Save/load planned once core systems stabilize.
@@ -275,7 +283,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   [DONE]  M3  Troops: barracks, militia/archers, auto-defend + squad control
   [DONE]  M4  Settlement tiers + first research
   [DONE]  M5  Needs & happiness, taxes/gold
-  [NEXT]  M5b Haulers, day/night; then M6 PixelLab art pass
+  [DONE]  M5b Per-building storage, haulers, day/night
+  [NEXT]  M6  PixelLab art pass
           M7  Walls, gates, fire, more enemies (orcs, trolls)
           M8  Win condition, final raid, save/load, balance pass
 

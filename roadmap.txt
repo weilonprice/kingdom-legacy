@@ -173,7 +173,7 @@ M4 — TIERS & RESEARCH                              [DONE]
 
 
 ================================================================================
-M5 — NEEDS, HAPPINESS & GOLD                          [~] core done
+M5 — NEEDS, HAPPINESS & GOLD                          [DONE]
 ================================================================================
   [x] (M) Coverage service buildings: Well (water), Chapel (religion),
           Market (market), Tavern (tavern, Town); staffed by one worker who
@@ -191,9 +191,15 @@ M5 — NEEDS, HAPPINESS & GOLD                          [~] core done
           -> scripts/ui/overlay.gd
   [x] (S) Tier requirements use needs: Town needs 4 Townhouses; City needs
           6 Manors and 60 happiness; Kingdom needs 65 happiness
-  [ ] (M) Haulers: dedicated job moving goods between buildings/storage
-          -> M5b (pairs with per-building inventories from the backlog)
-  [ ] (S) Day/night cycle: villagers go home at night, lighting tint -> M5b
+  [x] (M) Per-building storage: each storage building holds its own goods
+          (Stock), gold is the Keep's treasury; goblins steal from the store
+          they reach; destroyed stores lose their goods  -> systems/stock.gd
+  [x] (M) Workplace output piles; producers fetch inputs from storage or
+          another workplace's pile (bakers take flour straight from the mill)
+  [x] (M) Haulers: Carter's Yard (3 jobs) empties piles into storage and
+          supplies producers; without haulers workers self-haul full piles
+  [x] (S) Day/night cycle (150s day / 50s night): world tint, villagers
+          sleep at home, clock in the top bar  -> systems/day_night.gd
 
   Done when: a city's happiness visibly depends on layout and services,
   and gold comes from a well-served population.
@@ -266,14 +272,11 @@ BACKLOG / MAYBE LATER
   - Forester (replant trees), forest regrowth
   - Minimap
   - Rubble tiles for destroyed buildings (rebuild at a discount)
-  - Per-building inventories (goods stored physically in a specific
-    stockpile/granary; raiders loot what's actually there)
-  - More mills/bakeries auto-balancing, or haulers (M5) to smooth chains
 
 
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. M5b: haulers + per-building inventories
-  2. M5b: day/night cycle
-  3. M6: art pass (24 PixelLab generations left)
+  1. M6: art pass (24 PixelLab generations left): terrain, villager walk,
+     core buildings, goblin
+  2. M7: walls, gates, fire, orcs and trolls
