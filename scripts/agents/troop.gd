@@ -50,7 +50,9 @@ func is_ranged() -> bool:
 
 
 func attack_distance() -> float:
-	return def.range * Terrain.TILE_SIZE if is_ranged() else def.reach
+	if is_ranged():
+		return (def.range + GameState.mod("archer_range", 0.0)) * Terrain.TILE_SIZE
+	return def.reach
 
 
 func _process(delta: float) -> void:
@@ -107,7 +109,7 @@ func _attack() -> void:
 	if _attack_timer > 0.0:
 		return
 	_attack_timer = def.attack_cooldown
-	var damage: float = def.damage
+	var damage: float = def.damage * GameState.mod("troop_damage")
 	if target.def.get("large", false):
 		damage *= def.get("large_bonus", 1.0)
 	if is_ranged():

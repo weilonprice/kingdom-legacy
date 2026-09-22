@@ -101,22 +101,33 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 
 8. SETTLEMENT TIERS & RESEARCH
 --------------------------------------------------------------------------------
-  Tier        Requirement (draft)              Unlocks (draft)
-  ----------  -------------------------------  --------------------------------
-  Hamlet      Start                            House, Woodcutter, Quarry,
-                                               Stockpile, Farm, Well
-  Village     20 pop, food + water met         Mill, Bakery, Chapel, Market,
-                                               Palisade, Watchtower, Militia
-  Town        60 pop, + religion + market      Sawmill, Smithy, Stone walls,
-                                               Barracks, Archers, Tavern
-  City        150 pop, + tavern + clothing     Castle upgrade, Knights, Guilds,
-                                               Siege defenses, Hospital
-  Kingdom     300 pop, + all needs, castle     Cathedral, Elite troops,
-                                               final raid triggers
+  Implemented (M4) — tiers advance automatically when requirements are met.
+  Needs-based requirements (water, religion, market) replace some of these
+  in M5.
 
-  Research: done at a Library/Scholar's Hall with gold + time. Examples:
-    Crop Rotation (+farm yield), Masonry (stone walls), Wheelbarrows
-    (+carry amount), Longbows (archer range), Tempered Steel (+troop damage).
+  Tier        Requirement                        Unlocks
+  ----------  ---------------------------------  ------------------------------
+  Hamlet      Start                              House, Well, Woodcutter,
+                                                 Quarry, Farm, Fisher, Mill,
+                                                 Bakery, Stockpile, Granary,
+                                                 Guard Tower
+  Village     15 pop, Well, Granary              Barracks (Militia, Spearmen),
+                                                 Scholar's Hall, Stone House,
+                                                 5 research topics
+  Town        35 pop, 2 raids survived,          Stone Tower, Warehouse,
+              Barracks, Scholar's Hall           Archers, 2 research topics
+  City        70 pop, 5 raids, 4 research,       (more in later milestones)
+              Warehouse, Stone Tower
+  Kingdom     120 pop, 8 raids, 6 research       Final raid (M8)
+
+  The Keep gains HP and storage each tier (Keep -> Castle -> Citadel).
+  Raids grow by +2 goblins and +1 brute per tier.
+
+  Research (Scholar's Hall; gold up front, time scales with scholars):
+    Village: Crop Rotation (+50% farm yield), Sharp Tools (gathering 30%
+             faster), Wheelbarrows (+20% villager speed), Fletching (towers
+             +2 / archers +1 range), Ledgers (+25% storage)
+    Town:    Tempered Steel (+25% troop damage), Masonry (+50% building HP)
 
 
 9. DEFENSE & COMBAT (HYBRID)
@@ -171,6 +182,7 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   Pause / speed     Space / top-bar buttons (1x, 2x, 4x)
   Squads            Click a troop / drag a box to select; right-click to
                     move or attack; G = guard here; Ctrl+1-9 = squad N
+  Tier panel        T (or the ⚑ button in the top bar)
   Debug             F9 calls a raid now (30s warning)
   Planned: overlays
   (road access, needs coverage, happiness heatmap).
@@ -214,7 +226,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   scripts/autoload/game_state.gd       Stock, capacity, population, speed,
                                        game over
   scripts/data/                        Data tables: building_defs, item_defs,
-                                       enemy_defs, unit_defs
+                                       enemy_defs, unit_defs, tier_defs,
+                                       research_defs
   scripts/world/terrain.gd             Terrain types, rules, tileset atlas
   scripts/world/world_map.gd           Grid, generation, roads, fields,
                                        placement, A*, enemy registry
@@ -227,6 +240,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   scripts/systems/raid_director.gd     Raid schedule, spawning, repair
   scripts/systems/military.gd          Training, squads, upkeep
   scripts/systems/squad.gd             Squad modes, orders, formation
+  scripts/systems/progression.gd       Settlement tiers, unlocks, Keep upgrade
+  scripts/systems/research.gd          Research queue, modifiers
   scripts/controllers/                 Camera, build tools, unit control
   scripts/ui/                          HUD, building panel, squad panel,
                                        raid arrow, game over
@@ -247,8 +262,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
               to food
   [DONE]  M2  First raid: wave timer, goblins, guard tower, villager flee
   [DONE]  M3  Troops: barracks, militia/archers, auto-defend + squad control
-  [NEXT]  M4  Settlement tiers + first research
-          M5  Needs & happiness, taxes/gold
+  [DONE]  M4  Settlement tiers + first research
+  [NEXT]  M5  Needs & happiness, taxes/gold
           M6  PixelLab art pass
           M7  Walls, gates, fire, more enemies (orcs, trolls)
           M8  Win condition, final raid, save/load, balance pass

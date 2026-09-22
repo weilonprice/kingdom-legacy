@@ -149,17 +149,22 @@ M3 — TROOPS (HYBRID CONTROL)                     [DONE]
 
 
 ================================================================================
-M4 — TIERS & RESEARCH                              Goal: long-term progress
+M4 — TIERS & RESEARCH                              [DONE]
 ================================================================================
-  [ ] (M) Settlement tier system: requirements (pop + met needs), tier-up
-          event, unlock lists per tier -> scripts/systems/progression.gd
-  [ ] (S) Build menu shows locked buildings with requirements tooltip
-  [ ] (M) Research: Scholar's Hall building, research queue (gold + time)
+  [x] (M) Settlement tier system: requirements (pop, buildings, raids
+          survived, research count), automatic tier-up, unlock lists per tier
+          -> scripts/systems/progression.gd, scripts/data/tier_defs.gd
+          (needs-based requirements come with M5)
+  [x] (S) Build menu shows locked buildings with requirements tooltip
+  [x] (M) Research: Scholar's Hall building, research queue (gold + time)
           -> scripts/data/research_defs.gd, scripts/ui/research_panel.gd
-  [ ] (S) Research effects as modifiers (yield %, speed %, range, damage)
+  [x] (S) Research effects as modifiers (yield %, speed %, range, damage)
           -> game_state.gd modifier table read by buildings/agents
-  [ ] (S) Raid strength also scales with tier
-  [ ] (S) Keep upgrades visually/functionally with tier (more storage/HP)
+  [x] (S) Raid strength also scales with tier
+  [x] (S) Keep upgrades with tier (HP + storage; renamed Castle/Citadel)
+  [x] (S) New content: Stone House, Scholar's Hall, Stone Tower, Warehouse;
+          Barracks moves to Village, Archers to Town
+  [x] (S) Tier panel (T / top-bar button): requirements + unlocks
 
   Done when: Hamlet -> Village -> Town is achievable, each tier unlocks
   visible new content, and 5+ research items work.
@@ -259,6 +264,6 @@ BACKLOG / MAYBE LATER
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. M4: settlement tiers + unlocks
-  2. M4: Scholar's Hall + research
-  (Art style locked in — see docs/style_test.png, PR #4)
+  1. M5: needs (water, religion, market) + happiness
+  2. M5: house upgrades + tax rate; tier requirements switch to needs
+  3. M5: haulers, overlays, day/night

@@ -38,6 +38,25 @@ const DEFS := {
 		"color": Color(0.35, 0.50, 0.70),
 		"coverage": 6,
 	},
+	"stone_house": {
+		"name": "Stone House",
+		"desc": "A sturdy home for 8 villagers.",
+		"size": Vector2i(2, 2),
+		"cost": {"wood": 20, "stone": 30},
+		"color": Color(0.62, 0.58, 0.54),
+		"housing": 8,
+		"hp": 350.0,
+	},
+	"scholars_hall": {
+		"name": "Scholar's Hall",
+		"desc": "Scholars study research here. More scholars research faster.",
+		"size": Vector2i(2, 2),
+		"cost": {"wood": 50, "stone": 30},
+		"color": Color(0.35, 0.40, 0.62),
+		"jobs": 2,
+		"work": "study",
+		"hp": 300.0,
+	},
 	"woodcutter": {
 		"name": "Woodcutter",
 		"desc": "Chops nearby trees for wood.",
@@ -133,6 +152,19 @@ const DEFS := {
 		"damage": 10.0,
 		"attack_cooldown": 1.2,
 	},
+	"stone_tower": {
+		"name": "Stone Tower",
+		"desc": "A fortified tower: longer range, harder arrows, much tougher walls.",
+		"size": Vector2i(1, 1),
+		"cost": {"wood": 30, "stone": 60},
+		"color": Color(0.45, 0.45, 0.50),
+		"jobs": 1,
+		"work": "guard",
+		"hp": 700.0,
+		"range": 9,
+		"damage": 16.0,
+		"attack_cooldown": 1.1,
+	},
 	"barracks": {
 		"name": "Barracks",
 		"desc": "Trains troops from your villagers. Holds one squad of up to 6; troops heal nearby.",
@@ -152,6 +184,16 @@ const DEFS := {
 		"accepts": ["materials"],
 		"capacity": 150,
 	},
+	"warehouse": {
+		"name": "Warehouse",
+		"desc": "Large storage for both materials and food (250 each).",
+		"size": Vector2i(3, 2),
+		"cost": {"wood": 60, "stone": 40},
+		"color": Color(0.50, 0.42, 0.30),
+		"accepts": ["materials", "food"],
+		"capacity": 250,
+		"hp": 400.0,
+	},
 	"granary": {
 		"name": "Granary",
 		"desc": "Stores 150 food (wheat, flour, bread, fish).",
@@ -165,11 +207,12 @@ const DEFS := {
 
 ## Build menu tabs. Road and Demolish are always-visible tools.
 const CATEGORIES := [
-	{"name": "Housing", "items": ["house", "well"]},
+	{"name": "Housing", "items": ["house", "stone_house", "well"]},
 	{"name": "Resources", "items": ["woodcutter", "quarry"]},
 	{"name": "Food", "items": ["farm", "fisher", "mill", "bakery"]},
-	{"name": "Storage", "items": ["stockpile", "granary"]},
-	{"name": "Defense", "items": ["guard_tower", "barracks"]},
+	{"name": "Storage", "items": ["stockpile", "granary", "warehouse"]},
+	{"name": "Defense", "items": ["guard_tower", "stone_tower", "barracks"]},
+	{"name": "Civic", "items": ["scholars_hall"]},
 ]
 
 

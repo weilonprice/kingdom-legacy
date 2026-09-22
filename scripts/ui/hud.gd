@@ -13,6 +13,8 @@ var citizens: CitizenManager
 var raids: RaidDirector
 var military: Military
 var units: UnitController
+var progression: Progression
+var research: Research
 
 var _materials_label: Label
 var _food_label: Label
@@ -22,6 +24,8 @@ var _raid_label: Label
 var _banner: Label
 var _game_over: GameOverPanel
 var _squad_panel: SquadPanel
+var _tier_button: Button
+var _tier_panel: TierPanel
 var _mode_label: Label
 var _info_label: Label
 var _msg_label: Label
@@ -34,7 +38,10 @@ var _panel: BuildingPanel
 
 
 func setup(p_build: BuildController, p_world: WorldMap, p_citizens: CitizenManager,
-		p_raids: RaidDirector, p_military: Military, p_units: UnitController) -> void:
+		p_raids: RaidDirector, p_military: Military, p_units: UnitController,
+		p_progression: Progression, p_research: Research) -> void:
+	progression = p_progression
+	research = p_research
 	build = p_build
 	world = p_world
 	citizens = p_citizens
@@ -53,8 +60,17 @@ func _ready() -> void:
 	_msg_label.add_theme_font_size_override("font_size", 20)
 
 	_panel = BuildingPanel.new()
-	_panel.setup(build, world, military)
+	_panel.setup(build, world, military, progression, research)
 	add_child(_panel)
+
+	_tier_panel = TierPanel.new()
+	_tier_panel.setup(progression)
+	add_child(_tier_panel)
+	_tier_panel.position = Vector2(10, 80)
+	progression.tier_changed.connect(func(_t: int) -> void:
+		_show_category(_category)
+		_refresh_tier())
+	_refresh_tier()
 
 	_squad_panel = SquadPanel.new()
 	_squad_panel.setup(units)
@@ -105,6 +121,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.keycode == KEY_SPACE:
 		GameState.toggle_pause()
+	elif event.keycode == KEY_T:
+		_tier_panel.toggle()
 	elif event.keycode == KEY_F9:
 		raids.call_raid_now()
 	elif event.keycode == KEY_TAB:
@@ -129,6 +147,8 @@ func _build_top_bar() -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 28)
 	bar.add_child(row)
+	_tier_button = _button(row, "", "Settlement tier — click (or T) for what the next tier needs")
+	_tier_button.pressed.connect(func() -> void: _tier_panel.toggle())
 	_materials_label = _bar_label(row)
 	_food_label = _bar_label(row)
 	_gold_label = _bar_label(row)
@@ -183,7 +203,13 @@ func _show_category(index: int) -> void:
 	for i in items.size():
 		var def := BuildingDefs.get_def(items[i])
 		var tip := "%s\nCost: %s" % [def.desc, BuildingDefs.cost_text(def.cost)]
-		var btn := _button(_item_row, "[%d] %s" % [i + 1, def.name], tip)
+		var locked := progression.locked_reason("buildings", items[i])
+		var label := "[%d] %s" % [i + 1, def.name]
+		if locked != "":
+			label += " 🔒"
+			tip += "\n\n🔒 " + locked
+		var btn := _button(_item_row, label, tip)
+		btn.modulate = Color(1, 1, 1, 0.5) if locked != "" else Color.WHITE
 		btn.pressed.connect(build.select.bind(items[i]))
 
 
@@ -210,6 +236,10 @@ func _outlined_label(pos: Vector2) -> Label:
 	label.add_theme_color_override("font_outline_color", Color.BLACK)
 	add_child(label)
 	return label
+
+
+func _refresh_tier() -> void:
+	_tier_button.text = "⚑ %s" % progression.tier_name()
 
 
 func show_defeat(title: String, body: String) -> void:

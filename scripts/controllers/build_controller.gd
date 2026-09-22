@@ -14,6 +14,7 @@ const COLOR_OK := Color(0.3, 1.0, 0.4, 0.45)
 const COLOR_BAD := Color(1.0, 0.25, 0.2, 0.45)
 
 var world: WorldMap
+var progression: Progression
 var mode := Mode.NONE
 var build_id := ""
 var hover_tile := Vector2i.ZERO
@@ -39,6 +40,10 @@ func select(id: String) -> void:
 		"demolish":
 			mode = Mode.DEMOLISH
 		_:
+			var locked := progression.locked_reason("buildings", id) if progression != null else ""
+			if locked != "":
+				message.emit("%s: %s" % [BuildingDefs.get_def(id).name, locked])
+				return
 			mode = Mode.BUILD
 			build_id = id
 	_dragging_road = false

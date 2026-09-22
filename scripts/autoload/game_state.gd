@@ -10,6 +10,7 @@ signal resources_changed
 signal population_changed
 signal speed_changed
 signal notified(text: String)
+signal modifiers_changed
 
 const SPEEDS := [0.0, 1.0, 2.0, 4.0]
 const START_RESOURCES := {"wood": 120, "stone": 20, "gold": 50, "bread": 40}
@@ -23,6 +24,9 @@ var employed := 0
 var jobs := 0
 var speed := 1
 var game_over := false
+## Research bonuses: key -> value. Multipliers default to 1.0, additive
+## bonuses to 0 (see ResearchDefs).
+var modifiers := {}
 
 var _last_speed := 1
 
@@ -42,6 +46,7 @@ func reset() -> void:
 	employed = 0
 	jobs = 0
 	game_over = false
+	modifiers = {}
 	speed = 1
 	_last_speed = 1
 	Engine.time_scale = 1.0
@@ -61,6 +66,21 @@ func end_game() -> void:
 
 func notify(text: String) -> void:
 	notified.emit(text)
+
+
+# --- Modifiers --------------------------------------------------------------
+
+func mod(key: String, default := 1.0) -> float:
+	return modifiers.get(key, default)
+
+
+func apply_effect(effect: Dictionary) -> void:
+	var key: String = effect.key
+	if effect.has("mul"):
+		modifiers[key] = mod(key, 1.0) * effect.mul
+	if effect.has("add"):
+		modifiers[key] = mod(key, 0.0) + effect.add
+	modifiers_changed.emit()
 
 
 # --- Stock ------------------------------------------------------------------
