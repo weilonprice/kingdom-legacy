@@ -3,6 +3,7 @@ extends Node2D
 
 var world: WorldMap
 var citizens: CitizenManager
+var raids: RaidDirector
 var build: BuildController
 var camera: CameraController
 var hud: HUD
@@ -21,6 +22,10 @@ func _ready() -> void:
 	citizens.setup(world)
 	add_child(citizens)
 
+	raids = RaidDirector.new()
+	raids.setup(world)
+	add_child(raids)
+
 	build = BuildController.new()
 	build.world = world
 	add_child(build)
@@ -31,5 +36,15 @@ func _ready() -> void:
 	add_child(camera)
 
 	hud = HUD.new()
-	hud.setup(build, world, citizens)
+	hud.setup(build, world, citizens, raids)
 	add_child(hud)
+
+	world.keep_destroyed.connect(_on_defeat.bind("The Keep has fallen!"))
+	citizens.all_villagers_lost.connect(_on_defeat.bind("Your people have abandoned the kingdom."))
+
+
+func _on_defeat(title: String) -> void:
+	if GameState.game_over:
+		return
+	GameState.end_game()
+	hud.show_defeat(title, "Raids survived: %d\nMap seed: %d" % [raids.raids_survived, world.map_seed])

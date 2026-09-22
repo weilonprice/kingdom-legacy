@@ -9,13 +9,26 @@ extends Node2D
 ##            (or go to tilled field -> plant)
 ##   produce: go to storage -> take input -> carry to workplace -> work
 ##            -> carry output to storage
+##   guard:   walk to the tower and stay inside on watch
+## During a raid everyone except guards runs home and hides.
 
-enum State { IDLE, WANDER, TO_TARGET, WORKING, TO_DEPOSIT, TO_FETCH, TO_WORKPLACE }
+signal died(villager: Villager)
+
+enum State {
+	IDLE, WANDER, TO_TARGET, WORKING, TO_DEPOSIT, TO_FETCH, TO_WORKPLACE,
+	TO_SHELTER, HIDING, TO_POST, STATIONED,
+}
 enum Task { NONE, GATHER, PLANT, HARVEST, PRODUCE }
 
 const SPEED := 42.0
 const COLOR_UNEMPLOYED := Color(0.87, 0.75, 0.55)
 const COLOR_SKIN := Color(0.96, 0.80, 0.65)
+const MAX_HP := 20.0
+## Villagers run for shelter when raiders come this close, and come back out
+## once none are within SAFE_TILES.
+const DANGER_TILES := 10
+const SAFE_TILES := 14
+const DANGER_CHECK_INTERVAL := 0.4
 const NAMES := [
 	"Aldric", "Bertram", "Cedric", "Edda", "Elspeth", "Godwin", "Hilda", "Isolde",
 	"Jocelyn", "Leofric", "Maud", "Osric", "Rowena", "Sigrid", "Tamsin", "Ulric",
@@ -33,6 +46,7 @@ var path: Array[Vector2i] = []
 var carrying := ""
 var carry_amount := 0
 var missed_meals := 0
+var health := Health.new(MAX_HP)
 ## What this villager is doing, shown in the building inspector.
 var note := "Settling in"
 
@@ -42,12 +56,16 @@ var _storage: Building
 ## Storage space held for the output we're about to produce.
 var _held_space := 0
 var _held_item := ""
+var _danger_timer := 0.0
 
 
 func setup(p_world: WorldMap, p_home: Building) -> void:
 	world = p_world
 	home = p_home
 	villager_name = NAMES.pick_random()
+	add_to_group("villagers")
+	health.changed.connect(queue_redraw)
+	health.died.connect(func() -> void: died.emit(self))
 	_jitter = Vector2(randf_range(-7, 7), randf_range(-7, 7))
 	position = world.tile_center(home.entrance()) + _jitter
 	timer = randf()
@@ -55,6 +73,15 @@ func setup(p_world: WorldMap, p_home: Building) -> void:
 
 func current_tile() -> Vector2i:
 	return world.world_to_tile(position)
+
+
+## Raiders can only attack villagers who are out in the open.
+func is_targetable() -> bool:
+	return visible and not health.is_dead()
+
+
+func is_guard() -> bool:
+	return job != null and job.def.get("work", "") == "guard"
 
 
 func set_job(building: Building) -> void:
@@ -83,6 +110,7 @@ func _reset() -> void:
 	state = State.IDLE
 	task = Task.NONE
 	timer = 0.5
+	visible = true
 	queue_redraw()
 
 
@@ -110,10 +138,16 @@ func _wait(reason: String, seconds := 2.0) -> void:
 
 
 func _process(delta: float) -> void:
+	_danger_timer -= delta
+	if _danger_timer <= 0.0:
+		_danger_timer = DANGER_CHECK_INTERVAL
+		_update_raid_response()
 	if not path.is_empty():
 		_step(delta)
 		return
 	match state:
+		State.HIDING, State.STATIONED:
+			pass
 		State.IDLE:
 			timer -= delta
 			if timer <= 0.0:
@@ -167,8 +201,47 @@ func _think() -> void:
 			_plan_farm()
 		"produce":
 			_plan_produce()
+		"guard":
+			_plan_guard()
 		_:
 			_wander()
+
+
+func _plan_guard() -> void:
+	if _walk_to(job.entrance()):
+		state = State.TO_POST
+		note = "Heading to the tower"
+	else:
+		_wait("Can't reach the tower", 3.0)
+
+
+# --- Raids ------------------------------------------------------------------
+
+func _update_raid_response() -> void:
+	var sheltering := state == State.TO_SHELTER or state == State.HIDING
+	var radius := (SAFE_TILES if sheltering else DANGER_TILES) * Terrain.TILE_SIZE
+	var should_hide := world.raid_active and not is_guard() and world.enemy_within(position, radius)
+	if should_hide and not sheltering:
+		_seek_shelter()
+	elif not should_hide and sheltering:
+		visible = true
+		_wait("Back to work", randf_range(0.2, 1.5))
+
+
+func _seek_shelter() -> void:
+	_reset()
+	var shelter: Building = home if is_instance_valid(home) else world.keep
+	if shelter != null and _walk_to(shelter.entrance()):
+		state = State.TO_SHELTER
+		note = "Fleeing to shelter"
+	else:
+		_hide()
+
+
+func _hide() -> void:
+	state = State.HIDING
+	visible = false
+	note = "Hiding from raiders"
 
 
 func _plan_gather() -> void:
@@ -257,6 +330,15 @@ func _wander() -> void:
 
 func _arrive() -> void:
 	match state:
+		State.TO_SHELTER:
+			_hide()
+		State.TO_POST:
+			if job == null:
+				_reset()
+				return
+			state = State.STATIONED
+			visible = false
+			note = "On watch"
 		State.TO_TARGET:
 			if job == null or _target_tile == WorldMap.INVALID_TILE:
 				_reset()
@@ -354,6 +436,7 @@ func _draw() -> void:
 		draw_rect(Rect2(Vector2(3, -3), Vector2(6, 6)), c.darkened(0.5), false, 1.0)
 	if missed_meals > 0:
 		draw_circle(Vector2(-5, -8), 2.0, Color(0.9, 0.15, 0.1))
+	health.draw_bar(self, Vector2(0, -12), 12)
 
 
 func set_missed_meals(value: int) -> void:
