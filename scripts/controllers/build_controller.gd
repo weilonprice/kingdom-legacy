@@ -72,7 +72,7 @@ func mode_text() -> String:
 
 
 func _process(_delta: float) -> void:
-	var t := world.world_to_tile(get_global_mouse_position())
+	var t: Vector2i = world.world_to_tile(get_global_mouse_position())
 	if t != hover_tile:
 		hover_tile = t
 		queue_redraw()
@@ -124,7 +124,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _try_build() -> void:
 	var origin := _build_origin()
 	var def := BuildingDefs.get_def(build_id)
-	var err := world.can_place_building(build_id, origin)
+	var err: String = world.can_place_building(build_id, origin)
 	if err != "":
 		message.emit(err)
 	elif not GameState.spend(def.cost):
@@ -169,7 +169,7 @@ func _draw() -> void:
 			var def := BuildingDefs.get_def(build_id)
 			var origin := _build_origin()
 			var size: Vector2i = def.size
-			var ok := world.can_place_building(build_id, origin) == "" and GameState.can_afford(def.cost)
+			var ok: bool = world.can_place_building(build_id, origin) == "" and GameState.can_afford(def.cost)
 			if def.has("fields") and ok:
 				for t in world.field_candidates(origin, size, def.field_radius).slice(0, def.fields):
 					draw_rect(Rect2(Vector2(t * tile), Vector2(tile, tile)), Color(0.9, 0.75, 0.3, 0.35))
