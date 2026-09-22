@@ -31,3 +31,18 @@ villagers fed, while goblins, orcs and trolls raid in escalating waves.
 | Pause / speed | Space / top-bar buttons |
 | Tier progress | T |
 | Call a raid now (testing) | F9 |
+
+## Verification
+
+`tools/verify/` drives the real game with injected mouse and keyboard input and
+records screenshots, state snapshots and a pass/fail report:
+
+```bash
+tools/verify/doctor.sh
+tools/verify/run.sh tools/verify/scenarios/build-and-inspect.json
+tools/verify/cleanup.sh
+```
+
+See `tools/verify/README.md` for the scenario format and
+`.claude/skills/verify-kingdom-legacy/` for the agent guide and feature map.
+Pass `-- --seed=N` to Godot to replay a specific map.

@@ -19,7 +19,7 @@ func _ready() -> void:
 
 	world = WorldMap.new()
 	add_child(world)
-	world.generate(randi())
+	world.generate(_seed_from_args())
 	print("Map seed: %d" % world.map_seed)
 
 	citizens = CitizenManager.new()
@@ -65,6 +65,14 @@ func _ready() -> void:
 
 	world.keep_destroyed.connect(_on_defeat.bind("The Keep has fallen!"))
 	citizens.all_villagers_lost.connect(_on_defeat.bind("Your people have abandoned the kingdom."))
+
+
+## `godot --path . -- --seed=123` replays a specific map; otherwise random.
+func _seed_from_args() -> int:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--seed="):
+			return int(arg.get_slice("=", 1))
+	return randi()
 
 
 func _on_defeat(title: String) -> void:

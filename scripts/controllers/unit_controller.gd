@@ -17,6 +17,8 @@ var military: Military
 var selected: Array[Squad] = []
 
 var _press_pos := Vector2.ZERO
+## Cursor in world space, from the latest mouse event.
+var _mouse_world := Vector2.ZERO
 var _pressing := false
 var _box_active := false
 
@@ -41,6 +43,8 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouse:
+		_mouse_world = get_canvas_transform().affine_inverse() * event.position
 	if build.mode != BuildController.Mode.NONE:
 		_pressing = false
 		_box_active = false
@@ -50,7 +54,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton:
 		_handle_button(event)
 	elif event is InputEventMouseMotion and _pressing:
-		if get_global_mouse_position().distance_to(_press_pos) > DRAG_THRESHOLD:
+		if _mouse_world.distance_to(_press_pos) > DRAG_THRESHOLD:
 			_box_active = true
 
 
@@ -73,7 +77,7 @@ func _handle_key(event: InputEventKey) -> void:
 
 
 func _handle_button(event: InputEventMouseButton) -> void:
-	var pos := get_global_mouse_position()
+	var pos := _mouse_world
 	if event.button_index == MOUSE_BUTTON_LEFT:
 		# Presses fall through so the build controller can select buildings;
 		# on release we override that if a troop or box was selected.
@@ -170,6 +174,6 @@ func _draw() -> void:
 				draw_line(s.center(), goal, Color(0.4, 1.0, 0.4, 0.5), 1.5)
 				draw_arc(goal, 6.0, 0, TAU, 16, Color(0.4, 1.0, 0.4), 2.0)
 	if _box_active:
-		var rect := Rect2(_press_pos, get_global_mouse_position() - _press_pos).abs()
+		var rect := Rect2(_press_pos, _mouse_world - _press_pos).abs()
 		draw_rect(rect, Color(0.4, 1.0, 0.4, 0.15))
 		draw_rect(rect, Color(0.4, 1.0, 0.4, 0.8), false, 1.5)
