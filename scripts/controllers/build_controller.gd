@@ -20,6 +20,9 @@ var build_id := ""
 var hover_tile := Vector2i.ZERO
 var selected: Building
 
+## Last cursor position in screen space, taken from mouse events (polling the
+## viewport would miss injected input and lag behind the event being handled).
+var _mouse_screen := Vector2.ZERO
 var _road_start := Vector2i.ZERO
 var _dragging_road := false
 
@@ -76,14 +79,22 @@ func mode_text() -> String:
 	return ""
 
 
+## Recomputed every frame too, since the camera can move under a still cursor.
 func _process(_delta: float) -> void:
-	var t: Vector2i = world.world_to_tile(get_global_mouse_position())
+	_update_hover()
+
+
+func _update_hover() -> void:
+	var t: Vector2i = world.world_to_tile(get_canvas_transform().affine_inverse() * _mouse_screen)
 	if t != hover_tile:
 		hover_tile = t
 		queue_redraw()
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouse:
+		_mouse_screen = event.position
+		_update_hover()
 	if event is InputEventKey and event.pressed and not event.echo:
 		if HOTKEYS.has(event.keycode):
 			select(HOTKEYS[event.keycode])
@@ -117,8 +128,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				_dragging_road = true
 				_road_start = hover_tile
 			elif _dragging_road:
+				var tiles := _road_tiles()  # before clearing the flag it depends on
 				_dragging_road = false
-				world.place_roads(_road_tiles())
+				world.place_roads(tiles)
 		Mode.DEMOLISH:
 			if event.pressed:
 				_emit_if(world.demolish_at(hover_tile))

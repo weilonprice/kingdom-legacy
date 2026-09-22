@@ -13,8 +13,10 @@ GUIDING RULES
   - Systems first, art later: placeholder shapes until a system is locked in.
   - Data-driven: new buildings/units/enemies should mostly be new entries in
     a defs file, not new code.
-  - Test each milestone with a headless smoke test (sim runs N minutes, check
-    resources/pop/raid outcome) before playtesting by hand.
+  - Prove each milestone with tools/verify (real input, screenshots; see
+    .claude/skills/verify-kingdom-legacy) plus headless smoke tests for long
+    simulations, before playtesting by hand. Add a feature file + scenario
+    for new player-facing features.
   - Spend PixelLab generations only on assets whose size/role is final.
 
 
@@ -256,6 +258,8 @@ BACKLOG / MAYBE LATER
   - Forester (replant trees), forest regrowth
   - Minimap
   - Rubble tiles for destroyed buildings (rebuild at a discount)
+  - BUG: at Village+ the top bar overflows 1600px and pushes the 2x/4x speed
+    buttons off-screen (found by tools/verify screenshots)
   - Per-building inventories (goods stored physically in a specific
     stockpile/granary; raiders loot what's actually there)
   - More mills/bakeries auto-balancing, or haulers (M5) to smooth chains
