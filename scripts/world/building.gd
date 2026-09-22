@@ -12,6 +12,11 @@ var residents: Array = []
 var workers: Array = []
 var fields: Array[Vector2i] = []
 var health: Health
+## Display name (the Keep is renamed as the settlement grows).
+var title := ""
+## HP and storage before research bonuses; the Keep's grow with the tier.
+var base_hp := 200.0
+var base_capacity := 0
 
 var _attack_cooldown := 0.0
 
@@ -23,10 +28,50 @@ func setup(p_world: WorldMap, id: String, p_origin: Vector2i) -> void:
 	origin = p_origin
 	size = def.size
 	position = Vector2(origin * Terrain.TILE_SIZE)
-	health = Health.new(def.get("hp", 200.0))
+	title = def.name
+	base_hp = def.get("hp", 200.0)
+	base_capacity = def.get("capacity", 0)
+	health = Health.new(base_hp * GameState.mod("building_hp"))
 	health.changed.connect(queue_redraw)
 	health.died.connect(func() -> void: world.destroy_building(self))
+	GameState.modifiers_changed.connect(refresh_max_hp)
+
+
+func _ready() -> void:
+	# Only towers need per-frame logic (Godot re-enables processing on
+	# entering the tree, so this must happen here rather than in setup()).
 	set_process(def.has("damage"))
+
+
+func set_base_hp(value: float) -> void:
+	base_hp = value
+	refresh_max_hp()
+
+
+## Re-derives max HP from base HP and research; any increase is added as HP.
+func refresh_max_hp() -> void:
+	var new_max := base_hp * GameState.mod("building_hp")
+	var gain := new_max - health.max_hp
+	health.max_hp = new_max
+	health.hp = clampf(health.hp + maxf(gain, 0.0), 0.0, new_max)
+	health.changed.emit()
+
+
+func storage_capacity() -> int:
+	return int(base_capacity * GameState.mod("storage_capacity"))
+
+
+func attack_range_tiles() -> float:
+	return def.range + GameState.mod("tower_range", 0.0)
+
+
+## Workers inside the building (guards on watch, scholars studying).
+func stationed_count() -> int:
+	var n := 0
+	for v in workers:
+		if v.state == Villager.State.STATIONED:
+			n += 1
+	return n
 
 
 func center() -> Vector2:
@@ -35,10 +80,7 @@ func center() -> Vector2:
 
 ## A guard is inside and on watch.
 func is_manned() -> bool:
-	for v in workers:
-		if v.state == Villager.State.STATIONED:
-			return true
-	return false
+	return stationed_count() > 0
 
 
 ## Towers: shoot the nearest raider in range while manned.
@@ -46,7 +88,7 @@ func _process(delta: float) -> void:
 	_attack_cooldown -= delta
 	if _attack_cooldown > 0.0 or not is_manned():
 		return
-	var target: Enemy = world.nearest_enemy(center(), def.range * Terrain.TILE_SIZE)
+	var target: Enemy = world.nearest_enemy(center(), attack_range_tiles() * Terrain.TILE_SIZE)
 	if target == null:
 		return
 	_attack_cooldown = def.attack_cooldown
@@ -81,12 +123,14 @@ func status() -> String:
 		return "No workers"
 	if def.get("work", "") == "guard" and not is_manned():
 		return "Guard on the way"
+	if def.get("work", "") == "study" and not is_manned():
+		return "Scholars on the way"
 	return ""
 
 
 ## One-line summary for hover info.
 func describe() -> String:
-	var lines := PackedStringArray([def.name])
+	var lines := PackedStringArray([title])
 	if health.is_damaged():
 		lines.append("HP: %d/%d" % [health.hp, health.max_hp])
 	if def.get("housing", 0) > 0:
@@ -118,7 +162,9 @@ func inspect_text() -> String:
 				world.count_fields(self, WorldMap.FieldStage.RIPE)])
 		"guard":
 			lines.append("Shoots raiders within %d tiles for %d damage every %.1fs." % [
-				def.range, def.damage, def.attack_cooldown])
+				attack_range_tiles(), def.damage, def.attack_cooldown])
+		"study":
+			lines.append("Scholars studying: %d" % stationed_count())
 		"produce":
 			lines.append("Recipe: %s → %s  (%ds)" % [
 				BuildingDefs.stack_text(def.input), BuildingDefs.stack_text(def.output), def.work_time])
@@ -129,6 +175,8 @@ func inspect_text() -> String:
 				category, GameState.used(category), GameState.capacity.get(category, 0)])
 	if def.has("coverage"):
 		lines.append("Covers homes within %d tiles." % def.coverage)
+	if base_capacity > 0:
+		lines.append("This building adds %d storage per category." % storage_capacity())
 
 	if def.get("housing", 0) > 0:
 		lines.append("")
@@ -159,7 +207,7 @@ func _draw() -> void:
 
 	var font := ThemeDB.fallback_font
 	if size.x > 1:
-		draw_string(font, Vector2(6, 18), def.name, HORIZONTAL_ALIGNMENT_LEFT, px.x - 10, 11, Color(1, 1, 1, 0.95))
+		draw_string(font, Vector2(6, 18), title, HORIZONTAL_ALIGNMENT_LEFT, px.x - 10, 11, Color(1, 1, 1, 0.95))
 
 	if def.has("damage"):
 		# Crenellations so towers read differently from houses.

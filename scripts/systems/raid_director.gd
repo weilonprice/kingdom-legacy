@@ -17,6 +17,8 @@ const WARNING_TIME := 30.0
 const REPAIR_RATE := 0.02
 
 var world: WorldMap
+## Set by main; raids grow with the settlement tier.
+var progression: Progression
 var phase := Phase.CALM
 var raids_survived := 0
 var spawn_tile := WorldMap.INVALID_TILE
@@ -56,10 +58,11 @@ func call_raid_now() -> void:
 
 ## Which enemies the next raid brings.
 func composition() -> Dictionary:
-	var goblins := 2 + floori(GameState.population / 6.0) + raids_survived
+	var tier := progression.tier if progression != null else 0
+	var goblins := 2 + floori(GameState.population / 6.0) + raids_survived + tier * 2
 	var brutes := 0
 	if raids_survived >= 1:
-		brutes = 1 + floori((raids_survived - 1) / 2.0)
+		brutes = 1 + floori((raids_survived - 1) / 2.0) + tier
 	return {"goblin": goblins, "goblin_brute": brutes}
 
 

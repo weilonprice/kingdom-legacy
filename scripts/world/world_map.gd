@@ -40,6 +40,7 @@ var astar := AStarGrid2D.new()
 
 
 func _ready() -> void:
+	GameState.modifiers_changed.connect(recompute_capacity)
 	var tileset := Terrain.build_tileset()
 	terrain_layer = TileMapLayer.new()
 	terrain_layer.tile_set = tileset
@@ -342,7 +343,7 @@ func place_building(id: String, origin: Vector2i) -> Building:
 	if b.def.has("fields"):
 		_allocate_fields(b)
 	b.refresh_road_access()
-	_recompute_capacity()
+	recompute_capacity()
 	building_placed.emit(b)
 	return b
 
@@ -356,7 +357,7 @@ func remove_building(b: Building) -> void:
 		if fields.has(t) and fields[t].farm == b:
 			set_terrain(t, Terrain.GRASS)
 	buildings.erase(b)
-	_recompute_capacity()
+	recompute_capacity()
 	building_removed.emit(b)
 	b.queue_free()
 
@@ -404,11 +405,11 @@ func demolish_at(t: Vector2i) -> String:
 	return ""
 
 
-func _recompute_capacity() -> void:
+func recompute_capacity() -> void:
 	var cap := {}
 	for b in buildings:
 		for category: String in b.def.get("accepts", []):
-			cap[category] = cap.get(category, 0) + b.def.capacity
+			cap[category] = cap.get(category, 0) + b.storage_capacity()
 	GameState.set_capacity(cap)
 
 
@@ -482,7 +483,7 @@ func harvest_field(t: Vector2i) -> int:
 		return 0
 	var farm: Building = fields[t].farm
 	_set_field_stage(t, FieldStage.TILLED)
-	return farm.def.yield
+	return roundi(farm.def.yield * GameState.mod("farm_yield"))
 
 
 # --- Roads ------------------------------------------------------------------

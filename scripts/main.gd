@@ -6,6 +6,8 @@ var citizens: CitizenManager
 var raids: RaidDirector
 var military: Military
 var units: UnitController
+var research: Research
+var progression: Progression
 var build: BuildController
 var camera: CameraController
 var hud: HUD
@@ -28,12 +30,23 @@ func _ready() -> void:
 	raids.setup(world)
 	add_child(raids)
 
+	research = Research.new()
+	research.setup(world)
+	add_child(research)
+
+	progression = Progression.new()
+	progression.setup(world, raids, research)
+	add_child(progression)
+	raids.progression = progression
+
 	military = Military.new()
 	military.setup(world, citizens)
+	military.progression = progression
 	add_child(military)
 
 	build = BuildController.new()
 	build.world = world
+	build.progression = progression
 	add_child(build)
 
 	# Added after the build controller so it sees input first.
@@ -47,7 +60,7 @@ func _ready() -> void:
 	add_child(camera)
 
 	hud = HUD.new()
-	hud.setup(build, world, citizens, raids, military, units)
+	hud.setup(build, world, citizens, raids, military, units, progression, research)
 	add_child(hud)
 
 	world.keep_destroyed.connect(_on_defeat.bind("The Keep has fallen!"))

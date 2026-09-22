@@ -11,6 +11,7 @@ const HUNGER_DAMAGE := 0.25
 
 var world: WorldMap
 var citizens: CitizenManager
+var progression: Progression
 var squads: Array[Squad] = []
 ## Barracks -> {"queue": Array[String], "timer": float}
 var training := {}
@@ -68,6 +69,8 @@ func training_progress(barracks: Building) -> float:
 ## Starts training a recruit. Returns "" on success or a reason it can't.
 func train(barracks: Building, unit_id: String) -> String:
 	var def := UnitDefs.get_def(unit_id)
+	if progression != null and not progression.is_unlocked("units", unit_id):
+		return "%s: %s" % [def.name, progression.locked_reason("units", unit_id)]
 	var squad := squad_for(barracks)
 	var capacity: int = barracks.def.troop_capacity
 	if squad.troops.size() + queue_for(barracks).size() >= capacity:

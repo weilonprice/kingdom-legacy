@@ -9,6 +9,8 @@ const WIDTH := 340.0
 var world: WorldMap
 var build: BuildController
 var military: Military
+var progression: Progression
+var research: Research
 var building: Building
 
 var _title: Label
@@ -16,13 +18,18 @@ var _body: Label
 var _demolish: Button
 var _train_row: HBoxContainer
 var _train_buttons := {}  # unit id -> Button
+var _research_box: VBoxContainer
+var _research_buttons := {}  # research id -> Button
 var _refresh_time := 0.0
 
 
-func setup(p_build: BuildController, p_world: WorldMap, p_military: Military) -> void:
+func setup(p_build: BuildController, p_world: WorldMap, p_military: Military,
+		p_progression: Progression, p_research: Research) -> void:
 	build = p_build
 	world = p_world
 	military = p_military
+	progression = p_progression
+	research = p_research
 
 
 func _ready() -> void:
@@ -61,6 +68,19 @@ func _ready() -> void:
 		_train_row.add_child(btn)
 		_train_buttons[unit_id] = btn
 
+	_research_box = VBoxContainer.new()
+	col.add_child(_research_box)
+	for id: String in ResearchDefs.ORDER:
+		var rdef := ResearchDefs.get_def(id)
+		var rbtn := Button.new()
+		rbtn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		rbtn.tooltip_text = "%s\nCost: %s   Time: %ds with 1 scholar" % [
+			rdef.desc, BuildingDefs.cost_text(rdef.cost), rdef.time]
+		rbtn.focus_mode = Control.FOCUS_NONE
+		rbtn.pressed.connect(_on_research.bind(id))
+		_research_box.add_child(rbtn)
+		_research_buttons[id] = rbtn
+
 	_demolish = Button.new()
 	_demolish.text = "Demolish (50% refund)"
 	_demolish.focus_mode = Control.FOCUS_NONE
@@ -88,14 +108,22 @@ func _process(delta: float) -> void:
 
 func _refresh() -> void:
 	_refresh_time = REFRESH_SECONDS
-	_title.text = building.def.name
+	_title.text = building.title
 	var text := building.inspect_text()
 	var trains := building.def.has("trains")
 	_train_row.visible = trains
 	if trains:
 		text += "\n\n" + _military_text()
 		for unit_id: String in _train_buttons:
-			_train_buttons[unit_id].disabled = not GameState.can_afford(UnitDefs.get_def(unit_id).cost)
+			var btn: Button = _train_buttons[unit_id]
+			var locked := progression.locked_reason("units", unit_id)
+			btn.text = UnitDefs.get_def(unit_id).name + (" 🔒" if locked != "" else "")
+			btn.disabled = locked != "" or not GameState.can_afford(UnitDefs.get_def(unit_id).cost)
+	var studies: bool = building.def.get("work", "") == "study"
+	_research_box.visible = studies
+	if studies:
+		text += "\n\n" + _research_text()
+		_refresh_research_buttons()
 	_body.text = text
 	_demolish.visible = building != world.keep
 	# Shrink back to fit when the text gets shorter.
@@ -116,6 +144,49 @@ func _military_text() -> String:
 		lines.append("Training: %s  (%d%%)" % [", ".join(names), military.training_progress(building) * 100])
 	lines.append("Upkeep (all troops): %d gold/min" % military.upkeep_per_minute())
 	return "\n".join(lines)
+
+
+func _research_text() -> String:
+	var lines := PackedStringArray()
+	var current := research.active()
+	if current == "":
+		lines.append("Research: idle — pick a topic below")
+	else:
+		lines.append("Researching %s: %d%%  (%d scholar%s working)" % [
+			ResearchDefs.get_def(current).name, research.progress_ratio() * 100,
+			research.scholars_working(), "" if research.scholars_working() == 1 else "s"])
+		if research.scholars_working() == 0:
+			lines.append("⚠ No scholars at work — research is paused")
+	if research.queue.size() > 1:
+		lines.append("Queued: %d more" % (research.queue.size() - 1))
+	lines.append("Completed: %d/%d" % [research.completed.size(), ResearchDefs.ORDER.size()])
+	return "\n".join(lines)
+
+
+func _refresh_research_buttons() -> void:
+	for id: String in _research_buttons:
+		var btn: Button = _research_buttons[id]
+		var rdef := ResearchDefs.get_def(id)
+		var locked := progression.locked_reason("research", id)
+		if research.is_done(id):
+			btn.text = "✔ %s" % rdef.name
+			btn.disabled = true
+		elif research.is_queued(id):
+			btn.text = "⏳ %s" % rdef.name
+			btn.disabled = true
+		elif locked != "":
+			btn.text = "🔒 %s — %s" % [rdef.name, locked]
+			btn.disabled = true
+		else:
+			btn.text = "%s  (%s)" % [rdef.name, BuildingDefs.cost_text(rdef.cost)]
+			btn.disabled = not GameState.can_afford(rdef.cost)
+
+
+func _on_research(id: String) -> void:
+	var err := research.start(id, progression)
+	if err != "":
+		build.message.emit(err)
+	_refresh()
 
 
 func _on_train(unit_id: String) -> void:

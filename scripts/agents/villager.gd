@@ -84,6 +84,11 @@ func is_guard() -> bool:
 	return job != null and job.def.get("work", "") == "guard"
 
 
+## Guards and scholars work from inside their building and don't flee raids.
+func works_inside() -> bool:
+	return job != null and job.def.get("work", "") in ["guard", "study"]
+
+
 func set_job(building: Building) -> void:
 	job = building
 	job.workers.append(self)
@@ -163,7 +168,7 @@ func _process(delta: float) -> void:
 func _step(delta: float) -> void:
 	var target: Vector2 = world.tile_center(path[0]) + _jitter
 	var to_target := target - position
-	var move := SPEED * world.speed_multiplier(current_tile()) * delta
+	var move := SPEED * GameState.mod("villager_speed") * world.speed_multiplier(current_tile()) * delta
 	if to_target.length() <= move:
 		position = target
 		path.remove_at(0)
@@ -201,18 +206,18 @@ func _think() -> void:
 			_plan_farm()
 		"produce":
 			_plan_produce()
-		"guard":
-			_plan_guard()
+		"guard", "study":
+			_plan_station()
 		_:
 			_wander()
 
 
-func _plan_guard() -> void:
+func _plan_station() -> void:
 	if _walk_to(job.entrance()):
 		state = State.TO_POST
-		note = "Heading to the tower"
+		note = "Heading to the %s" % job.title
 	else:
-		_wait("Can't reach the tower", 3.0)
+		_wait("Can't reach the %s" % job.title, 3.0)
 
 
 # --- Raids ------------------------------------------------------------------
@@ -220,7 +225,7 @@ func _plan_guard() -> void:
 func _update_raid_response() -> void:
 	var sheltering := state == State.TO_SHELTER or state == State.HIDING
 	var radius := (SAFE_TILES if sheltering else DANGER_TILES) * Terrain.TILE_SIZE
-	var should_hide := world.raid_active and not is_guard() and world.enemy_within(position, radius)
+	var should_hide := world.raid_active and not works_inside() and world.enemy_within(position, radius)
 	if should_hide and not sheltering:
 		_seek_shelter()
 	elif not should_hide and sheltering:
@@ -338,13 +343,13 @@ func _arrive() -> void:
 				return
 			state = State.STATIONED
 			visible = false
-			note = "On watch"
+			note = "On watch" if is_guard() else "Studying"
 		State.TO_TARGET:
 			if job == null or _target_tile == WorldMap.INVALID_TILE:
 				_reset()
 				return
 			state = State.WORKING
-			timer = job.def.work_time
+			timer = job.def.work_time * (GameState.mod("gather_time") if task == Task.GATHER else 1.0)
 			note = {Task.GATHER: "Gathering %s" % job.def.get("resource", ""),
 					Task.PLANT: "Planting", Task.HARVEST: "Harvesting"}.get(task, "Working")
 		State.TO_FETCH:
