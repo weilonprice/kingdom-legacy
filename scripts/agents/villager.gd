@@ -127,7 +127,7 @@ func _process(delta: float) -> void:
 
 
 func _step(delta: float) -> void:
-	var target := world.tile_center(path[0]) + _jitter
+	var target: Vector2 = world.tile_center(path[0]) + _jitter
 	var to_target := target - position
 	var move := SPEED * world.speed_multiplier(current_tile()) * delta
 	if to_target.length() <= move:
@@ -138,7 +138,7 @@ func _step(delta: float) -> void:
 
 
 func _walk_to(t: Vector2i) -> bool:
-	var p := world.find_path(current_tile(), t)
+	var p: Array[Vector2i] = world.find_path(current_tile(), t)
 	if p.is_empty():
 		return false
 	p.remove_at(0)
@@ -172,12 +172,12 @@ func _think() -> void:
 
 
 func _plan_gather() -> void:
-	var def := job.def
+	var def: Dictionary = job.def
 	if GameState.space_for(def.resource) <= 0:
 		_wait("Storage full", 3.0)
 		return
 	for t in world.find_resource_tiles(job.entrance(), def.gather_terrain, def.radius, 6):
-		var stand := world.approach_tile(t)
+		var stand: Vector2i = world.approach_tile(t)
 		if stand != WorldMap.INVALID_TILE and _walk_to(stand):
 			_claim(t)
 			task = Task.GATHER
@@ -188,7 +188,7 @@ func _plan_gather() -> void:
 
 
 func _plan_farm() -> void:
-	var t := world.find_field(job, WorldMap.FieldStage.RIPE)
+	var t: Vector2i = world.find_field(job, WorldMap.FieldStage.RIPE)
 	if t != WorldMap.INVALID_TILE and GameState.space_for("wheat") > 0 and _walk_to(t):
 		_claim(t)
 		task = Task.HARVEST
@@ -219,7 +219,7 @@ func _plan_produce() -> void:
 	if GameState.count(input) < job.def.input[input]:
 		_wait("Waiting for %s" % input, 3.0)
 		return
-	var storage := world.nearest_storage_for(input, current_tile())
+	var storage: Building = world.nearest_storage_for(input, current_tile())
 	if storage != null and _walk_to(storage.entrance()):
 		_storage = storage
 		state = State.TO_FETCH
@@ -233,7 +233,7 @@ func _go_deposit() -> void:
 	if GameState.space_for(carrying) + own_held <= 0:
 		_wait("Storage full (holding %s)" % carrying, 3.0)
 		return
-	var storage := world.nearest_storage_for(carrying, current_tile())
+	var storage: Building = world.nearest_storage_for(carrying, current_tile())
 	if storage != null and _walk_to(storage.entrance()):
 		_storage = storage
 		state = State.TO_DEPOSIT
@@ -243,7 +243,7 @@ func _go_deposit() -> void:
 
 
 func _wander() -> void:
-	var anchor := home.entrance() if is_instance_valid(home) else current_tile()
+	var anchor: Vector2i = home.entrance() if is_instance_valid(home) else current_tile()
 	for i in 6:
 		var t := anchor + Vector2i(randi_range(-4, 4), randi_range(-4, 4))
 		if world.is_walkable(t) and _walk_to(t):
@@ -315,7 +315,7 @@ func _finish_work() -> void:
 	if job == null:
 		_reset()
 		return
-	var def := job.def
+	var def: Dictionary = job.def
 	var amount := 0
 	var item := ""
 	match task:

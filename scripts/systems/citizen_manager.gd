@@ -98,7 +98,7 @@ func _assign_jobs() -> void:
 
 
 func _closest(candidates: Array, tile: Vector2i) -> Villager:
-	var target := world.tile_center(tile)
+	var target: Vector2 = world.tile_center(tile)
 	var best: Villager = candidates[0]
 	for v: Villager in candidates:
 		if v.position.distance_squared_to(target) < best.position.distance_squared_to(target):
