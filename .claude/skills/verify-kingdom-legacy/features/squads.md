@@ -24,6 +24,7 @@ Preconditions:
 
 - `{"include": "village-setup.json"}` (reaches Village with 16 pop).
 
+- **Top bar fits.** Right after Village, `expect` `button_on_screen` = `4x` (the speed buttons used to overflow off-screen at Village).
 - **Build barracks.** `{"click_button": "Defense"}`, `find_site` barracks with `entrance_on_road`, `{"click_button": "Barracks"}`, `{"click_tile": "barracks"}`. `expect` `buildings.barracks` = 1.
 - **Train.** Click the barracks tile, then `{"click_button": "Spearman"}`, `{"click_button": "Militia"}`. `expect` text `Training:`; `wait_until` `squad_troops_min` = 2 at `4x`.
 - **Select.** `{"key": "Escape"}`, `{"key": "CTRL+1"}`. `expect` text `Squad 1`.

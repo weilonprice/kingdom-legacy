@@ -145,18 +145,17 @@ func _build_top_bar() -> void:
 	add_child(bar)
 	bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 28)
+	row.add_theme_constant_override("separation", 20)
 	bar.add_child(row)
 	_tier_button = _button(row, "", "Settlement tier — click (or T) for what the next tier needs")
 	_tier_button.pressed.connect(func() -> void: _tier_panel.toggle())
-	_materials_label = _bar_label(row)
-	_food_label = _bar_label(row)
-	_gold_label = _bar_label(row)
-	_pop_label = _bar_label(row)
-	_raid_label = _bar_label(row)
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(spacer)
+	# Info labels share the leftover width and truncate, so the speed buttons
+	# on the right always stay on screen however long the numbers get.
+	_materials_label = _bar_label(row, 1.3)
+	_food_label = _bar_label(row, 1.8)
+	_gold_label = _bar_label(row, 1.0)
+	_pop_label = _bar_label(row, 1.0)
+	_raid_label = _bar_label(row, 0.8)
 	for i in SPEED_LABELS.size():
 		var btn := _button(row, SPEED_LABELS[i], "Space toggles pause")
 		btn.toggle_mode = true
@@ -222,10 +221,21 @@ func _button(parent: Control, text: String, tip: String) -> Button:
 	return btn
 
 
-func _bar_label(parent: Control) -> Label:
+func _bar_label(parent: Control, stretch: float) -> Label:
 	var label := Label.new()
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.size_flags_stretch_ratio = stretch
+	label.clip_text = true
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	label.mouse_filter = Control.MOUSE_FILTER_PASS  # for the full-text tooltip
 	parent.add_child(label)
 	return label
+
+
+## Sets a bar label's text, keeping the untruncated version in its tooltip.
+func _set_bar(label: Label, text: String, tooltip := "") -> void:
+	label.text = text
+	label.tooltip_text = tooltip if tooltip != "" else text
 
 
 func _outlined_label(pos: Vector2) -> Label:
@@ -250,14 +260,14 @@ func _update_raid_ui(vp: Vector2) -> void:
 	match raids.phase:
 		RaidDirector.Phase.CALM:
 			var t := raids.time_until_raid()
-			_raid_label.text = "Next raid %d:%02d" % [floori(t / 60.0), floori(t) % 60]
+			_set_bar(_raid_label, "Raid in %d:%02d" % [floori(t / 60.0), floori(t) % 60], "Next goblin raid")
 			_banner.text = ""
 		RaidDirector.Phase.WARNING:
-			_raid_label.text = "Raid incoming!"
+			_set_bar(_raid_label, "Raid incoming!")
 			_banner.text = "⚔ Goblins approach from the %s — %ds! ⚔" % [
 				raids.direction_name(), ceili(raids.time_until_raid())]
 		RaidDirector.Phase.ACTIVE:
-			_raid_label.text = "Raid in progress"
+			_set_bar(_raid_label, "Raid!", "Raid in progress")
 			_banner.text = "⚔ Raid! %d goblin%s remaining ⚔" % [
 				world.enemies.size(), "" if world.enemies.size() == 1 else "s"]
 	_banner.visible = _banner.text != ""
@@ -268,27 +278,39 @@ func _update_raid_ui(vp: Vector2) -> void:
 # --- Refresh ----------------------------------------------------------------
 
 func _refresh_resources() -> void:
-	_materials_label.text = "%s   [%d/%d]" % [
-		_stock_text(ItemDefs.items_in("materials")), GameState.used("materials"), GameState.capacity.get("materials", 0)]
+	var mats := ItemDefs.items_in("materials")
+	_set_bar(_materials_label, "%s  %d/%d" % [
+		_stock_text(mats, false), GameState.used("materials"), GameState.capacity.get("materials", 0)],
+		"Materials: %s\nStorage %d/%d" % [_stock_text(mats, true), GameState.used("materials"),
+			GameState.capacity.get("materials", 0)])
 	var pop := maxi(GameState.population, 1)
 	var minutes := GameState.edible_total() / float(pop) * CitizenManager.MEAL_INTERVAL / 60.0
-	_food_label.text = "%s   [%d/%d]   ~%.0f min of food" % [
-		_stock_text(ItemDefs.items_in("food")), GameState.used("food"), GameState.capacity.get("food", 0), minutes]
+	var foods := ItemDefs.items_in("food")
+	_set_bar(_food_label, "%s  %d/%d · %.0f min" % [
+		_stock_text(foods, false), GameState.used("food"), GameState.capacity.get("food", 0), minutes],
+		"Food: %s\nStorage %d/%d\nAbout %.0f minutes of food for %d people" % [
+			_stock_text(foods, true), GameState.used("food"), GameState.capacity.get("food", 0), minutes, GameState.population])
 	_food_label.add_theme_color_override("font_color", Color(1, 0.45, 0.35) if minutes < 2.0 else Color.WHITE)
 	var upkeep := military.upkeep_per_minute() if military != null else 0
-	_gold_label.text = "Gold %d" % GameState.count("gold") + ("  (troops -%d/min)" % upkeep if upkeep > 0 else "")
+	_set_bar(_gold_label, "Gold %d" % GameState.count("gold") + (" (−%d/min)" % upkeep if upkeep > 0 else ""),
+		"Gold %d\nTroop upkeep %d gold/min\nTax: 1 gold per fed villager per meal" % [GameState.count("gold"), upkeep])
 
 
-func _stock_text(items: Array[String]) -> String:
+## "Wood 120 · Stone 20". Without `include_empty`, items at 0 are left out
+## (showing "Food" if everything is empty).
+func _stock_text(items: Array[String], include_empty: bool) -> String:
 	var parts := PackedStringArray()
 	for item in items:
-		parts.append("%s %d" % [ItemDefs.display_name(item), GameState.count(item)])
-	return "  ".join(parts)
+		if include_empty or GameState.count(item) > 0:
+			parts.append("%s %d" % [ItemDefs.display_name(item), GameState.count(item)])
+	return " · ".join(parts) if not parts.is_empty() else "none"
 
 
 func _refresh_population() -> void:
-	_pop_label.text = "Pop %d/%d   Workers %d/%d" % [
-		GameState.population, GameState.housing, GameState.employed, GameState.jobs]
+	_set_bar(_pop_label, "Pop %d/%d · Jobs %d/%d" % [
+		GameState.population, GameState.housing, GameState.employed, GameState.jobs],
+		"Population %d (housing for %d)\nWorkers %d of %d jobs filled" % [
+			GameState.population, GameState.housing, GameState.employed, GameState.jobs])
 
 
 func _refresh_speed() -> void:

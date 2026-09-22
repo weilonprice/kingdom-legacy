@@ -36,7 +36,5 @@ Preconditions:
 - Research makes no progress until a scholar arrives inside the hall
   (`No scholars at work — research is paused`); it needs unemployed villagers.
 - Tier checks run every 2 game seconds; assert with `wait_until`.
-- At Village the top bar is wider than 1600 px and pushes the `2x` and `4x`
-  speed buttons off-screen (known bug). A `click_button "4x"` then aims
-  outside the window, so don't count on 4x speed after Village: give
-  `wait_until` timeouts that also work at 1x.
+- Top-bar labels truncate with "…" when the numbers get long (full text is in
+  their tooltip). Assert on `state` resources, not on top-bar label text.

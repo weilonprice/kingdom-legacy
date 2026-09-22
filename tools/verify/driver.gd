@@ -27,11 +27,24 @@ func _ready() -> void:
 	# Headless starts with a tiny window, which would put most HUD buttons
 	# outside it; match the windowed layout so the same clicks land.
 	get_window().size = Vector2i(1600, 900)
+	if DisplayServer.get_name() != "headless":
+		# macOS throttles and stops drawing windows hidden behind others, which
+		# starves the game of frames. Keep the verify window in front.
+		get_window().always_on_top = true
+		DisplayServer.window_move_to_foreground()
 	main = load("res://scenes/main.tscn").instantiate()
 	add_child(main)
 	await get_tree().process_frame
 	await get_tree().process_frame
 	world = main.world
+	# Let the window finish resizing/raising and the HUD lay out before the
+	# first click, or early clicks can land on stale button positions.
+	await get_tree().create_timer(1.0, true, false, true).timeout
+	await _frames(5)
+	# The first injected click after the window appears is swallowed; spend it
+	# on empty sky above the Keep (selects nothing, costs nothing).
+	await _click(_screen_of([0, -8]), MOUSE_BUTTON_LEFT)
+	main.build.select_building(null)
 	GameState.notified.connect(func(m: String) -> void: report.messages.append(m))
 	main.build.message.connect(func(m: String) -> void: report.messages.append(m))
 	report["seed"] = world.map_seed
@@ -311,6 +324,10 @@ func _check(expect: Dictionary) -> String:
 			problems.append("troops %d < %d" % [troops, expect.squad_troops_min])
 	if expect.has("squad_mode") and not s.squads.any(func(q: Dictionary) -> bool: return q.mode == expect.squad_mode):
 		problems.append("no squad in mode %s" % expect.squad_mode)
+	if expect.has("button_on_screen"):
+		var btn := _find_button(get_tree().root, expect.button_on_screen)
+		if btn == null or not get_viewport().get_visible_rect().encloses(btn.get_global_rect()):
+			problems.append("button '%s' is %s" % [expect.button_on_screen, "missing" if btn == null else "off-screen at %s" % btn.get_global_rect()])
 	if expect.has("research_done") and not expect.research_done in s.research_done:
 		problems.append("research %s not done" % expect.research_done)
 	return "ok" if problems.is_empty() else "FAIL " + "; ".join(problems)

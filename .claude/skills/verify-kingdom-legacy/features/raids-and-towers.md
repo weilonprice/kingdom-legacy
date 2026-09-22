@@ -16,7 +16,7 @@ is dead or has fled.
 ## How to get to it (user POV)
 
 - `Defense` tab → `[1] Guard Tower`, click on the map.
-- Wait for `Next raid m:ss` in the top bar to reach 0, or press `F9` to call a
+- Wait for `Raid in m:ss` in the top bar to reach 0, or press `F9` to call a
   raid now (30 s warning).
 
 ## Driving it with tools/verify/run.sh
