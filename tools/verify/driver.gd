@@ -270,6 +270,10 @@ func _snapshot() -> Dictionary:
 		"resources": GameState.resources.duplicate(),
 		"capacity": GameState.capacity.duplicate(),
 		"population": GameState.population,
+		"happiness": snappedf(GameState.happiness, 0.1),
+		"tax_rate": NeedDefs.TAX_RATES[GameState.tax_rate].name,
+		"house_levels": world.buildings.filter(func(b: Building) -> bool: return b.def.has("level_bonus")).map(
+			func(b: Building) -> int: return b.level),
 		"tier": main.progression.tier_name(),
 		"raid_phase": ["CALM", "WARNING", "ACTIVE"][main.raids.phase],
 		"raids_survived": main.raids.raids_survived,
@@ -315,9 +319,20 @@ func _check(expect: Dictionary) -> String:
 	if expect.has("message") and not s.messages.any(func(m: String) -> bool: return expect.message in m):
 		problems.append("no message containing '%s'" % expect.message)
 	for key: String in expect.get("min", {}):
-		var have: float = s.population if key == "population" else (s.roads if key == "roads" else s.resources.get(key, 0))
+		var have := _metric(s, key)
 		if have < float(expect["min"][key]):
 			problems.append("%s %s < %s" % [key, have, expect["min"][key]])
+	for key: String in expect.get("max", {}):
+		var have := _metric(s, key)
+		if have > float(expect["max"][key]):
+			problems.append("%s %s > %s" % [key, have, expect["max"][key]])
+	if expect.has("tax_rate") and s.tax_rate != expect.tax_rate:
+		problems.append("tax_rate '%s' != '%s'" % [s.tax_rate, expect.tax_rate])
+	if expect.has("house_level_min"):
+		var want: Dictionary = expect.house_level_min
+		var have: int = s.house_levels.filter(func(l: int) -> bool: return l >= int(want.level)).size()
+		if have < int(want.count):
+			problems.append("homes at level %d+: %d < %d" % [want.level, have, want.count])
 	if expect.has("squad_troops_min"):
 		var troops: int = s.squads.reduce(func(acc: int, q: Dictionary) -> int: return acc + q.troops, 0)
 		if troops < int(expect.squad_troops_min):
@@ -331,6 +346,13 @@ func _check(expect: Dictionary) -> String:
 	if expect.has("research_done") and not expect.research_done in s.research_done:
 		problems.append("research %s not done" % expect.research_done)
 	return "ok" if problems.is_empty() else "FAIL " + "; ".join(problems)
+
+
+## Numeric state for min/max: population, roads, happiness, or a resource.
+func _metric(s: Dictionary, key: String) -> float:
+	if key in ["population", "roads", "happiness"]:
+		return float(s[key])
+	return float(s.resources.get(key, 0))
 
 
 func _write_json(name: String, data: Variant) -> void:

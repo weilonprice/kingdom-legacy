@@ -64,12 +64,17 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   - Work: walk to resource / workplace, produce, carry goods to storage.
   - Movement: A* pathfinding. Roads are ~1.6x faster; forests slower.
 
-  Planned needs (drive happiness, growth and productivity):
-    Tier 1  Food, Shelter
-    Tier 2  Water (well), Firewood, Religion (chapel)
-    Tier 3  Varied food, Market access, Tavern
-    Tier 4  Clothing, Healthcare, Safety (guard coverage)
-  Unmet needs -> unhappiness -> slower work, emigration, eventually unrest.
+  Needs (implemented M5; see scripts/data/need_defs.gd):
+    Food      residents fed                      +10 / -30 if not
+    Water     within 6 tiles of a Well           +10 / -10 if not
+    Religion  within 10 tiles of a staffed Chapel  +10
+    Market    within 10 tiles of a staffed Market  +10
+    Tavern    within 10 tiles of a staffed Tavern  +10 (Town tier)
+  Happiness = 50 + needs + tax effect (None +15 ... Harsh -25), 0-100.
+  House levels: Cottage (food) -> Townhouse (+water, religion) -> Manor
+  (+market, tavern). Each level: +2 residents, more tax.
+  Effects: 70+ works 15% faster; <40 works 25% slower; <35 nobody moves
+  in; <25 pays no tax and loses a resident every 45s.
   Planned: day/night cycle (villagers go home at night), aging, births.
 
 
@@ -95,15 +100,15 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 
   Haulers: later, a dedicated hauler job moves goods between buildings and
   storage so producers keep working.
-  Gold: collected as tax from happy households; spent on troops' upkeep,
-  research and advanced buildings.
+  Gold: taxes each minute = residents x rate x house level multiplier (1 /
+  1.5 / 2); set the rate on the Keep. Spent on troop upkeep, training and
+  research.
 
 
 8. SETTLEMENT TIERS & RESEARCH
 --------------------------------------------------------------------------------
-  Implemented (M4) — tiers advance automatically when requirements are met.
-  Needs-based requirements (water, religion, market) replace some of these
-  in M5.
+  Implemented (M4, needs-based requirements added in M5) — tiers advance
+  automatically when requirements are met.
 
   Tier        Requirement                        Unlocks
   ----------  ---------------------------------  ------------------------------
@@ -113,12 +118,15 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
                                                  Guard Tower
   Village     15 pop, Well, Granary              Barracks (Militia, Spearmen),
                                                  Scholar's Hall, Stone House,
-                                                 5 research topics
+                                                 Chapel, Market, 5 research
   Town        35 pop, 2 raids survived,          Stone Tower, Warehouse,
-              Barracks, Scholar's Hall           Archers, 2 research topics
+              Barracks, Scholar's Hall,          Tavern, Archers, 2 research
+              4 Townhouses
   City        70 pop, 5 raids, 4 research,       (more in later milestones)
-              Warehouse, Stone Tower
-  Kingdom     120 pop, 8 raids, 6 research       Final raid (M8)
+              Warehouse, Stone Tower,
+              6 Manors, happiness 60
+  Kingdom     120 pop, 8 raids, 6 research,      Final raid (M8)
+              happiness 65
 
   The Keep gains HP and storage each tier (Keep -> Castle -> Citadel).
   Raids grow by +2 goblins and +1 brute per tier.
@@ -183,6 +191,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   Squads            Click a troop / drag a box to select; right-click to
                     move or attack; G = guard here; Ctrl+1-9 = squad N
   Tier panel        T (or the ⚑ button in the top bar)
+  Overlays          O cycles happiness / services / road access
+  Tax rate          Click the Keep
   Debug             F9 calls a raid now (30s warning)
   Planned: overlays
   (road access, needs coverage, happiness heatmap).
@@ -242,6 +252,7 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   scripts/systems/squad.gd             Squad modes, orders, formation
   scripts/systems/progression.gd       Settlement tiers, unlocks, Keep upgrade
   scripts/systems/research.gd          Research queue, modifiers
+  scripts/systems/needs.gd             Needs, happiness, house levels, taxes
   scripts/controllers/                 Camera, build tools, unit control
   scripts/ui/                          HUD, building panel, squad panel,
                                        raid arrow, game over
@@ -263,8 +274,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   [DONE]  M2  First raid: wave timer, goblins, guard tower, villager flee
   [DONE]  M3  Troops: barracks, militia/archers, auto-defend + squad control
   [DONE]  M4  Settlement tiers + first research
-  [NEXT]  M5  Needs & happiness, taxes/gold
-          M6  PixelLab art pass
+  [DONE]  M5  Needs & happiness, taxes/gold
+  [NEXT]  M5b Haulers, day/night; then M6 PixelLab art pass
           M7  Walls, gates, fire, more enemies (orcs, trolls)
           M8  Win condition, final raid, save/load, balance pass
 

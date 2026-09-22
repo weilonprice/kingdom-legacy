@@ -86,7 +86,7 @@ func is_guard() -> bool:
 
 ## Guards and scholars work from inside their building and don't flee raids.
 func works_inside() -> bool:
-	return job != null and job.def.get("work", "") in ["guard", "study"]
+	return job != null and job.def.get("work", "") in ["guard", "study", "service"]
 
 
 func set_job(building: Building) -> void:
@@ -206,7 +206,7 @@ func _think() -> void:
 			_plan_farm()
 		"produce":
 			_plan_produce()
-		"guard", "study":
+		"guard", "study", "service":
 			_plan_station()
 		_:
 			_wander()
@@ -343,13 +343,14 @@ func _arrive() -> void:
 				return
 			state = State.STATIONED
 			visible = false
-			note = "On watch" if is_guard() else "Studying"
+			note = {"guard": "On watch", "study": "Studying"}.get(job.def.work, "Serving customers")
 		State.TO_TARGET:
 			if job == null or _target_tile == WorldMap.INVALID_TILE:
 				_reset()
 				return
 			state = State.WORKING
-			timer = job.def.work_time * (GameState.mod("gather_time") if task == Task.GATHER else 1.0)
+			timer = job.def.work_time * _work_multiplier() \
+					* (GameState.mod("gather_time") if task == Task.GATHER else 1.0)
 			note = {Task.GATHER: "Gathering %s" % job.def.get("resource", ""),
 					Task.PLANT: "Planting", Task.HARVEST: "Harvesting"}.get(task, "Working")
 		State.TO_FETCH:
@@ -380,7 +381,7 @@ func _arrive() -> void:
 			queue_redraw()
 			task = Task.PRODUCE
 			state = State.WORKING
-			timer = job.def.work_time
+			timer = job.def.work_time * _work_multiplier()
 			note = "Working"
 		State.TO_DEPOSIT:
 			if is_instance_valid(_storage):
@@ -396,6 +397,11 @@ func _arrive() -> void:
 		State.WANDER:
 			state = State.IDLE
 			timer = randf_range(2.0, 5.0)
+
+
+## Happy households work faster, miserable ones slower.
+func _work_multiplier() -> float:
+	return NeedDefs.work_multiplier(home.happiness) if is_instance_valid(home) else 1.0
 
 
 func _finish_work() -> void:

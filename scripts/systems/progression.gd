@@ -81,6 +81,15 @@ func requirement_status(index: int) -> Array:
 	if req.has("research"):
 		status.append({"text": "Research completed %d/%d" % [research.completed.size(), req.research],
 			"met": research.completed.size() >= req.research})
+	if req.has("house_level"):
+		var want: Dictionary = req.house_level
+		var have := world.buildings.filter(func(b: Building) -> bool:
+			return b.def.has("level_bonus") and b.level >= want.level).size()
+		status.append({"text": "%ss or better %d/%d" % [NeedDefs.LEVELS[want.level - 1].name, have, want.count],
+			"met": have >= want.count})
+	if req.has("happiness"):
+		status.append({"text": "Average happiness %d/%d" % [GameState.happiness, req.happiness],
+			"met": GameState.happiness >= req.happiness})
 	for id: String in req.get("buildings", []):
 		var built := world.buildings.any(func(b: Building) -> bool: return b.def_id == id)
 		status.append({"text": "Build a %s" % BuildingDefs.get_def(id).name, "met": built})

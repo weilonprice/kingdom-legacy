@@ -11,6 +11,7 @@ signal population_changed
 signal speed_changed
 signal notified(text: String)
 signal modifiers_changed
+signal happiness_changed
 
 const SPEEDS := [0.0, 1.0, 2.0, 4.0]
 const START_RESOURCES := {"wood": 120, "stone": 20, "gold": 50, "bread": 40}
@@ -27,6 +28,10 @@ var game_over := false
 ## Research bonuses: key -> value. Multipliers default to 1.0, additive
 ## bonuses to 0 (see ResearchDefs).
 var modifiers := {}
+## Index into NeedDefs.TAX_RATES.
+var tax_rate := NeedDefs.DEFAULT_TAX_RATE
+## Average happiness over all homes (0-100).
+var happiness := NeedDefs.BASE_HAPPINESS
 
 var _last_speed := 1
 
@@ -47,6 +52,8 @@ func reset() -> void:
 	jobs = 0
 	game_over = false
 	modifiers = {}
+	tax_rate = NeedDefs.DEFAULT_TAX_RATE
+	happiness = NeedDefs.BASE_HAPPINESS
 	speed = 1
 	_last_speed = 1
 	Engine.time_scale = 1.0
@@ -66,6 +73,20 @@ func end_game() -> void:
 
 func notify(text: String) -> void:
 	notified.emit(text)
+
+
+# --- Happiness & taxes -------------------------------------------------------
+
+func set_happiness(value: float) -> void:
+	if absf(value - happiness) < 0.01:
+		return
+	happiness = value
+	happiness_changed.emit()
+
+
+func set_tax_rate(index: int) -> void:
+	tax_rate = clampi(index, 0, NeedDefs.TAX_RATES.size() - 1)
+	happiness_changed.emit()
 
 
 # --- Modifiers --------------------------------------------------------------

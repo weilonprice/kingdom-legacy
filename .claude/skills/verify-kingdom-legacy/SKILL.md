@@ -61,9 +61,10 @@ Write or reuse a scenario in `tools/verify/scenarios/`, then run it:
 - Click buttons by their visible label (`"click_button": "] House"` targets
   the build-menu item `[1] House`, not the `Stone House` button or the
   `Housing` tab). Category tabs: `Housing`, `Resources`, `Food`, `Storage`,
-  `Defense`, `Civic`. Speed: `Pause`, `1x`, `2x`, `4x`.
+  `Defense`, `Civic`. Speed: `Pause`, `1x`, `2x`, `4x`. The Keep panel (click
+  `[0, -2]`) has tax buttons `None`, `Low`, `Normal`, `High`, `Harsh`.
 - Hotkeys: `R` road, `X` demolish, `Escape` cancel/deselect, `Tab` next
-  category, `1`-`9` item in category, `T` tier panel, `F9` call a raid,
+  category, `1`-`9` item in category, `T` tier panel, `O` cycle overlays, `F9` call a raid,
   `CTRL+1`..`CTRL+9` select squad, `G` release squad to guard.
 - Wait on state, not time: `{"wait_until": {"tier": "Village"}, "timeout": 90}`.
   Click `4x` first to shorten long waits.
