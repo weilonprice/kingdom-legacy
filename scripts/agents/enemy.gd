@@ -93,10 +93,10 @@ func _think() -> void:
 		return
 	if not _target_valid():
 		target = null
-	var victim := _nearest_villager()
+	var victim := _nearest_victim()
 	if victim != null:
 		target = victim
-	elif target == null or target is Villager:
+	elif target == null or not target is Building:
 		target = _pick_primary_target()
 	if target == null:
 		_flee()
@@ -124,23 +124,25 @@ func _pick_primary_target() -> Building:
 	return best
 
 
-func _nearest_villager() -> Villager:
-	var best: Villager = null
+## Nearest villager or troop out in the open within aggro range.
+func _nearest_victim() -> Node2D:
+	var best: Node2D = null
 	var best_dist: float = pow(def.aggro * Terrain.TILE_SIZE, 2)
-	for v: Villager in get_tree().get_nodes_in_group("villagers"):
-		if not v.is_targetable():
-			continue
-		var d := position.distance_squared_to(v.position)
-		if d < best_dist:
-			best_dist = d
-			best = v
+	for group in ["troops", "villagers"]:
+		for v in get_tree().get_nodes_in_group(group):
+			if not v.is_targetable():
+				continue
+			var d := position.distance_squared_to(v.position)
+			if d < best_dist:
+				best_dist = d
+				best = v
 	return best
 
 
 func _target_valid() -> bool:
 	if not is_instance_valid(target) or target.health.is_dead():
 		return false
-	return not (target is Villager and not target.is_targetable())
+	return target is Building or target.is_targetable()
 
 
 func _target_tile(t: Node2D) -> Vector2i:

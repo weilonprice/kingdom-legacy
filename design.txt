@@ -169,8 +169,10 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   Demolish          X (50% refund)
   Cancel            Right-click / Esc
   Pause / speed     Space / top-bar buttons (1x, 2x, 4x)
+  Squads            Click a troop / drag a box to select; right-click to
+                    move or attack; G = guard here; Ctrl+1-9 = squad N
   Debug             F9 calls a raid now (30s warning)
-  Planned: unit selection box, squad hotkeys (Ctrl+1..9), overlays
+  Planned: overlays
   (road access, needs coverage, happiness heatmap).
 
 
@@ -187,31 +189,51 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 13. ART DIRECTION
 --------------------------------------------------------------------------------
   - 32x32 top-down pixel art, warm medieval palette, readable when zoomed out.
-  - Generated with PixelLab; currently placeholder shapes drawn in code.
+  - LOCKED STYLE (art test, see docs/style_test.png):
+      - Buildings in 3/4 view (front wall + door visible), black outlines,
+        basic shading, warm thatch/timber tones.
+      - Terrain: muted olive grass, lineless, basic shading; roads autotile
+        (Wang corner tiles) over grass.
+      - Characters ~16x31 px figures on a 48x48 canvas, black outline.
+  - Generated with PixelLab; the game still draws placeholder shapes until
+    the M6 art pass. Approved assets live in assets/.
   - Asset list (priority order):
       1. Terrain tileset (grass, forest, water, sand, stone, road)
-      2. Villager (4-direction walk), carrying variants
-      3. Keep, House, Woodcutter, Quarry, Stockpile
-      4. Goblin + guard tower + archer
+         [grass + road DONE]
+      2. Villager (4-direction walk), carrying variants  [villager DONE]
+      3. Keep, House, Woodcutter, Quarry, Stockpile      [house DONE]
+      4. Goblin, brute, guard tower, barracks, troops
       5. Farm/mill/bakery chain
-  - PixelLab trial budget is limited (~37 generations) — spend on locked-in
-    assets only.
+  - PixelLab budget: 24 of 40 trial generations left. Real costs: tileset
+    ~3-4, standard character 1, 64x64 Pro Flash image 5, 1-direction object
+    20-40 (avoid). Chain new tilesets from existing base tile IDs.
 
 
 14. TECHNICAL ARCHITECTURE
 --------------------------------------------------------------------------------
-  scripts/autoload/game_state.gd       Resources, population stats, speed
+  scripts/autoload/game_state.gd       Stock, capacity, population, speed,
+                                       game over
+  scripts/data/                        Data tables: building_defs, item_defs,
+                                       enemy_defs, unit_defs
   scripts/world/terrain.gd             Terrain types, rules, tileset atlas
-  scripts/world/world_map.gd           Grid, generation, roads, placement, A*
-  scripts/world/building.gd            Placed building instance
-  scripts/data/building_defs.gd        Data table of all buildings
-  scripts/agents/villager.gd           Citizen agent state machine
-  scripts/systems/citizen_manager.gd   Spawning + job assignment
-  scripts/controllers/*.gd             Camera, build tools
-  scripts/ui/hud.gd                    HUD
+  scripts/world/world_map.gd           Grid, generation, roads, fields,
+                                       placement, A*, enemy registry
+  scripts/world/building.gd            Placed building (health, towers)
+  scripts/agents/villager.gd           Citizen agent (work loops, hiding)
+  scripts/agents/enemy.gd              Raider agent (thief / wrecker)
+  scripts/agents/troop.gd              Soldier agent (auto / manual)
+  scripts/combat/                      Health, projectiles
+  scripts/systems/citizen_manager.gd   Spawning, jobs, food, tax, drafting
+  scripts/systems/raid_director.gd     Raid schedule, spawning, repair
+  scripts/systems/military.gd          Training, squads, upkeep
+  scripts/systems/squad.gd             Squad modes, orders, formation
+  scripts/controllers/                 Camera, build tools, unit control
+  scripts/ui/                          HUD, building panel, squad panel,
+                                       raid arrow, game over
 
   Notes:
     - Pathfinding: AStarGrid2D, road weight 1.0, terrain 2.0–3.5.
+    - Stock is pooled kingdom-wide; per-building inventories are backlog.
     - Performance target: 300+ agents; move to flow fields / path caching /
       staggered updates if needed.
     - Save/load planned once core systems stabilize.
@@ -224,8 +246,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   [DONE]  M1  Food chain (farm -> mill -> bakery), hunger need, growth tied
               to food
   [DONE]  M2  First raid: wave timer, goblins, guard tower, villager flee
-  [NEXT]  M3  Troops: barracks, militia/archers, auto-defend + squad control
-          M4  Settlement tiers + first research
+  [DONE]  M3  Troops: barracks, militia/archers, auto-defend + squad control
+  [NEXT]  M4  Settlement tiers + first research
           M5  Needs & happiness, taxes/gold
           M6  PixelLab art pass
           M7  Walls, gates, fire, more enemies (orcs, trolls)

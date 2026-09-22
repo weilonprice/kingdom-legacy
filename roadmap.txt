@@ -2,7 +2,8 @@
 KINGDOM LEGACY — IMPLEMENTATION ROADMAP
 ================================================================================
 Companion to design.txt. Each milestone ends in a playable build.
-Legend:  [x] done   [ ] todo   (S/M/L) rough size   -> files touched
+Legend:  [x] done   [~] partly done   [ ] todo   (S/M/L) rough size
+         -> files touched
 Last updated: 2026-09-22
 
 
@@ -117,26 +118,31 @@ M2 — FIRST RAID                                        [DONE]
 
 
 ================================================================================
-M3 — TROOPS (HYBRID CONTROL)                     Goal: player fights back
+M3 — TROOPS (HYBRID CONTROL)                     [DONE]
 ================================================================================
   Systems
-  [ ] (M) Unit defs table (militia, archer, spearman) -> unit_defs.gd
-  [ ] (L) Troop agent: states AUTO (guard rally point, engage in radius,
+  [x] (M) Unit defs table (militia, archer, spearman) -> unit_defs.gd
+  [x] (L) Troop agent: states AUTO (guard rally point, engage in radius,
           return) and MANUAL (move/attack/hold orders)
           -> scripts/agents/troop.gd
-  [ ] (M) Squads: groups of troops with a rally flag, formation offsets
+  [x] (M) Squads: groups of troops with a rally flag, formation offsets
+          (one squad per barracks; AUTO also defends anything near the Keep)
           -> scripts/systems/squad_manager.gd
-  [ ] (M) Selection: click / box-select troops, right-click to order,
-          Ctrl+1..9 squad hotkeys, release to AUTO
+  [x] (M) Selection: click / box-select troops, right-click to order,
+          Ctrl+1..9 selects squad N, G releases to AUTO at the current spot
           -> scripts/controllers/unit_controller.gd
-  [ ] (S) Input modes: build tools vs unit control don't conflict
+  [x] (S) Input modes: build tools vs unit control don't conflict
 
   Content
-  [ ] (M) Barracks: converts a villager + gold + equipment into a troop
+  [x] (M) Barracks: converts a villager + gold + wood into a troop
+          (real equipment chains come with M7 weapons)
   [ ] (S) Militia call-up: temporary troops from workers (production stops)
-  [ ] (S) Archer, Spearman; basic damage types (pierce vs large)
-  [ ] (S) Troop upkeep: gold per minute
-  [ ] (S) Healing at barracks when idle
+          -> DEFERRED: Militia is a cheap trainable unit for now
+  [x] (S) Archer, Spearman; basic damage types (pierce vs large)
+  [x] (S) Troop upkeep: gold per minute (unpaid troops desert); troops eat
+  [x] (S) Gold income: villagers pay 1 gold tax per meal (minimal version of
+          M5 taxes, needed to fund upkeep)
+  [x] (S) Healing at barracks when idle
 
   Done when: you can train a squad, it defends automatically, and you can
   grab it, send it to intercept a raid, then release it back to auto.
@@ -181,13 +187,17 @@ M5 — NEEDS, HAPPINESS & GOLD                          Goal: deep city sim
 ================================================================================
 M6 — ART PASS (PIXELLAB)                                Goal: looks like a game
 ================================================================================
-  Budget ~37 trial generations; prioritize in this order:
-  [ ] (M) Terrain tileset: grass, forest, water, sand, stone, road
+  Style locked by the art test (PR #4, docs/style_test.png).
+  Budget: 24 of 40 trial generations left; prioritize in this order:
+  [~] (M) Terrain tileset: grass, forest, water, sand, stone, road
           (top-down tileset tool; keep atlas order from terrain.gd)
+          grass <-> dirt road DONE (assets/tiles/grass_dirt_*)
   [ ] (S) Road autotiling (straight/corner/T/cross) via Godot terrain sets
-  [ ] (M) Villager: 4-direction walk, carrying variant
-  [ ] (M) Buildings: Keep, House, Woodcutter, Quarry, Stockpile, Farm,
+  [~] (M) Villager: 4-direction walk, carrying variant
+          static 4-direction sprite DONE (assets/sprites/villager/)
+  [~] (M) Buildings: Keep, House, Woodcutter, Quarry, Stockpile, Farm,
           Guard Tower, Barracks (sprites replace Building._draw)
+          House DONE (assets/sprites/buildings/house.png)
   [ ] (M) Goblin + Archer/Militia walk + attack animations
   [ ] (S) Swap placeholder drawing to Sprite2D / AnimatedSprite2D with
           fallback to placeholder if texture missing
@@ -249,6 +259,6 @@ BACKLOG / MAYBE LATER
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. Quick art spike: 2–3 PixelLab generations to lock style before M3
-  2. M3: barracks + troops (auto-defend)
-  3. M3: selection + squad orders
+  1. M4: settlement tiers + unlocks
+  2. M4: Scholar's Hall + research
+  (Art style locked in — see docs/style_test.png, PR #4)

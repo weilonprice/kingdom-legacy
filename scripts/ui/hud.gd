@@ -11,6 +11,8 @@ var build: BuildController
 var world: WorldMap
 var citizens: CitizenManager
 var raids: RaidDirector
+var military: Military
+var units: UnitController
 
 var _materials_label: Label
 var _food_label: Label
@@ -19,6 +21,7 @@ var _pop_label: Label
 var _raid_label: Label
 var _banner: Label
 var _game_over: GameOverPanel
+var _squad_panel: SquadPanel
 var _mode_label: Label
 var _info_label: Label
 var _msg_label: Label
@@ -30,11 +33,14 @@ var _category := 0
 var _panel: BuildingPanel
 
 
-func setup(p_build: BuildController, p_world: WorldMap, p_citizens: CitizenManager, p_raids: RaidDirector) -> void:
+func setup(p_build: BuildController, p_world: WorldMap, p_citizens: CitizenManager,
+		p_raids: RaidDirector, p_military: Military, p_units: UnitController) -> void:
 	build = p_build
 	world = p_world
 	citizens = p_citizens
 	raids = p_raids
+	military = p_military
+	units = p_units
 
 
 func _ready() -> void:
@@ -47,8 +53,12 @@ func _ready() -> void:
 	_msg_label.add_theme_font_size_override("font_size", 20)
 
 	_panel = BuildingPanel.new()
-	_panel.setup(build, world)
+	_panel.setup(build, world, military)
 	add_child(_panel)
+
+	_squad_panel = SquadPanel.new()
+	_squad_panel.setup(units)
+	add_child(_squad_panel)
 
 	var indicator := RaidIndicator.new()
 	indicator.setup(world, raids)
@@ -62,6 +72,7 @@ func _ready() -> void:
 	GameState.resources_changed.connect(_refresh_resources)
 	GameState.population_changed.connect(_refresh_population)
 	GameState.population_changed.connect(_refresh_resources)
+	military.squads_changed.connect(_refresh_resources)
 	GameState.speed_changed.connect(_refresh_speed)
 	GameState.notified.connect(show_message)
 	build.mode_changed.connect(func(text: String) -> void: _mode_label.text = text)
@@ -86,6 +97,7 @@ func _process(delta: float) -> void:
 	_msg_label.position = Vector2((vp.x - _msg_label.size.x) * 0.5, vp.y - 130)
 	_panel.position = Vector2(vp.x - _panel.size.x - 10, 50)
 	_update_raid_ui(vp)
+	_squad_panel.position = Vector2(10, vp.y - _squad_panel.size.y - 90)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -97,7 +109,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		raids.call_raid_now()
 	elif event.keycode == KEY_TAB:
 		_show_category((_category + 1) % BuildingDefs.CATEGORIES.size())
-	elif event.keycode in ITEM_HOTKEYS:
+	elif event.keycode in ITEM_HOTKEYS and not event.ctrl_pressed:
 		var items: Array = BuildingDefs.CATEGORIES[_category].items
 		var index := ITEM_HOTKEYS.find(event.keycode)
 		if index >= items.size():
@@ -233,7 +245,8 @@ func _refresh_resources() -> void:
 	_food_label.text = "%s   [%d/%d]   ~%.0f min of food" % [
 		_stock_text(ItemDefs.items_in("food")), GameState.used("food"), GameState.capacity.get("food", 0), minutes]
 	_food_label.add_theme_color_override("font_color", Color(1, 0.45, 0.35) if minutes < 2.0 else Color.WHITE)
-	_gold_label.text = "Gold %d" % GameState.count("gold")
+	var upkeep := military.upkeep_per_minute() if military != null else 0
+	_gold_label.text = "Gold %d" % GameState.count("gold") + ("  (troops -%d/min)" % upkeep if upkeep > 0 else "")
 
 
 func _stock_text(items: Array[String]) -> String:

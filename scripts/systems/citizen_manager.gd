@@ -12,6 +12,8 @@ const MISSED_MEALS_TO_LEAVE := 3
 ## The first few settlers arrive regardless of food; after that growth needs food.
 const FREE_SETTLERS := 4
 const MIN_FOOD_TO_GROW := 5
+## Gold each fed villager pays per meal.
+const TAX_PER_MEAL := 1
 
 var world: WorldMap
 var villagers: Array[Villager] = []
@@ -73,6 +75,8 @@ func _feed() -> void:
 	for i in order.size():
 		var v: Villager = order[i]
 		v.set_missed_meals(0 if i < eaten else v.missed_meals + 1)
+	if eaten > 0:
+		GameState.add_resource("gold", eaten * TAX_PER_MEAL)
 	var hungry := order.size() - eaten
 	if hungry > 0:
 		GameState.notify("%d villager%s went hungry!" % [hungry, "" if hungry == 1 else "s"])
@@ -121,6 +125,24 @@ func _publish_stats() -> void:
 	if _settlers_arrived > 0 and villagers.is_empty() and not _all_lost_emitted:
 		_all_lost_emitted = true
 		all_villagers_lost.emit()
+
+
+## Takes a villager for military service: the nearest unemployed one, else the
+## nearest non-guard worker. Their home slot frees up for a new settler.
+func draft_villager(near: Vector2i) -> bool:
+	var target := world.tile_center(near)
+	var pool := villagers.filter(func(v: Villager) -> bool: return v.job == null)
+	if pool.is_empty():
+		pool = villagers.filter(func(v: Villager) -> bool: return not v.is_guard())
+	if pool.is_empty():
+		return false
+	var recruit: Villager = pool[0]
+	for v: Villager in pool:
+		if v.position.distance_squared_to(target) < recruit.position.distance_squared_to(target):
+			recruit = v
+	_remove_villager(recruit)
+	_publish_stats()
+	return true
 
 
 func _remove_villager(v: Villager) -> void:

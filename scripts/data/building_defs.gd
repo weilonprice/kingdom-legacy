@@ -133,6 +133,16 @@ const DEFS := {
 		"damage": 10.0,
 		"attack_cooldown": 1.2,
 	},
+	"barracks": {
+		"name": "Barracks",
+		"desc": "Trains troops from your villagers. Holds one squad of up to 6; troops heal nearby.",
+		"size": Vector2i(3, 2),
+		"cost": {"wood": 60, "stone": 30},
+		"color": Color(0.55, 0.30, 0.25),
+		"hp": 450.0,
+		"trains": ["militia", "spearman", "archer"],
+		"troop_capacity": 6,
+	},
 	"stockpile": {
 		"name": "Stockpile",
 		"desc": "Stores 150 materials (wood, stone).",
@@ -159,7 +169,7 @@ const CATEGORIES := [
 	{"name": "Resources", "items": ["woodcutter", "quarry"]},
 	{"name": "Food", "items": ["farm", "fisher", "mill", "bakery"]},
 	{"name": "Storage", "items": ["stockpile", "granary"]},
-	{"name": "Defense", "items": ["guard_tower"]},
+	{"name": "Defense", "items": ["guard_tower", "barracks"]},
 ]
 
 
