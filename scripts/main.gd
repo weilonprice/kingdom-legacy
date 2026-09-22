@@ -10,6 +10,7 @@ var research: Research
 var progression: Progression
 var needs: Needs
 var overlay: Overlay
+var day_night: DayNight
 var build: BuildController
 var camera: CameraController
 var hud: HUD
@@ -31,6 +32,10 @@ func _ready() -> void:
 	raids = RaidDirector.new()
 	raids.setup(world)
 	add_child(raids)
+
+	day_night = DayNight.new()
+	day_night.world = world
+	add_child(day_night)
 
 	needs = Needs.new()
 	needs.setup(world, citizens)
@@ -70,7 +75,7 @@ func _ready() -> void:
 	add_child(camera)
 
 	hud = HUD.new()
-	hud.setup(build, world, citizens, raids, military, units, progression, research, needs, overlay)
+	hud.setup(build, world, citizens, raids, military, units, progression, research, needs, overlay, day_night)
 	add_child(hud)
 
 	world.keep_destroyed.connect(_on_defeat.bind("The Keep has fallen!"))

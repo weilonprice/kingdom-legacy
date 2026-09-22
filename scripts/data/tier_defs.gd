@@ -11,7 +11,7 @@ const TIERS := [
 		"requires": {},
 		"unlocks": {
 			"buildings": ["house", "well", "woodcutter", "quarry", "farm", "fisher", "mill",
-				"bakery", "stockpile", "granary", "guard_tower"],
+				"bakery", "stockpile", "granary", "carter", "guard_tower"],
 		},
 		"keep": {"title": "Keep", "hp": 800.0, "capacity": 200},
 	},

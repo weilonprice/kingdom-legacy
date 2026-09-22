@@ -197,6 +197,11 @@ func _click_button(text: String) -> String:
 	if btn == null:
 		return "FAIL no visible button containing '%s'" % text
 	await _click(btn.get_global_rect().get_center(), MOUSE_BUTTON_LEFT)
+	# Windowed runs occasionally lose a click while macOS shuffles window
+	# focus. Toggle buttons (category tabs, speeds) show whether it landed.
+	if btn.toggle_mode and not btn.button_pressed and is_instance_valid(btn):
+		await _click(btn.get_global_rect().get_center(), MOUSE_BUTTON_LEFT)
+		return "ok (clicked '%s' after one retry)" % btn.text
 	return "ok (clicked '%s')" % btn.text
 
 
@@ -280,6 +285,11 @@ func _snapshot() -> Dictionary:
 		"enemies": world.enemies.size(),
 		"buildings": buildings,
 		"roads": world.roads.size(),
+		"night": world.is_night,
+		"villagers_awake": get_tree().get_nodes_in_group("villagers").filter(
+			func(v: Villager) -> bool: return v.visible).size(),
+		"stored": _sum_by_building("inventory"),
+		"piles": _sum_by_building("output_stock"),
 		"build_mode": ["NONE", "BUILD", "ROAD", "DEMOLISH"][main.build.mode],
 		"selected_building": main.build.selected.title if main.build.selected != null else "",
 		"squads": main.military.squads.map(func(s: Squad) -> Dictionary: return {
@@ -316,6 +326,8 @@ func _check(expect: Dictionary) -> String:
 			problems.append("%s '%s' != '%s'" % [key, s[key], expect[key]])
 	if expect.has("text") and not s.visible_text.any(func(t: String) -> bool: return expect.text in t):
 		problems.append("no visible text containing '%s'" % expect.text)
+	if expect.has("text_absent") and s.visible_text.any(func(t: String) -> bool: return expect.text_absent in t):
+		problems.append("visible text still contains '%s'" % expect.text_absent)
 	if expect.has("message") and not s.messages.any(func(m: String) -> bool: return expect.message in m):
 		problems.append("no message containing '%s'" % expect.message)
 	for key: String in expect.get("min", {}):
@@ -326,6 +338,15 @@ func _check(expect: Dictionary) -> String:
 		var have := _metric(s, key)
 		if have > float(expect["max"][key]):
 			problems.append("%s %s > %s" % [key, have, expect["max"][key]])
+	if expect.has("night") and s.night != expect.night:
+		problems.append("night %s != %s" % [s.night, expect.night])
+	for field in ["stored_min", "pile_min"]:
+		var have_by_building: Dictionary = s.stored if field == "stored_min" else s.piles
+		for id: String in expect.get(field, {}):
+			for item: String in expect[field][id]:
+				var have: int = have_by_building.get(id, {}).get(item, 0)
+				if have < int(expect[field][id][item]):
+					problems.append("%s %s.%s %d < %s" % [field, id, item, have, expect[field][id][item]])
 	if expect.has("tax_rate") and s.tax_rate != expect.tax_rate:
 		problems.append("tax_rate '%s' != '%s'" % [s.tax_rate, expect.tax_rate])
 	if expect.has("house_level_min"):
@@ -348,9 +369,22 @@ func _check(expect: Dictionary) -> String:
 	return "ok" if problems.is_empty() else "FAIL " + "; ".join(problems)
 
 
-## Numeric state for min/max: population, roads, happiness, or a resource.
+## {building id: {item: amount}} summed over buildings of each type.
+func _sum_by_building(field: String) -> Dictionary:
+	var result := {}
+	for b in world.buildings:
+		var goods: Dictionary = b.get(field)
+		for item: String in goods:
+			if not result.has(b.def_id):
+				result[b.def_id] = {}
+			result[b.def_id][item] = result[b.def_id].get(item, 0) + goods[item]
+	return result
+
+
+## Numeric state for min/max: population, roads, happiness, villagers_awake,
+## or a kingdom resource total.
 func _metric(s: Dictionary, key: String) -> float:
-	if key in ["population", "roads", "happiness"]:
+	if key in ["population", "roads", "happiness", "villagers_awake"]:
 		return float(s[key])
 	return float(s.resources.get(key, 0))
 

@@ -1,10 +1,6 @@
 extends Node
-## Global kingdom state: the pooled resource stock, storage capacity,
-## population stats and game speed.
-##
-## Stock is pooled across all storage buildings; capacity per category is the
-## sum of every storage that accepts it. Villagers still physically carry goods
-## to and from the nearest suitable storage.
+## Global kingdom state: resource totals (fronting the world's per-building
+## Stock), population stats, happiness, research modifiers and game speed.
 
 signal resources_changed
 signal population_changed
@@ -16,9 +12,10 @@ signal happiness_changed
 const SPEEDS := [0.0, 1.0, 2.0, 4.0]
 const START_RESOURCES := {"wood": 120, "stone": 20, "gold": 50, "bread": 40}
 
+## Kingdom totals of everything in storage (cache of `stock`).
 var resources := {}
 var capacity := {}     # category -> int
-var reserved_space := {}  # category -> int held for producers' pending output
+var stock: Stock
 var population := 0
 var housing := 0
 var employed := 0
@@ -43,9 +40,9 @@ func _ready() -> void:
 
 ## Fresh state for a new game (the autoload survives scene reloads).
 func reset() -> void:
-	resources = START_RESOURCES.duplicate()
-	reserved_space = {}
+	resources = {}
 	capacity = {}
+	stock = null
 	population = 0
 	housing = 0
 	employed = 0
@@ -105,29 +102,41 @@ func apply_effect(effect: Dictionary) -> void:
 
 
 # --- Stock ------------------------------------------------------------------
+# Thin front for the world's Stock (per-building inventories). `resources` and
+# `capacity` are cached kingdom totals for the HUD, refreshed on every change.
+
+func attach_stock(p_stock: Stock) -> void:
+	stock = p_stock
+	stock.changed.connect(_recount)
+	for item: String in START_RESOURCES:
+		stock.store_at(stock.world.keep, item, START_RESOURCES[item], true)
+	_recount()
+
+
+func _recount() -> void:
+	resources = stock.totals()
+	for category: String in ItemDefs.CAPPED_CATEGORIES:
+		capacity[category] = stock.capacity(category)
+	resources_changed.emit()
+
+
+## Storage buildings were added/removed or research changed their capacity.
+func refresh_capacity() -> void:
+	if stock != null:
+		_recount()
+
 
 func count(item: String) -> int:
 	return resources.get(item, 0)
 
 
 func used(category: String) -> int:
-	var total := 0
-	for item: String in resources:
-		if ItemDefs.category_of(item) == category:
-			total += resources[item]
-	return total
+	return stock.used(category) if stock != null else 0
 
 
+## Free storage space for `item` across the kingdom.
 func space_for(item: String) -> int:
-	var category := ItemDefs.category_of(item)
-	if not category in ItemDefs.CAPPED_CATEGORIES:
-		return 1 << 30
-	return maxi(capacity.get(category, 0) - used(category) - reserved_space.get(category, 0), 0)
-
-
-func set_capacity(p_capacity: Dictionary) -> void:
-	capacity = p_capacity
-	resources_changed.emit()
+	return stock.total_space(item) if stock != null else 0
 
 
 func can_afford(cost: Dictionary) -> bool:
@@ -138,57 +147,27 @@ func can_afford(cost: Dictionary) -> bool:
 
 
 func spend(cost: Dictionary) -> bool:
-	if not can_afford(cost):
-		return false
-	for item in cost:
-		resources[item] -= cost[item]
-	resources_changed.emit()
-	return true
+	return can_afford(cost) and stock.spend(cost)
 
 
 func remove_resource(item: String, amount: int) -> bool:
 	if count(item) < amount:
 		return false
-	resources[item] -= amount
-	resources_changed.emit()
+	stock.take_anywhere(item, amount)
 	return true
 
 
-## Holds free space for `item` so nobody else fills it. Returns the amount held.
-func reserve_space(item: String, amount: int) -> int:
-	var held := mini(amount, space_for(item))
-	var category := ItemDefs.category_of(item)
-	reserved_space[category] = reserved_space.get(category, 0) + held
-	return held
-
-
-func release_space(item: String, amount: int) -> void:
-	var category := ItemDefs.category_of(item)
-	reserved_space[category] = maxi(reserved_space.get(category, 0) - amount, 0)
-
-
-## Adds up to the free capacity (plus any space the caller had reserved).
-## Returns how much was accepted.
-func store(item: String, amount: int, reserved := 0) -> int:
-	if reserved > 0:
-		release_space(item, reserved)
-	var accepted := mini(amount, space_for(item))
-	if accepted > 0:
-		resources[item] = count(item) + accepted
-		resources_changed.emit()
-	return accepted
-
-
-## Ignores capacity (refunds, starting stock).
+## Stores wherever there's room; overflow goes into the Keep (refunds, loot,
+## taxes, test grants).
 func add_resource(item: String, amount: int) -> void:
-	resources[item] = count(item) + amount
-	resources_changed.emit()
+	stock.store_anywhere(item, amount)
 
 
 func refund(cost: Dictionary, fraction: float) -> void:
-	for item in cost:
-		resources[item] = count(item) + floori(cost[item] * fraction)
-	resources_changed.emit()
+	for item: String in cost:
+		var amount := floori(cost[item] * fraction)
+		if amount > 0:
+			add_resource(item, amount)
 
 
 # --- Food -------------------------------------------------------------------
@@ -200,8 +179,8 @@ func edible_total() -> int:
 	return total
 
 
-## Eats up to `meals` food, drawing from whichever edible item is most plentiful.
-## Returns how many meals were actually eaten.
+## Eats up to `meals` food from storage, drawing from whichever edible item is
+## most plentiful. Returns how many meals were actually eaten.
 func eat(meals: int) -> int:
 	var eaten := 0
 	while eaten < meals:
@@ -211,10 +190,7 @@ func eat(meals: int) -> int:
 				best = item
 		if best == "":
 			break
-		resources[best] -= 1
-		eaten += 1
-	if eaten > 0:
-		resources_changed.emit()
+		eaten += stock.take_anywhere(best, mini(meals - eaten, count(best)))
 	return eaten
 
 

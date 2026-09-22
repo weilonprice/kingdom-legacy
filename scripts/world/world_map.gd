@@ -30,6 +30,10 @@ var buildings: Array[Building] = []
 var enemies: Array[Enemy] = []
 ## True while raiders are on the map; villagers hide.
 var raid_active := false
+## Set by DayNight; villagers sleep at night.
+var is_night := false
+## Per-building inventories (storages, the Keep's treasury).
+var stock: Stock
 var keep: Building
 
 var terrain_layer: TileMapLayer
@@ -102,7 +106,9 @@ func generate(seed_value: int) -> void:
 		for x in width:
 			_update_nav(Vector2i(x, y))
 
+	stock = Stock.new(self)
 	_place_start(center)
+	GameState.attach_stock(stock)
 
 
 func _noise(seed_value: int, frequency: float, octaves: int) -> FastNoiseLite:
@@ -289,20 +295,6 @@ func harvest(t: Vector2i, type: int, amount: int) -> int:
 	return amount
 
 
-## Nearest storage building that accepts `item`'s category.
-func nearest_storage_for(item: String, from: Vector2i) -> Building:
-	var category := ItemDefs.category_of(item)
-	var best: Building = null
-	var best_dist := INF
-	for b in buildings:
-		if not category in b.def.get("accepts", []):
-			continue
-		var d := Vector2(b.entrance()).distance_squared_to(Vector2(from))
-		if d < best_dist:
-			best_dist = d
-			best = b
-	return best
-
 
 # --- Buildings --------------------------------------------------------------
 
@@ -395,7 +387,13 @@ func demolish_at(t: Vector2i) -> String:
 		if b == keep:
 			return "The Keep cannot be demolished"
 		GameState.refund(b.def.cost, 0.5)
+		var goods: Dictionary = b.inventory.duplicate()
+		for item: String in b.output_stock:
+			goods[item] = goods.get(item, 0) + b.output_stock[item]
 		remove_building(b)
+		# Demolishing (unlike destruction) moves what was inside elsewhere.
+		for item: String in goods:
+			GameState.add_resource(item, goods[item])
 		return ""
 	if roads.has(t):
 		roads.erase(t)
@@ -406,11 +404,7 @@ func demolish_at(t: Vector2i) -> String:
 
 
 func recompute_capacity() -> void:
-	var cap := {}
-	for b in buildings:
-		for category: String in b.def.get("accepts", []):
-			cap[category] = cap.get(category, 0) + b.storage_capacity()
-	GameState.set_capacity(cap)
+	GameState.refresh_capacity()
 
 
 # --- Fields -----------------------------------------------------------------

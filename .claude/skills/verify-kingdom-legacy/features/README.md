@@ -43,8 +43,10 @@ tools/verify/run.sh`, `Gotchas`.
 - [Raids and towers](./raids-and-towers.md): guard towers, raid warning, raid banner, raid end. Scenario `raid-defense.json`.
 - [Squads](./squads.md): barracks training, squad selection, move orders, release to guard. Scenario `squads.json`.
 - [Needs and happiness](./needs-and-happiness.md): home needs, service coverage, house levels, tax rate, overlays. Scenario `needs-happiness.json`.
+- [Storage and hauling](./storage-and-hauling.md): workplace piles, per-building storage, Carter's Yard haulers. Scenario `hauling.json`.
+- [Day and night](./day-night.md): clock, night tint, villagers sleeping and waking. Scenario `day-night.json`.
 - [Tiers and research](./tiers-and-research.md): locked content, tier panel, reaching Village, Scholar's Hall research. Scenario `tiers-research.json`.
 
 Not yet mapped: food chain (farm, mill, bakery, fisher), demolish, storage
-capacity, starvation, game over, box-selecting squads, attack orders, Town
+full, starvation, game over, raid theft from a specific storage, box-selecting squads, attack orders, Town
 tier content. Add a feature file and scenario when a change touches them.

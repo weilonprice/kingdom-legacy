@@ -40,8 +40,12 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 `expect` keys: `buildings` (exact counts), `tier`, `raid_phase`
 (`CALM`/`WARNING`/`ACTIVE`), `build_mode` (`NONE`/`BUILD`/`ROAD`/`DEMOLISH`),
 `selected_building` (title), `text` (any visible HUD label/button contains it),
+`text_absent` (no visible HUD label/button contains it),
 `message` (any notification so far contains it), `min` / `max` (`population`,
 `roads`, `happiness`, or any resource), `tax_rate` (`None`..`Harsh`),
-`house_level_min` (`{"level": 2, "count": 1}`), `squad_troops_min`, `squad_mode` (`AUTO`/`MANUAL`),
+`house_level_min` (`{"level": 2, "count": 1}`), `night` (bool),
+`stored_min` / `pile_min` (`{"stockpile": {"wood": 1}}`: goods stored in /
+waiting at buildings of that type), `min`/`max` also take `villagers_awake`,
+`squad_troops_min`, `squad_mode` (`AUTO`/`MANUAL`),
 `research_done` (research id), `button_on_screen` (a visible button whose
 label contains the text lies fully inside the window).

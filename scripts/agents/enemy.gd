@@ -115,7 +115,7 @@ func _pick_primary_target() -> Building:
 	for b in world.buildings:
 		if b.health.is_dead():
 			continue
-		if def.behavior == "thief" and not b.def.has("accepts"):
+		if def.behavior == "thief" and (not b.def.has("accepts") or b.inventory.is_empty()):
 			continue
 		var d := position.distance_squared_to(b.position + Vector2(b.size * Terrain.TILE_SIZE) * 0.5)
 		if d < best_dist:
@@ -175,17 +175,18 @@ func _try_attack() -> void:
 		target.health.take_damage(def.damage)
 
 
-## Grabs up to `loot` of whatever the kingdom has most of, then runs.
+## Grabs up to `loot` of whatever this storehouse holds most of, then runs.
 func _steal() -> void:
+	var store: Building = target
 	var best := ""
-	for item: String in GameState.resources:
-		if GameState.count(item) > 0 and (best == "" or GameState.count(item) > GameState.count(best)):
+	for item: String in store.inventory:
+		if best == "" or store.inventory[item] > store.inventory[best]:
 			best = item
 	if best != "":
-		loot_amount = mini(def.loot, GameState.count(best))
+		loot_amount = world.stock.take_from(store, best, def.loot)
 		loot_item = best
-		GameState.remove_resource(best, loot_amount)
-		GameState.notify("A goblin stole %d %s! Kill it before it escapes." % [loot_amount, best])
+		GameState.notify("A goblin stole %d %s from the %s! Kill it before it escapes." % [
+			loot_amount, best, store.title])
 		queue_redraw()
 	_flee()
 

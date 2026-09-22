@@ -27,6 +27,9 @@ tools/verify/run.sh tools/verify/scenarios/build-and-inspect.json
   echoes it). Done: `VERIFY DONE PASS|FAIL failures=N out=…`.
 - run.sh waits for the process, enforces `--timeout` (default 300s, then kills
   only its own PID), and exits 0 PASS / 1 FAIL / 124 timeout.
+- Occasionally a windowed click is lost while macOS moves focus between
+  windows; toggle buttons (category tabs, speeds) are retried once
+  automatically (`after one retry` in report.json).
 - Windowed runs pop the game window to the front and keep it always-on-top:
   macOS throttles covered windows (the game clock nearly stops, clicks are
   lost, screenshots fail with "the game window is not drawing"). If that

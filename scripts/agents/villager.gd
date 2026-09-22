@@ -1,22 +1,26 @@
 class_name Villager
 extends Node2D
 ## A citizen agent. Lives in `home`, works at `job`, and physically walks
-## goods between resource tiles, workplaces and storage.
+## goods between resource tiles, workplaces and storage buildings.
 ##
 ## Work loops by the job's `work` type:
-##   gather:  go to resource tile -> work -> carry output to storage
-##   farm:    go to ripe field -> harvest -> carry wheat to storage
+##   gather:  go to resource tile -> work -> drop at the workplace's pile
+##   farm:    go to ripe field -> harvest -> drop wheat at the farm's pile
 ##            (or go to tilled field -> plant)
-##   produce: go to storage -> take input -> carry to workplace -> work
-##            -> carry output to storage
-##   guard:   walk to the tower and stay inside on watch
-## During a raid everyone except guards runs home and hides.
+##   produce: use delivered input (or fetch it from the nearest storage or
+##            workplace pile) -> work -> drop output at the pile
+##   haul:    empty the fullest workplace pile into storage, or deliver
+##            inputs to producers
+##   guard / study / service: walk to the building and stay inside
+## When a workplace pile is full its own worker carries a load to storage.
+## At night villagers (except those working inside) finish their delivery and
+## sleep at home; during a raid they hide when raiders come close.
 
 signal died(villager: Villager)
 
 enum State {
-	IDLE, WANDER, TO_TARGET, WORKING, TO_DEPOSIT, TO_FETCH, TO_WORKPLACE,
-	TO_SHELTER, HIDING, TO_POST, STATIONED,
+	IDLE, WANDER, TO_TARGET, WORKING, TO_DEPOSIT, TO_FETCH, TO_WORKPLACE, TO_DROP,
+	TO_PICKUP, TO_SUPPLY, TO_SHELTER, HIDING, TO_POST, STATIONED, TO_BED, SLEEPING,
 }
 enum Task { NONE, GATHER, PLANT, HARVEST, PRODUCE }
 
@@ -29,6 +33,10 @@ const MAX_HP := 20.0
 const DANGER_TILES := 10
 const SAFE_TILES := 14
 const DANGER_CHECK_INTERVAL := 0.4
+## Most goods one villager carries in a single trip.
+const HAUL_LOAD := 8
+## Haulers only bother with piles at least this big.
+const HAUL_MIN := 4
 const NAMES := [
 	"Aldric", "Bertram", "Cedric", "Edda", "Elspeth", "Godwin", "Hilda", "Isolde",
 	"Jocelyn", "Leofric", "Maud", "Osric", "Rowena", "Sigrid", "Tamsin", "Ulric",
@@ -52,10 +60,10 @@ var note := "Settling in"
 
 var _jitter := Vector2.ZERO
 var _target_tile := WorldMap.INVALID_TILE
-var _storage: Building
-## Storage space held for the output we're about to produce.
-var _held_space := 0
-var _held_item := ""
+## Building the current trip is headed to (storage, source, or supply target).
+var _dest: Building
+## Haulers: the producer being supplied.
+var _supply_target: Building
 var _danger_timer := 0.0
 
 
@@ -84,7 +92,8 @@ func is_guard() -> bool:
 	return job != null and job.def.get("work", "") == "guard"
 
 
-## Guards and scholars work from inside their building and don't flee raids.
+## Guards, scholars and service workers work from inside their building: they
+## don't flee raids or go home at night.
 func works_inside() -> bool:
 	return job != null and job.def.get("work", "") in ["guard", "study", "service"]
 
@@ -103,32 +112,31 @@ func lose_job() -> void:
 
 
 func _exit_tree() -> void:
-	_release_target()
-	_release_held_space()
+	_release_claims()
 
 
-## Drops the current plan. Anything carried is kept and returned to storage.
+## Drops the current plan. Anything carried is kept and taken to storage.
 func _reset() -> void:
 	path.clear()
-	_release_target()
-	_release_held_space()
+	_release_claims()
 	state = State.IDLE
 	task = Task.NONE
 	timer = 0.5
 	visible = true
+	if carrying == "":
+		carry_amount = 0
 	queue_redraw()
 
 
-func _release_held_space() -> void:
-	if _held_space > 0:
-		GameState.release_space(_held_item, _held_space)
-		_held_space = 0
-
-
-func _release_target() -> void:
+func _release_claims() -> void:
 	if _target_tile != WorldMap.INVALID_TILE:
 		world.release(_target_tile, self)
 		_target_tile = WorldMap.INVALID_TILE
+	if is_instance_valid(_dest) and _dest.pickup_claim == self:
+		_dest.pickup_claim = null
+	if is_instance_valid(_supply_target) and _supply_target.supply_claim == self:
+		_supply_target.supply_claim = null
+	_supply_target = null
 
 
 func _claim(t: Vector2i) -> void:
@@ -153,6 +161,10 @@ func _process(delta: float) -> void:
 	match state:
 		State.HIDING, State.STATIONED:
 			pass
+		State.SLEEPING:
+			if not world.is_night:
+				visible = true
+				_wait("Waking up", randf_range(0.2, 2.0))
 		State.IDLE:
 			timer -= delta
 			if timer <= 0.0:
@@ -191,6 +203,9 @@ func _think() -> void:
 	if carrying != "":
 		_go_deposit()
 		return
+	if world.is_night and not works_inside():
+		_go_to_bed()
+		return
 	if job == null:
 		note = "Unemployed"
 		_wander()
@@ -206,6 +221,8 @@ func _think() -> void:
 			_plan_farm()
 		"produce":
 			_plan_produce()
+		"haul":
+			_plan_haul()
 		"guard", "study", "service":
 			_plan_station()
 		_:
@@ -220,9 +237,171 @@ func _plan_station() -> void:
 		_wait("Can't reach the %s" % job.title, 3.0)
 
 
+## Makes room in the workplace pile for `needed` more goods: carries a load
+## to storage if the pile is too full. Returns false if the worker is busy
+## doing that (or waiting because storage is full).
+func _ensure_pile_space(needed: int) -> bool:
+	if job.output_space() >= needed:
+		return true
+	if GameState.space_for(job.fullest_output()) <= 0:
+		_wait("Storage full", 3.0)
+		return false
+	if _walk_to(job.entrance()):
+		_dest = job
+		state = State.TO_PICKUP
+		note = "Pile is full: hauling a load to storage"
+	else:
+		_wait("Can't reach workplace", 3.0)
+	return false
+
+
+func _plan_gather() -> void:
+	var def: Dictionary = job.def
+	if not _ensure_pile_space(def.yield):
+		return
+	for t in world.find_resource_tiles(job.entrance(), def.gather_terrain, def.radius, 6):
+		var stand: Vector2i = world.approach_tile(t)
+		if stand != WorldMap.INVALID_TILE and _walk_to(stand):
+			_claim(t)
+			task = Task.GATHER
+			state = State.TO_TARGET
+			note = "Going to gather %s" % def.resource
+			return
+	_wait("No %s left nearby" % Terrain.NAMES[def.gather_terrain].to_lower(), 4.0)
+
+
+func _plan_farm() -> void:
+	var t: Vector2i = world.find_field(job, WorldMap.FieldStage.RIPE)
+	if t != WorldMap.INVALID_TILE:
+		if not _ensure_pile_space(job.def.yield):
+			return
+		if _walk_to(t):
+			_claim(t)
+			task = Task.HARVEST
+			state = State.TO_TARGET
+			note = "Going to harvest"
+			return
+	t = world.find_field(job, WorldMap.FieldStage.TILLED)
+	if t != WorldMap.INVALID_TILE and _walk_to(t):
+		_claim(t)
+		task = Task.PLANT
+		state = State.TO_TARGET
+		note = "Going to plant"
+		return
+	_wait("Waiting for crops to grow", 3.0)
+
+
+func _plan_produce() -> void:
+	var input := job.input_item()
+	var batch := job.input_batch()
+	var output: String = job.def.output.keys()[0]
+	if not _ensure_pile_space(job.def.output[output]):
+		return
+	if job.input_stock.get(input, 0) >= batch:
+		# A hauler delivered it: just walk over and work.
+		if _walk_to(job.entrance()):
+			state = State.TO_WORKPLACE
+			note = "Going to work"
+		return
+	var source := world.stock.nearest_source(input, batch, current_tile(), job)
+	if source != null and _walk_to(source.entrance()):
+		_dest = source
+		state = State.TO_FETCH
+		note = "Fetching %s from %s" % [input, source.title]
+	else:
+		_wait("Waiting for %s" % input, 3.0)
+
+
+func _plan_haul() -> void:
+	# 1. Empty the fullest workplace pile into storage.
+	var best: Building = null
+	for b in world.buildings:
+		if b.output_total() < HAUL_MIN or not b.has_road or is_instance_valid(b.pickup_claim):
+			continue
+		if GameState.space_for(b.fullest_output()) <= 0:
+			continue
+		if best == null or b.output_total() > best.output_total():
+			best = b
+	if best != null and _walk_to(best.entrance()):
+		best.pickup_claim = self
+		_dest = best
+		state = State.TO_PICKUP
+		note = "Collecting from %s" % best.title
+		return
+	# 2. Keep producers supplied with inputs.
+	for p in world.buildings:
+		if not p.def.has("input") or not p.has_road or p.workers.is_empty() or is_instance_valid(p.supply_claim):
+			continue
+		var input := p.input_item()
+		var wanted: int = p.input_batch() * 2 - p.input_stock.get(input, 0)
+		if wanted <= 0:
+			continue
+		var source := world.stock.nearest_source(input, 1, p.entrance(), p)
+		if source != null and _walk_to(source.entrance()):
+			p.supply_claim = self
+			_supply_target = p
+			_dest = source
+			carry_amount = mini(wanted, HAUL_LOAD)  # how much to pick up
+			state = State.TO_FETCH
+			note = "Fetching %s for %s" % [input, p.title]
+			return
+	_wait("Nothing to haul", 3.0)
+
+
+func _go_deposit() -> void:
+	var storage := world.stock.nearest_with_space(carrying, current_tile())
+	if storage != null and _walk_to(storage.entrance()):
+		_dest = storage
+		state = State.TO_DEPOSIT
+		note = "Hauling %s to %s" % [carrying, storage.title]
+		return
+	_wait("Storage full (holding %s)" % carrying, 3.0)
+
+
+## Takes finished goods to the workplace pile, or straight to storage if the
+## pile is full.
+func _deliver_output(item: String, amount: int) -> void:
+	carrying = item
+	carry_amount = amount
+	queue_redraw()
+	if job.output_space() > 0 and _walk_to(job.entrance()):
+		state = State.TO_DROP
+		note = "Bringing %s to %s" % [item, job.title]
+	else:
+		_go_deposit()
+
+
+func _go_to_bed() -> void:
+	var bed: Building = home if is_instance_valid(home) else world.keep
+	if bed != null and _walk_to(bed.entrance()):
+		state = State.TO_BED
+		note = "Going home for the night"
+	else:
+		_sleep()
+
+
+func _sleep() -> void:
+	state = State.SLEEPING
+	visible = false
+	note = "Sleeping"
+
+
+func _wander() -> void:
+	var anchor: Vector2i = home.entrance() if is_instance_valid(home) else current_tile()
+	for i in 6:
+		var t := anchor + Vector2i(randi_range(-4, 4), randi_range(-4, 4))
+		if world.is_walkable(t) and _walk_to(t):
+			state = State.WANDER
+			return
+	state = State.IDLE
+	timer = randf_range(2.0, 4.0)
+
+
 # --- Raids ------------------------------------------------------------------
 
 func _update_raid_response() -> void:
+	if state == State.SLEEPING or state == State.TO_BED:
+		return  # already heading indoors
 	var sheltering := state == State.TO_SHELTER or state == State.HIDING
 	var radius := (SAFE_TILES if sheltering else DANGER_TILES) * Terrain.TILE_SIZE
 	var should_hide := world.raid_active and not works_inside() and world.enemy_within(position, radius)
@@ -249,94 +428,14 @@ func _hide() -> void:
 	note = "Hiding from raiders"
 
 
-func _plan_gather() -> void:
-	var def: Dictionary = job.def
-	if GameState.space_for(def.resource) <= 0:
-		_wait("Storage full", 3.0)
-		return
-	for t in world.find_resource_tiles(job.entrance(), def.gather_terrain, def.radius, 6):
-		var stand: Vector2i = world.approach_tile(t)
-		if stand != WorldMap.INVALID_TILE and _walk_to(stand):
-			_claim(t)
-			task = Task.GATHER
-			state = State.TO_TARGET
-			note = "Going to gather %s" % def.resource
-			return
-	_wait("No %s left nearby" % Terrain.NAMES[def.gather_terrain].to_lower(), 4.0)
-
-
-func _plan_farm() -> void:
-	var t: Vector2i = world.find_field(job, WorldMap.FieldStage.RIPE)
-	if t != WorldMap.INVALID_TILE and GameState.space_for("wheat") > 0 and _walk_to(t):
-		_claim(t)
-		task = Task.HARVEST
-		state = State.TO_TARGET
-		note = "Going to harvest"
-		return
-	t = world.find_field(job, WorldMap.FieldStage.TILLED)
-	if t != WorldMap.INVALID_TILE and _walk_to(t):
-		_claim(t)
-		task = Task.PLANT
-		state = State.TO_TARGET
-		note = "Going to plant"
-		return
-	if GameState.space_for("wheat") <= 0 and world.count_fields(job, WorldMap.FieldStage.RIPE) > 0:
-		_wait("Storage full", 3.0)
-	else:
-		_wait("Waiting for crops to grow", 3.0)
-
-
-func _plan_produce() -> void:
-	var input: String = job.def.input.keys()[0]
-	var output: String = job.def.output.keys()[0]
-	# Taking the input frees space, so only the net gain must fit.
-	var freed: int = job.def.input[input] if ItemDefs.category_of(input) == ItemDefs.category_of(output) else 0
-	if GameState.space_for(output) + freed < job.def.output[output]:
-		_wait("Storage full", 3.0)
-		return
-	if GameState.count(input) < job.def.input[input]:
-		_wait("Waiting for %s" % input, 3.0)
-		return
-	var storage: Building = world.nearest_storage_for(input, current_tile())
-	if storage != null and _walk_to(storage.entrance()):
-		_storage = storage
-		state = State.TO_FETCH
-		note = "Fetching %s" % input
-	else:
-		_wait("Can't reach storage", 3.0)
-
-
-func _go_deposit() -> void:
-	var own_held := _held_space if _held_item == carrying else 0
-	if GameState.space_for(carrying) + own_held <= 0:
-		_wait("Storage full (holding %s)" % carrying, 3.0)
-		return
-	var storage: Building = world.nearest_storage_for(carrying, current_tile())
-	if storage != null and _walk_to(storage.entrance()):
-		_storage = storage
-		state = State.TO_DEPOSIT
-		note = "Hauling %s to %s" % [carrying, storage.def.name]
-		return
-	_wait("No storage for %s" % carrying, 3.0)
-
-
-func _wander() -> void:
-	var anchor: Vector2i = home.entrance() if is_instance_valid(home) else current_tile()
-	for i in 6:
-		var t := anchor + Vector2i(randi_range(-4, 4), randi_range(-4, 4))
-		if world.is_walkable(t) and _walk_to(t):
-			state = State.WANDER
-			return
-	state = State.IDLE
-	timer = randf_range(2.0, 4.0)
-
-
 # --- Arrivals & work --------------------------------------------------------
 
 func _arrive() -> void:
 	match state:
 		State.TO_SHELTER:
 			_hide()
+		State.TO_BED:
+			_sleep()
 		State.TO_POST:
 			if job == null:
 				_reset()
@@ -354,49 +453,117 @@ func _arrive() -> void:
 			note = {Task.GATHER: "Gathering %s" % job.def.get("resource", ""),
 					Task.PLANT: "Planting", Task.HARVEST: "Harvesting"}.get(task, "Working")
 		State.TO_FETCH:
-			if job == null or not is_instance_valid(_storage):
-				_reset()
-				return
-			var input: String = job.def.input.keys()[0]
-			var amount: int = job.def.input[input]
-			if not GameState.remove_resource(input, amount):
-				_wait("Waiting for %s" % input, 3.0)
-				return
-			carrying = input
-			carry_amount = amount
-			_held_item = job.def.output.keys()[0]
-			_held_space = GameState.reserve_space(_held_item, job.def.output[_held_item])
-			queue_redraw()
-			if _walk_to(job.entrance()):
-				state = State.TO_WORKPLACE
-				note = "Carrying %s to %s" % [input, job.def.name]
-			else:
-				_wait("Can't reach workplace")
+			_arrive_fetch()
 		State.TO_WORKPLACE:
-			if job == null:
-				_reset()
-				return
-			carrying = ""
-			carry_amount = 0
-			queue_redraw()
-			task = Task.PRODUCE
-			state = State.WORKING
-			timer = job.def.work_time * _work_multiplier()
-			note = "Working"
+			_arrive_workplace()
+		State.TO_DROP:
+			_arrive_drop()
+		State.TO_PICKUP:
+			_arrive_pickup()
+		State.TO_SUPPLY:
+			if is_instance_valid(_supply_target):
+				_supply_target.add_input(carrying, carry_amount)
+				note = "Delivered %s to %s" % [carrying, _supply_target.title]
+				carrying = ""
+				carry_amount = 0
+				queue_redraw()
+			_release_claims()
+			_wait(note, 0.3)
 		State.TO_DEPOSIT:
-			if is_instance_valid(_storage):
-				var held := _held_space if _held_item == carrying else 0
-				if held > 0:
-					_held_space = 0
-				carry_amount -= GameState.store(carrying, carry_amount, held)
+			if is_instance_valid(_dest):
+				carry_amount -= world.stock.store_at(_dest, carrying, carry_amount)
 				if carry_amount <= 0:
 					carrying = ""
 					carry_amount = 0
 				queue_redraw()
-			_wait(note, 0.3)
+			_wait(note, 0.3)  # anything left over goes to another storage
 		State.WANDER:
 			state = State.IDLE
 			timer = randf_range(2.0, 5.0)
+
+
+func _arrive_fetch() -> void:
+	if job == null or not is_instance_valid(_dest):
+		_reset()
+		return
+	if job.def.get("work", "") == "haul":
+		var target := _supply_target
+		var input := target.input_item() if is_instance_valid(target) else ""
+		var got := world.stock.take_from_source(_dest, input, carry_amount) if input != "" else 0
+		if got <= 0:
+			carry_amount = 0
+			_release_claims()
+			_wait("Nothing left to fetch", 1.0)
+			return
+		carrying = input
+		carry_amount = got
+		queue_redraw()
+		if _walk_to(target.entrance()):
+			state = State.TO_SUPPLY
+			note = "Delivering %s to %s" % [input, target.title]
+		else:
+			_release_claims()
+			_go_deposit()
+		return
+	var needed := job.input_batch()
+	var item := job.input_item()
+	if _dest.inventory.get(item, 0) + _dest.output_stock.get(item, 0) < needed:
+		_wait("Waiting for %s" % item, 2.0)
+		return
+	carrying = item
+	carry_amount = world.stock.take_from_source(_dest, item, needed)
+	queue_redraw()
+	if _walk_to(job.entrance()):
+		state = State.TO_WORKPLACE
+		note = "Carrying %s to %s" % [item, job.title]
+	else:
+		_wait("Can't reach workplace")
+
+
+func _arrive_workplace() -> void:
+	if job == null:
+		_reset()
+		return
+	if carrying == job.input_item():
+		carrying = ""
+		carry_amount = 0
+		queue_redraw()
+	elif not job.take_input(job.input_item(), job.input_batch()):
+		_wait("Waiting for %s" % job.input_item(), 2.0)
+		return
+	task = Task.PRODUCE
+	state = State.WORKING
+	timer = job.def.work_time * _work_multiplier()
+	note = "Working"
+
+
+func _arrive_drop() -> void:
+	if job == null:
+		_go_deposit()
+		return
+	carry_amount -= job.add_output(carrying, carry_amount)
+	if carry_amount > 0:
+		_go_deposit()  # pile filled up on the way
+		return
+	carrying = ""
+	queue_redraw()
+	_wait(note, 0.2)
+
+
+func _arrive_pickup() -> void:
+	if not is_instance_valid(_dest):
+		_reset()
+		return
+	var item := _dest.fullest_output()
+	var got := _dest.take_output(item, HAUL_LOAD) if item != "" else 0
+	_release_claims()
+	if got <= 0:
+		_wait("Pile was already emptied", 0.5)
+		return
+	carrying = item
+	carry_amount = got
+	queue_redraw()
+	_go_deposit()
 
 
 ## Happy households work faster, miserable ones slower.
@@ -423,13 +590,10 @@ func _finish_work() -> void:
 		Task.PRODUCE:
 			item = def.output.keys()[0]
 			amount = def.output[item]
-	_release_target()
+	_release_claims()
 	task = Task.NONE
 	if amount > 0:
-		carrying = item
-		carry_amount = amount
-		queue_redraw()
-		_go_deposit()
+		_deliver_output(item, amount)
 	else:
 		_wait(note, 0.2)
 

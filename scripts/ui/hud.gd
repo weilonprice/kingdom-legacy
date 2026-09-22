@@ -17,12 +17,14 @@ var progression: Progression
 var research: Research
 var needs: Needs
 var overlay: Overlay
+var day_night: DayNight
 
 var _materials_label: Label
 var _food_label: Label
 var _gold_label: Label
 var _pop_label: Label
 var _raid_label: Label
+var _clock_label: Label
 var _banner: Label
 var _game_over: GameOverPanel
 var _squad_panel: SquadPanel
@@ -41,7 +43,9 @@ var _panel: BuildingPanel
 
 func setup(p_build: BuildController, p_world: WorldMap, p_citizens: CitizenManager,
 		p_raids: RaidDirector, p_military: Military, p_units: UnitController,
-		p_progression: Progression, p_research: Research, p_needs: Needs, p_overlay: Overlay) -> void:
+		p_progression: Progression, p_research: Research, p_needs: Needs, p_overlay: Overlay,
+		p_day_night: DayNight) -> void:
+	day_night = p_day_night
 	progression = p_progression
 	research = p_research
 	needs = p_needs
@@ -119,6 +123,9 @@ func _process(delta: float) -> void:
 	_msg_label.position = Vector2((vp.x - _msg_label.size.x) * 0.5, vp.y - 130)
 	_panel.position = Vector2(vp.x - _panel.size.x - 10, 50)
 	_update_raid_ui(vp)
+	_set_bar(_clock_label, day_night.label(), "%s — %d:%02d until %s" % [
+		day_night.label(), floori(day_night.time_to_change() / 60.0), floori(day_night.time_to_change()) % 60,
+		"morning" if world.is_night else "nightfall"])
 	_squad_panel.position = Vector2(10, vp.y - _squad_panel.size.y - 90)
 
 
@@ -164,6 +171,7 @@ func _build_top_bar() -> void:
 	_gold_label = _bar_label(row, 1.0)
 	_pop_label = _bar_label(row, 1.0)
 	_raid_label = _bar_label(row, 0.8)
+	_clock_label = _bar_label(row, 0.6)
 	for i in SPEED_LABELS.size():
 		var btn := _button(row, SPEED_LABELS[i], "Space toggles pause")
 		btn.toggle_mode = true

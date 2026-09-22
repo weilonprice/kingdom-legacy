@@ -18,6 +18,14 @@ var title := ""
 var base_hp := 200.0
 var base_capacity := 0
 ## Homes: which needs are met, happiness, level (1..3) and their timers.
+## Storage buildings: goods held here (item -> amount). See Stock.
+var inventory := {}
+## Workplaces: finished goods waiting for pickup, and delivered inputs.
+var output_stock := {}
+var input_stock := {}
+## Hauler currently fetching from / supplying this building (one at a time).
+var pickup_claim: Object
+var supply_claim: Object
 var needs_met := {}
 var happiness := NeedDefs.BASE_HAPPINESS
 var level := 1
@@ -61,6 +69,80 @@ func refresh_max_hp() -> void:
 	health.max_hp = new_max
 	health.hp = clampf(health.hp + maxf(gain, 0.0), 0.0, new_max)
 	health.changed.emit()
+
+
+# --- Workplace piles --------------------------------------------------------
+
+const OUTPUT_CAPACITY := 16
+
+
+func output_total() -> int:
+	var n := 0
+	for item: String in output_stock:
+		n += output_stock[item]
+	return n
+
+
+func output_space() -> int:
+	return maxi(OUTPUT_CAPACITY - output_total(), 0)
+
+
+func add_output(item: String, amount: int) -> int:
+	var added := mini(amount, output_space())
+	if added > 0:
+		output_stock[item] = output_stock.get(item, 0) + added
+		queue_redraw()
+	return added
+
+
+func take_output(item: String, amount: int) -> int:
+	var taken := mini(amount, output_stock.get(item, 0))
+	if taken > 0:
+		output_stock[item] -= taken
+		if output_stock[item] == 0:
+			output_stock.erase(item)
+		queue_redraw()
+	return taken
+
+
+## The item this workplace has most of in its output pile, or "".
+func fullest_output() -> String:
+	var best := ""
+	for item: String in output_stock:
+		if best == "" or output_stock[item] > output_stock[best]:
+			best = item
+	return best
+
+
+## Producers: the single input item and batch size, or "" / 0.
+func input_item() -> String:
+	return def.input.keys()[0] if def.has("input") else ""
+
+
+func input_batch() -> int:
+	return def.input[input_item()] if def.has("input") else 0
+
+
+func add_input(item: String, amount: int) -> void:
+	input_stock[item] = input_stock.get(item, 0) + amount
+	queue_redraw()
+
+
+func take_input(item: String, amount: int) -> bool:
+	if input_stock.get(item, 0) < amount:
+		return false
+	input_stock[item] -= amount
+	queue_redraw()
+	return true
+
+
+## "wood 12, stone 4" for the non-empty entries of `stock`, minus `skip`.
+func _stock_line(stock: Dictionary, skip: Array) -> String:
+	var parts := PackedStringArray()
+	for item: String in stock:
+		if stock[item] > 0 and not item in skip:
+			parts.append("%s %d" % [item, stock[item]])
+	return ", ".join(parts)
 
 
 func is_home() -> bool:
@@ -205,8 +287,16 @@ func inspect_text() -> String:
 
 	if def.has("accepts"):
 		for category: String in def.accepts:
-			lines.append("Stores %s: %d/%d kingdom-wide" % [
-				category, GameState.used(category), GameState.capacity.get(category, 0)])
+			lines.append("Holds %s: %d/%d" % [category, world.stock.used_at(self, category), storage_capacity()])
+		if self == world.keep:
+			lines.append("Treasury: %d gold" % inventory.get("gold", 0))
+		var goods := _stock_line(inventory, ["gold"])
+		lines.append("Stored here: %s" % (goods if goods != "" else "nothing"))
+	if def.has("work") and def.work in ["gather", "farm", "produce"]:
+		var out := _stock_line(output_stock, [])
+		lines.append("Ready for pickup: %s (%d/%d)" % [out if out != "" else "nothing", output_total(), OUTPUT_CAPACITY])
+		if def.has("input"):
+			lines.append("Delivered %s: %d" % [input_item(), input_stock.get(input_item(), 0)])
 	if def.has("provides"):
 		lines.append("Provides %s to homes within %d tiles%s." % [
 			NeedDefs.NEEDS[def.provides].name.to_lower(), def.coverage,
@@ -224,8 +314,6 @@ func inspect_text() -> String:
 			lines.append("Upgrades to %s with: %s" % [next.name, ", ".join(names)])
 		if happiness < NeedDefs.UNHAPPY:
 			lines.append("⚠ Miserable: pays no tax, residents will leave")
-	if base_capacity > 0:
-		lines.append("This building adds %d storage per category." % storage_capacity())
 
 	if is_home():
 		lines.append("")

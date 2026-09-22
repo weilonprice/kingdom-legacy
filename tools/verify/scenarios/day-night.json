@@ -1,0 +1,14 @@
+[
+  {"expect": {"night": false, "min": {"villagers_awake": 1}}},
+  {"wait_until": {"min": {"villagers_awake": 4}}, "timeout": 20},
+  {"click_button": "4x"},
+  {"wait_until": {"night": true}, "timeout": 60},
+  {"expect": {"message": "Night falls", "text": "Night"}},
+  {"wait_until": {"max": {"villagers_awake": 0}}, "timeout": 30},
+  {"screenshot": "01-night-town-asleep"},
+  {"wait_until": {"night": false}, "timeout": 30},
+  {"expect": {"message": "Day 2 begins", "text": "Day 2"}},
+  {"wait_until": {"min": {"villagers_awake": 4}}, "timeout": 20},
+  {"screenshot": "02-morning"},
+  {"state": "end"}
+]
