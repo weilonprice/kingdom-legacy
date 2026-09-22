@@ -26,3 +26,4 @@ villagers fed, while goblins, orcs and trolls raid in escalating waves.
 | Inspect building | Left-click |
 | Cancel / deselect | Right-click / Esc |
 | Pause / speed | Space / top-bar buttons |
+| Call a raid now (testing) | F9 |

@@ -22,6 +22,7 @@ var housing := 0
 var employed := 0
 var jobs := 0
 var speed := 1
+var game_over := false
 
 var _last_speed := 1
 
@@ -31,10 +32,31 @@ func _ready() -> void:
 	reset()
 
 
+## Fresh state for a new game (the autoload survives scene reloads).
 func reset() -> void:
 	resources = START_RESOURCES.duplicate()
 	reserved_space = {}
+	capacity = {}
+	population = 0
+	housing = 0
+	employed = 0
+	jobs = 0
+	game_over = false
+	speed = 1
+	_last_speed = 1
+	Engine.time_scale = 1.0
+	get_tree().paused = false
 	resources_changed.emit()
+	population_changed.emit()
+	speed_changed.emit()
+
+
+## Freezes the simulation for good; only a new game resumes it.
+func end_game() -> void:
+	game_over = true
+	speed = 0
+	get_tree().paused = true
+	speed_changed.emit()
 
 
 func notify(text: String) -> void:
@@ -169,6 +191,8 @@ func set_population(p_population: int, p_housing: int, p_employed: int, p_jobs: 
 
 ## 0 = paused, 1..3 = normal / fast / fastest.
 func set_speed(value: int) -> void:
+	if game_over:
+		return
 	speed = clampi(value, 0, SPEEDS.size() - 1)
 	if speed > 0:
 		_last_speed = speed

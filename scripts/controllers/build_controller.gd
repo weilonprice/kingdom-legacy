@@ -202,7 +202,7 @@ func _draw_selection(b: Building) -> void:
 
 ## Outlines the work radius (gatherers) or coverage radius (services).
 func _draw_area(def: Dictionary, e: Vector2i) -> void:
-	var r: int = def.get("radius", def.get("coverage", 0))
+	var r: int = def.get("radius", def.get("coverage", def.get("range", 0)))
 	if r <= 0:
 		return
 	var tile := Terrain.TILE_SIZE

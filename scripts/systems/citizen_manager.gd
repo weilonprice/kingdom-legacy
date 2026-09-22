@@ -2,6 +2,8 @@ class_name CitizenManager
 extends Node
 ## Spawns villagers into free housing, assigns them to open jobs, and feeds them.
 
+signal all_villagers_lost
+
 const SPAWN_INTERVAL := 3.0
 const JOB_INTERVAL := 1.0
 ## Every villager eats one meal (1 bread or 1 fish) per interval.
@@ -18,6 +20,7 @@ var _settlers_arrived := 0
 var _spawn_timer := 1.0
 var _job_timer := 0.0
 var _meal_timer := MEAL_INTERVAL
+var _all_lost_emitted := false
 
 
 func setup(p_world: WorldMap) -> void:
@@ -53,6 +56,7 @@ func _try_spawn() -> void:
 		if b.has_road and b.residents.size() < b.def.get("housing", 0):
 			var v := Villager.new()
 			v.setup(world, b)
+			v.died.connect(_on_villager_died)
 			world.unit_root.add_child(v)
 			b.residents.append(v)
 			villagers.append(v)
@@ -114,6 +118,9 @@ func _publish_stats() -> void:
 		jobs += b.def.get("jobs", 0)
 	var employed := villagers.filter(func(v: Villager) -> bool: return v.job != null).size()
 	GameState.set_population(villagers.size(), housing, employed, jobs)
+	if _settlers_arrived > 0 and villagers.is_empty() and not _all_lost_emitted:
+		_all_lost_emitted = true
+		all_villagers_lost.emit()
 
 
 func _remove_villager(v: Villager) -> void:
@@ -122,6 +129,12 @@ func _remove_villager(v: Villager) -> void:
 		v.home.residents.erase(v)
 	villagers.erase(v)
 	v.queue_free()
+
+
+func _on_villager_died(v: Villager) -> void:
+	GameState.notify("%s was killed by raiders!" % v.villager_name)
+	_remove_villager(v)
+	_publish_stats()
 
 
 func _on_building_removed(b: Building) -> void:

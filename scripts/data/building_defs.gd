@@ -19,6 +19,7 @@ const DEFS := {
 		"housing": 4,
 		"accepts": ["materials", "food"],
 		"capacity": 200,
+		"hp": 800.0,
 	},
 	"house": {
 		"name": "House",
@@ -27,6 +28,7 @@ const DEFS := {
 		"cost": {"wood": 20},
 		"color": Color(0.71, 0.51, 0.35),
 		"housing": 4,
+		"hp": 150.0,
 	},
 	"well": {
 		"name": "Well",
@@ -118,6 +120,19 @@ const DEFS := {
 		"output": {"bread": 4},
 		"work_time": 8.0,
 	},
+	"guard_tower": {
+		"name": "Guard Tower",
+		"desc": "A villager keeps watch and shoots arrows at raiders in range.",
+		"size": Vector2i(1, 1),
+		"cost": {"wood": 40, "stone": 20},
+		"color": Color(0.55, 0.52, 0.48),
+		"jobs": 1,
+		"work": "guard",
+		"hp": 300.0,
+		"range": 7,
+		"damage": 10.0,
+		"attack_cooldown": 1.2,
+	},
 	"stockpile": {
 		"name": "Stockpile",
 		"desc": "Stores 150 materials (wood, stone).",
@@ -144,6 +159,7 @@ const CATEGORIES := [
 	{"name": "Resources", "items": ["woodcutter", "quarry"]},
 	{"name": "Food", "items": ["farm", "fisher", "mill", "bakery"]},
 	{"name": "Storage", "items": ["stockpile", "granary"]},
+	{"name": "Defense", "items": ["guard_tower"]},
 ]
 
 

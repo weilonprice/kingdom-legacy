@@ -10,11 +10,15 @@ const ITEM_HOTKEYS := [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, K
 var build: BuildController
 var world: WorldMap
 var citizens: CitizenManager
+var raids: RaidDirector
 
 var _materials_label: Label
 var _food_label: Label
 var _gold_label: Label
 var _pop_label: Label
+var _raid_label: Label
+var _banner: Label
+var _game_over: GameOverPanel
 var _mode_label: Label
 var _info_label: Label
 var _msg_label: Label
@@ -26,10 +30,11 @@ var _category := 0
 var _panel: BuildingPanel
 
 
-func setup(p_build: BuildController, p_world: WorldMap, p_citizens: CitizenManager) -> void:
+func setup(p_build: BuildController, p_world: WorldMap, p_citizens: CitizenManager, p_raids: RaidDirector) -> void:
 	build = p_build
 	world = p_world
 	citizens = p_citizens
+	raids = p_raids
 
 
 func _ready() -> void:
@@ -44,6 +49,15 @@ func _ready() -> void:
 	_panel = BuildingPanel.new()
 	_panel.setup(build, world)
 	add_child(_panel)
+
+	var indicator := RaidIndicator.new()
+	indicator.setup(world, raids)
+	add_child(indicator)
+	_banner = _outlined_label(Vector2.ZERO)
+	_banner.add_theme_font_size_override("font_size", 24)
+	_banner.add_theme_color_override("font_color", Color(1, 0.4, 0.3))
+	_game_over = GameOverPanel.new()
+	add_child(_game_over)
 
 	GameState.resources_changed.connect(_refresh_resources)
 	GameState.population_changed.connect(_refresh_population)
@@ -71,6 +85,7 @@ func _process(delta: float) -> void:
 	var vp := get_viewport().get_visible_rect().size
 	_msg_label.position = Vector2((vp.x - _msg_label.size.x) * 0.5, vp.y - 130)
 	_panel.position = Vector2(vp.x - _panel.size.x - 10, 50)
+	_update_raid_ui(vp)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -78,6 +93,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.keycode == KEY_SPACE:
 		GameState.toggle_pause()
+	elif event.keycode == KEY_F9:
+		raids.call_raid_now()
 	elif event.keycode == KEY_TAB:
 		_show_category((_category + 1) % BuildingDefs.CATEGORIES.size())
 	elif event.keycode in ITEM_HOTKEYS:
@@ -104,6 +121,7 @@ func _build_top_bar() -> void:
 	_food_label = _bar_label(row)
 	_gold_label = _bar_label(row)
 	_pop_label = _bar_label(row)
+	_raid_label = _bar_label(row)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
@@ -180,6 +198,29 @@ func _outlined_label(pos: Vector2) -> Label:
 	label.add_theme_color_override("font_outline_color", Color.BLACK)
 	add_child(label)
 	return label
+
+
+func show_defeat(title: String, body: String) -> void:
+	_game_over.show_defeat(title, body)
+
+
+func _update_raid_ui(vp: Vector2) -> void:
+	match raids.phase:
+		RaidDirector.Phase.CALM:
+			var t := raids.time_until_raid()
+			_raid_label.text = "Next raid %d:%02d" % [floori(t / 60.0), floori(t) % 60]
+			_banner.text = ""
+		RaidDirector.Phase.WARNING:
+			_raid_label.text = "Raid incoming!"
+			_banner.text = "⚔ Goblins approach from the %s — %ds! ⚔" % [
+				raids.direction_name(), ceili(raids.time_until_raid())]
+		RaidDirector.Phase.ACTIVE:
+			_raid_label.text = "Raid in progress"
+			_banner.text = "⚔ Raid! %d goblin%s remaining ⚔" % [
+				world.enemies.size(), "" if world.enemies.size() == 1 else "s"]
+	_banner.visible = _banner.text != ""
+	_banner.reset_size()
+	_banner.position = Vector2((vp.x - _banner.size.x) * 0.5, 48)
 
 
 # --- Refresh ----------------------------------------------------------------

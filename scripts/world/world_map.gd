@@ -5,6 +5,7 @@ extends Node2D
 signal building_placed(building: Building)
 signal building_removed(building: Building)
 signal roads_changed
+signal keep_destroyed
 
 enum FieldStage { TILLED, GROWING, RIPE }
 
@@ -26,6 +27,9 @@ var entrances := {}    # Vector2i -> Building
 var reserved := {}     # Vector2i -> Object reserving that resource tile
 var fields := {}       # Vector2i -> {"farm": Building, "stage": FieldStage, "timer": float}
 var buildings: Array[Building] = []
+var enemies: Array[Enemy] = []
+## True while raiders are on the map; villagers hide.
+var raid_active := false
 var keep: Building
 
 var terrain_layer: TileMapLayer
@@ -355,6 +359,32 @@ func remove_building(b: Building) -> void:
 	_recompute_capacity()
 	building_removed.emit(b)
 	b.queue_free()
+
+
+## Called when a building's health reaches zero.
+func destroy_building(b: Building) -> void:
+	if b == keep:
+		keep_destroyed.emit()
+		return
+	GameState.notify("%s was destroyed!" % b.def.name)
+	remove_building(b)
+
+
+func enemy_within(pos: Vector2, radius: float) -> bool:
+	return nearest_enemy(pos, radius) != null
+
+
+func nearest_enemy(pos: Vector2, radius: float) -> Enemy:
+	var best: Enemy = null
+	var best_dist := radius * radius
+	for e in enemies:
+		if e.health.is_dead():
+			continue
+		var d := pos.distance_squared_to(e.position)
+		if d <= best_dist:
+			best_dist = d
+			best = e
+	return best
 
 
 ## Demolishes whatever is on tile `t`. Returns a message to show, or "".

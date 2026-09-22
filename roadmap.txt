@@ -76,35 +76,41 @@ M1 — FOOD & GROWTH                                    [DONE]
 
 
 ================================================================================
-M2 — FIRST RAID                                        Goal: something attacks
+M2 — FIRST RAID                                        [DONE]
 ================================================================================
   Systems
-  [ ] (M) Health component (hp, take_damage, died signal) shared by
+  [x] (M) Health component (hp, take_damage, died signal) shared by
           buildings, villagers, troops, enemies -> scripts/combat/health.gd
-  [ ] (M) Raid director: timer, warning 30s ahead, spawn at map edge,
+  [x] (M) Raid director: timer, warning 30s ahead, spawn at map edge,
           strength = f(population, wealth, raids survived)
           -> scripts/systems/raid_director.gd
-  [ ] (S) Enemy defs table -> scripts/data/enemy_defs.gd
-  [ ] (M) Enemy agent: path to target (storage / nearest building / Keep),
+  [x] (S) Enemy defs table -> scripts/data/enemy_defs.gd
+  [x] (M) Enemy agent: path to target (storage / nearest building / Keep),
           attack in melee, retarget on block -> scripts/agents/enemy.gd
   [ ] (S) Pathfinding for enemies: treat buildings as attackable obstacles
-          (path through, stop and bash)
+          (path through, stop and bash)  -> DEFERRED to M7 (only matters
+          once walls can block every route)
 
   Content
-  [ ] (M) Goblin: fast, low HP, steals goods from storage and runs off map
-  [ ] (M) Guard Tower: ranged auto-attack, needs 1 worker, arrows as simple
+  [x] (M) Goblin: fast, low HP, steals goods from storage and runs off map
+          (killing it recovers the loot)
+  [x] (M) Goblin Brute (from the 2nd raid): smashes buildings, then the Keep
+  [x] (M) Guard Tower: ranged auto-attack, needs 1 worker, arrows as simple
           projectile -> scripts/combat/projectile.gd
-  [ ] (S) Building damage + destruction (rubble tile, can rebuild)
+  [x] (S) Building damage + destruction (no rubble tile yet); buildings
+          slowly self-repair between raids
 
   Villagers
-  [ ] (M) Flee behavior: on raid alert, villagers go home / to the Keep and
-          hide; resume work when raid ends
-  [ ] (S) Villagers can be killed (lose a citizen)
+  [x] (M) Flee behavior: villagers hide at home when raiders come within
+          10 tiles and resume work once none are within 14 (so the economy
+          keeps running while raiders are still far away)
+  [x] (S) Villagers can be killed (lose a citizen)
 
   UI / feedback
-  [ ] (S) Raid warning banner + direction arrow at screen edge
-  [ ] (S) HP bars on damaged units/buildings
-  [ ] (S) Lose condition: Keep destroyed -> game over screen
+  [x] (S) Raid warning banner + direction arrow at screen edge, next-raid
+          countdown, F9 = call a raid now (for testing)
+  [x] (S) HP bars on damaged units/buildings
+  [x] (S) Lose condition: Keep destroyed -> game over screen
 
   Done when: goblin waves arrive on a timer, steal wood, get shot by towers,
   and an undefended Keep can fall.
@@ -234,6 +240,7 @@ BACKLOG / MAYBE LATER
   - Disease & healthcare
   - Forester (replant trees), forest regrowth
   - Minimap
+  - Rubble tiles for destroyed buildings (rebuild at a discount)
   - Per-building inventories (goods stored physically in a specific
     stockpile/granary; raiders loot what's actually there)
   - More mills/bakeries auto-balancing, or haulers (M5) to smooth chains
@@ -242,7 +249,6 @@ BACKLOG / MAYBE LATER
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. M2: health component + goblin + guard tower   (first real threat)
-  2. M2: raid director + villager flee + lose screen
-  3. Quick art spike: 2–3 PixelLab generations to lock style before M3
-  4. M3: barracks + troops
+  1. Quick art spike: 2–3 PixelLab generations to lock style before M3
+  2. M3: barracks + troops (auto-defend)
+  3. M3: selection + squad orders

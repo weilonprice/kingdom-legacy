@@ -11,6 +11,9 @@ var has_road := false
 var residents: Array = []
 var workers: Array = []
 var fields: Array[Vector2i] = []
+var health: Health
+
+var _attack_cooldown := 0.0
 
 
 func setup(p_world: WorldMap, id: String, p_origin: Vector2i) -> void:
@@ -20,6 +23,36 @@ func setup(p_world: WorldMap, id: String, p_origin: Vector2i) -> void:
 	origin = p_origin
 	size = def.size
 	position = Vector2(origin * Terrain.TILE_SIZE)
+	health = Health.new(def.get("hp", 200.0))
+	health.changed.connect(queue_redraw)
+	health.died.connect(func() -> void: world.destroy_building(self))
+	set_process(def.has("damage"))
+
+
+func center() -> Vector2:
+	return position + Vector2(size * Terrain.TILE_SIZE) * 0.5
+
+
+## A guard is inside and on watch.
+func is_manned() -> bool:
+	for v in workers:
+		if v.state == Villager.State.STATIONED:
+			return true
+	return false
+
+
+## Towers: shoot the nearest raider in range while manned.
+func _process(delta: float) -> void:
+	_attack_cooldown -= delta
+	if _attack_cooldown > 0.0 or not is_manned():
+		return
+	var target: Enemy = world.nearest_enemy(center(), def.range * Terrain.TILE_SIZE)
+	if target == null:
+		return
+	_attack_cooldown = def.attack_cooldown
+	var arrow := Projectile.new()
+	arrow.setup(center() + Vector2(0, -8), target, def.damage)
+	world.unit_root.add_child(arrow)
 
 
 func entrance() -> Vector2i:
@@ -46,12 +79,16 @@ func status() -> String:
 		return "No road access! Connect the entrance to a road."
 	if def.get("jobs", 0) > 0 and workers.is_empty():
 		return "No workers"
+	if def.get("work", "") == "guard" and not is_manned():
+		return "Guard on the way"
 	return ""
 
 
 ## One-line summary for hover info.
 func describe() -> String:
 	var lines := PackedStringArray([def.name])
+	if health.is_damaged():
+		lines.append("HP: %d/%d" % [health.hp, health.max_hp])
 	if def.get("housing", 0) > 0:
 		lines.append("Residents: %d/%d" % [residents.size(), def.housing])
 	if def.get("jobs", 0) > 0:
@@ -64,7 +101,7 @@ func describe() -> String:
 
 ## Full detail text for the inspector panel.
 func inspect_text() -> String:
-	var lines := PackedStringArray([def.desc, ""])
+	var lines := PackedStringArray([def.desc, "", "HP: %d/%d" % [health.hp, health.max_hp]])
 	var problem := status()
 	if problem != "":
 		lines.append("⚠ " + problem)
@@ -79,6 +116,9 @@ func inspect_text() -> String:
 				world.count_fields(self, WorldMap.FieldStage.TILLED),
 				world.count_fields(self, WorldMap.FieldStage.GROWING),
 				world.count_fields(self, WorldMap.FieldStage.RIPE)])
+		"guard":
+			lines.append("Shoots raiders within %d tiles for %d damage every %.1fs." % [
+				def.range, def.damage, def.attack_cooldown])
 		"produce":
 			lines.append("Recipe: %s → %s  (%ds)" % [
 				BuildingDefs.stack_text(def.input), BuildingDefs.stack_text(def.output), def.work_time])
@@ -120,6 +160,14 @@ func _draw() -> void:
 	var font := ThemeDB.fallback_font
 	if size.x > 1:
 		draw_string(font, Vector2(6, 18), def.name, HORIZONTAL_ALIGNMENT_LEFT, px.x - 10, 11, Color(1, 1, 1, 0.95))
+
+	if def.has("damage"):
+		# Crenellations so towers read differently from houses.
+		for i in 3:
+			draw_rect(Rect2(Vector2(3 + i * 10, 0), Vector2(6, 5)), base.darkened(0.4))
+		draw_circle(px * 0.5, 6, base.darkened(0.3))
+
+	health.draw_bar(self, Vector2(px.x * 0.5, -7), minf(px.x - 4, 40))
 
 	if not has_road:
 		var c := Vector2(px.x - 9, 9)

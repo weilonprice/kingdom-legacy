@@ -169,6 +169,7 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   Demolish          X (50% refund)
   Cancel            Right-click / Esc
   Pause / speed     Space / top-bar buttons (1x, 2x, 4x)
+  Debug             F9 calls a raid now (30s warning)
   Planned: unit selection box, squad hotkeys (Ctrl+1..9), overlays
   (road access, needs coverage, happiness heatmap).
 
@@ -222,8 +223,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
               placement, villagers, wood + stone gathering, HUD
   [DONE]  M1  Food chain (farm -> mill -> bakery), hunger need, growth tied
               to food
-  [NEXT]  M2  First raid: wave timer, goblins, guard tower, villager flee
-          M3  Troops: barracks, militia/archers, auto-defend + squad control
+  [DONE]  M2  First raid: wave timer, goblins, guard tower, villager flee
+  [NEXT]  M3  Troops: barracks, militia/archers, auto-defend + squad control
           M4  Settlement tiers + first research
           M5  Needs & happiness, taxes/gold
           M6  PixelLab art pass
