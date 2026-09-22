@@ -117,26 +117,31 @@ M2 — FIRST RAID                                        [DONE]
 
 
 ================================================================================
-M3 — TROOPS (HYBRID CONTROL)                     Goal: player fights back
+M3 — TROOPS (HYBRID CONTROL)                     [DONE]
 ================================================================================
   Systems
-  [ ] (M) Unit defs table (militia, archer, spearman) -> unit_defs.gd
-  [ ] (L) Troop agent: states AUTO (guard rally point, engage in radius,
+  [x] (M) Unit defs table (militia, archer, spearman) -> unit_defs.gd
+  [x] (L) Troop agent: states AUTO (guard rally point, engage in radius,
           return) and MANUAL (move/attack/hold orders)
           -> scripts/agents/troop.gd
-  [ ] (M) Squads: groups of troops with a rally flag, formation offsets
+  [x] (M) Squads: groups of troops with a rally flag, formation offsets
+          (one squad per barracks; AUTO also defends anything near the Keep)
           -> scripts/systems/squad_manager.gd
-  [ ] (M) Selection: click / box-select troops, right-click to order,
-          Ctrl+1..9 squad hotkeys, release to AUTO
+  [x] (M) Selection: click / box-select troops, right-click to order,
+          Ctrl+1..9 selects squad N, G releases to AUTO at the current spot
           -> scripts/controllers/unit_controller.gd
-  [ ] (S) Input modes: build tools vs unit control don't conflict
+  [x] (S) Input modes: build tools vs unit control don't conflict
 
   Content
-  [ ] (M) Barracks: converts a villager + gold + equipment into a troop
+  [x] (M) Barracks: converts a villager + gold + wood into a troop
+          (real equipment chains come with M7 weapons)
   [ ] (S) Militia call-up: temporary troops from workers (production stops)
-  [ ] (S) Archer, Spearman; basic damage types (pierce vs large)
-  [ ] (S) Troop upkeep: gold per minute
-  [ ] (S) Healing at barracks when idle
+          -> DEFERRED: Militia is a cheap trainable unit for now
+  [x] (S) Archer, Spearman; basic damage types (pierce vs large)
+  [x] (S) Troop upkeep: gold per minute (unpaid troops desert); troops eat
+  [x] (S) Gold income: villagers pay 1 gold tax per meal (minimal version of
+          M5 taxes, needed to fund upkeep)
+  [x] (S) Healing at barracks when idle
 
   Done when: you can train a squad, it defends automatically, and you can
   grab it, send it to intercept a raid, then release it back to auto.
@@ -249,6 +254,6 @@ BACKLOG / MAYBE LATER
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. Quick art spike: 2–3 PixelLab generations to lock style before M3
-  2. M3: barracks + troops (auto-defend)
-  3. M3: selection + squad orders
+  1. M4: settlement tiers + unlocks
+  2. M4: Scholar's Hall + research
+  (Art style locked in — see docs/style_test.png, PR #4)

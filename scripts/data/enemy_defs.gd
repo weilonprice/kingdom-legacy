@@ -28,6 +28,7 @@ const DEFS := {
 		"reach": 20.0,
 		"aggro": 2,
 		"behavior": "wrecker",
+		"large": true,
 		"radius": 7.5,
 		"color": Color(0.28, 0.45, 0.18),
 	},

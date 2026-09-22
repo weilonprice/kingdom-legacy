@@ -4,6 +4,8 @@ extends Node2D
 var world: WorldMap
 var citizens: CitizenManager
 var raids: RaidDirector
+var military: Military
+var units: UnitController
 var build: BuildController
 var camera: CameraController
 var hud: HUD
@@ -26,9 +28,18 @@ func _ready() -> void:
 	raids.setup(world)
 	add_child(raids)
 
+	military = Military.new()
+	military.setup(world, citizens)
+	add_child(military)
+
 	build = BuildController.new()
 	build.world = world
 	add_child(build)
+
+	# Added after the build controller so it sees input first.
+	units = UnitController.new()
+	units.setup(world, build, military)
+	add_child(units)
 
 	camera = CameraController.new()
 	camera.bounds = Rect2(Vector2.ZERO, world.pixel_size())
@@ -36,7 +47,7 @@ func _ready() -> void:
 	add_child(camera)
 
 	hud = HUD.new()
-	hud.setup(build, world, citizens, raids)
+	hud.setup(build, world, citizens, raids, military, units)
 	add_child(hud)
 
 	world.keep_destroyed.connect(_on_defeat.bind("The Keep has fallen!"))
