@@ -1,0 +1,5 @@
+# Godot 4 cache
+.godot/
+
+# OS
+.DS_Store

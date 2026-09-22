@@ -1,0 +1,28 @@
+# Kingdom Legacy
+
+A medieval city builder with monster raids, made in Godot 4.
+
+Grow a hamlet into a kingdom: lay roads, build supply chains, and keep your
+villagers fed, while goblins, orcs and trolls raid in escalating waves.
+
+- **Engine:** Godot 4.7 (GDScript)
+- **View:** top-down 2D, 32x32 pixel art
+- **Design:** see [design.txt](design.txt)
+- **Roadmap:** see [roadmap.txt](roadmap.txt)
+
+## Running
+
+1. Open the Godot Project Manager, click **Import**, and select `project.godot`.
+2. Press **F5** to run.
+
+## Controls
+
+| Action | Input |
+|---|---|
+| Pan camera | WASD / arrow keys / middle-mouse drag |
+| Zoom | Mouse wheel |
+| Road / Demolish | R / X |
+| Build categories | Tab, then 1-9 to pick a building |
+| Inspect building | Left-click |
+| Cancel / deselect | Right-click / Esc |
+| Pause / speed | Space / top-bar buttons |
