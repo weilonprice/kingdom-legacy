@@ -42,4 +42,5 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 `selected_building` (title), `text` (any visible HUD label/button contains it),
 `message` (any notification so far contains it), `min` (`population`, `roads`,
 or any resource), `squad_troops_min`, `squad_mode` (`AUTO`/`MANUAL`),
-`research_done` (research id).
+`research_done` (research id), `button_on_screen` (a visible button whose
+label contains the text lies fully inside the window).

@@ -27,9 +27,11 @@ tools/verify/run.sh tools/verify/scenarios/build-and-inspect.json
   echoes it). Done: `VERIFY DONE PASS|FAIL failures=N out=…`.
 - run.sh waits for the process, enforces `--timeout` (default 300s, then kills
   only its own PID), and exits 0 PASS / 1 FAIL / 124 timeout.
-- Keep the game window uncovered and unminimized while a run takes
-  screenshots: macOS stops drawing covered windows and the screenshot step
-  fails with "the game window is not drawing".
+- Windowed runs pop the game window to the front and keep it always-on-top:
+  macOS throttles covered windows (the game clock nearly stops, clicks are
+  lost, screenshots fail with "the game window is not drawing"). If that
+  still happens (full-screen apps on another Space, minimizing it), rerun
+  with `--headless` to tell an environment failure from a real one.
 - `--headless` runs without a window (screenshots are skipped, everything else
   works). Use it for logic-only proofs or when the window can't stay visible.
 - Several runs may execute side by side (no ports or save files are shared).
