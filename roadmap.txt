@@ -2,7 +2,8 @@
 KINGDOM LEGACY — IMPLEMENTATION ROADMAP
 ================================================================================
 Companion to design.txt. Each milestone ends in a playable build.
-Legend:  [x] done   [ ] todo   (S/M/L) rough size   -> files touched
+Legend:  [x] done   [~] partly done   [ ] todo   (S/M/L) rough size
+         -> files touched
 Last updated: 2026-09-22
 
 
@@ -186,13 +187,17 @@ M5 — NEEDS, HAPPINESS & GOLD                          Goal: deep city sim
 ================================================================================
 M6 — ART PASS (PIXELLAB)                                Goal: looks like a game
 ================================================================================
-  Budget ~37 trial generations; prioritize in this order:
-  [ ] (M) Terrain tileset: grass, forest, water, sand, stone, road
+  Style locked by the art test (PR #4, docs/style_test.png).
+  Budget: 24 of 40 trial generations left; prioritize in this order:
+  [~] (M) Terrain tileset: grass, forest, water, sand, stone, road
           (top-down tileset tool; keep atlas order from terrain.gd)
+          grass <-> dirt road DONE (assets/tiles/grass_dirt_*)
   [ ] (S) Road autotiling (straight/corner/T/cross) via Godot terrain sets
-  [ ] (M) Villager: 4-direction walk, carrying variant
-  [ ] (M) Buildings: Keep, House, Woodcutter, Quarry, Stockpile, Farm,
+  [~] (M) Villager: 4-direction walk, carrying variant
+          static 4-direction sprite DONE (assets/sprites/villager/)
+  [~] (M) Buildings: Keep, House, Woodcutter, Quarry, Stockpile, Farm,
           Guard Tower, Barracks (sprites replace Building._draw)
+          House DONE (assets/sprites/buildings/house.png)
   [ ] (M) Goblin + Archer/Militia walk + attack animations
   [ ] (S) Swap placeholder drawing to Sprite2D / AnimatedSprite2D with
           fallback to placeholder if texture missing
