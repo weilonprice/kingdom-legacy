@@ -1,0 +1,212 @@
+class_name HUD
+extends CanvasLayer
+## Top bar (stock, population, food, speed), categorized build bar,
+## building inspector, hover info and messages.
+
+const SPEED_LABELS := ["Pause", "1x", "2x", "4x"]
+const MESSAGE_SECONDS := 3.0
+const ITEM_HOTKEYS := [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9]
+
+var build: BuildController
+var world: WorldMap
+var citizens: CitizenManager
+
+var _materials_label: Label
+var _food_label: Label
+var _gold_label: Label
+var _pop_label: Label
+var _mode_label: Label
+var _info_label: Label
+var _msg_label: Label
+var _msg_time := 0.0
+var _speed_buttons: Array[Button] = []
+var _category_buttons: Array[Button] = []
+var _item_row: HBoxContainer
+var _category := 0
+var _panel: BuildingPanel
+
+
+func setup(p_build: BuildController, p_world: WorldMap, p_citizens: CitizenManager) -> void:
+	build = p_build
+	world = p_world
+	citizens = p_citizens
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	_build_top_bar()
+	_build_bottom_bar()
+	_info_label = _outlined_label(Vector2(12, 48))
+	_msg_label = _outlined_label(Vector2.ZERO)
+	_msg_label.add_theme_color_override("font_color", Color(1, 0.85, 0.5))
+	_msg_label.add_theme_font_size_override("font_size", 20)
+
+	_panel = BuildingPanel.new()
+	_panel.setup(build, world)
+	add_child(_panel)
+
+	GameState.resources_changed.connect(_refresh_resources)
+	GameState.population_changed.connect(_refresh_population)
+	GameState.population_changed.connect(_refresh_resources)
+	GameState.speed_changed.connect(_refresh_speed)
+	GameState.notified.connect(show_message)
+	build.mode_changed.connect(func(text: String) -> void: _mode_label.text = text)
+	build.message.connect(show_message)
+	_show_category(0)
+	_refresh_resources()
+	_refresh_population()
+	_refresh_speed()
+
+
+func show_message(text: String) -> void:
+	_msg_label.text = text
+	_msg_time = MESSAGE_SECONDS
+
+
+func _process(delta: float) -> void:
+	_info_label.text = world.describe_tile(build.hover_tile)
+	var real_delta := delta / maxf(Engine.time_scale, 0.001)
+	_msg_time = maxf(_msg_time - real_delta, 0.0)
+	_msg_label.visible = _msg_time > 0.0
+	var vp := get_viewport().get_visible_rect().size
+	_msg_label.position = Vector2((vp.x - _msg_label.size.x) * 0.5, vp.y - 130)
+	_panel.position = Vector2(vp.x - _panel.size.x - 10, 50)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	if event.keycode == KEY_SPACE:
+		GameState.toggle_pause()
+	elif event.keycode == KEY_TAB:
+		_show_category((_category + 1) % BuildingDefs.CATEGORIES.size())
+	elif event.keycode in ITEM_HOTKEYS:
+		var items: Array = BuildingDefs.CATEGORIES[_category].items
+		var index := ITEM_HOTKEYS.find(event.keycode)
+		if index >= items.size():
+			return
+		build.select(items[index])
+	else:
+		return
+	get_viewport().set_input_as_handled()
+
+
+# --- Layout -----------------------------------------------------------------
+
+func _build_top_bar() -> void:
+	var bar := PanelContainer.new()
+	add_child(bar)
+	bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 28)
+	bar.add_child(row)
+	_materials_label = _bar_label(row)
+	_food_label = _bar_label(row)
+	_gold_label = _bar_label(row)
+	_pop_label = _bar_label(row)
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(spacer)
+	for i in SPEED_LABELS.size():
+		var btn := _button(row, SPEED_LABELS[i], "Space toggles pause")
+		btn.toggle_mode = true
+		btn.pressed.connect(GameState.set_speed.bind(i))
+		_speed_buttons.append(btn)
+
+
+func _build_bottom_bar() -> void:
+	var bar := PanelContainer.new()
+	add_child(bar)
+	bar.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	bar.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	var col := VBoxContainer.new()
+	bar.add_child(col)
+
+	var tabs := HBoxContainer.new()
+	tabs.add_theme_constant_override("separation", 8)
+	col.add_child(tabs)
+	_button(tabs, "[R] Road", "Drag to build roads (free)").pressed.connect(build.select.bind("road"))
+	_button(tabs, "[X] Demolish", "Remove buildings and roads").pressed.connect(build.select.bind("demolish"))
+	tabs.add_child(VSeparator.new())
+	for i in BuildingDefs.CATEGORIES.size():
+		var btn := _button(tabs, BuildingDefs.CATEGORIES[i].name, "Tab cycles categories")
+		btn.toggle_mode = true
+		btn.pressed.connect(_show_category.bind(i))
+		_category_buttons.append(btn)
+	_mode_label = Label.new()
+	_mode_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_mode_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	tabs.add_child(_mode_label)
+
+	_item_row = HBoxContainer.new()
+	_item_row.add_theme_constant_override("separation", 8)
+	col.add_child(_item_row)
+
+
+func _show_category(index: int) -> void:
+	_category = index
+	for i in _category_buttons.size():
+		_category_buttons[i].set_pressed_no_signal(i == index)
+	for child in _item_row.get_children():
+		child.queue_free()
+	var items: Array = BuildingDefs.CATEGORIES[index].items
+	for i in items.size():
+		var def := BuildingDefs.get_def(items[i])
+		var tip := "%s\nCost: %s" % [def.desc, BuildingDefs.cost_text(def.cost)]
+		var btn := _button(_item_row, "[%d] %s" % [i + 1, def.name], tip)
+		btn.pressed.connect(build.select.bind(items[i]))
+
+
+func _button(parent: Control, text: String, tip: String) -> Button:
+	var btn := Button.new()
+	btn.text = text
+	btn.tooltip_text = tip
+	btn.focus_mode = Control.FOCUS_NONE
+	parent.add_child(btn)
+	return btn
+
+
+func _bar_label(parent: Control) -> Label:
+	var label := Label.new()
+	parent.add_child(label)
+	return label
+
+
+func _outlined_label(pos: Vector2) -> Label:
+	var label := Label.new()
+	label.position = pos
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.add_theme_constant_override("outline_size", 5)
+	label.add_theme_color_override("font_outline_color", Color.BLACK)
+	add_child(label)
+	return label
+
+
+# --- Refresh ----------------------------------------------------------------
+
+func _refresh_resources() -> void:
+	_materials_label.text = "%s   [%d/%d]" % [
+		_stock_text(ItemDefs.items_in("materials")), GameState.used("materials"), GameState.capacity.get("materials", 0)]
+	var pop := maxi(GameState.population, 1)
+	var minutes := GameState.edible_total() / float(pop) * CitizenManager.MEAL_INTERVAL / 60.0
+	_food_label.text = "%s   [%d/%d]   ~%.0f min of food" % [
+		_stock_text(ItemDefs.items_in("food")), GameState.used("food"), GameState.capacity.get("food", 0), minutes]
+	_food_label.add_theme_color_override("font_color", Color(1, 0.45, 0.35) if minutes < 2.0 else Color.WHITE)
+	_gold_label.text = "Gold %d" % GameState.count("gold")
+
+
+func _stock_text(items: Array[String]) -> String:
+	var parts := PackedStringArray()
+	for item in items:
+		parts.append("%s %d" % [ItemDefs.display_name(item), GameState.count(item)])
+	return "  ".join(parts)
+
+
+func _refresh_population() -> void:
+	_pop_label.text = "Pop %d/%d   Workers %d/%d" % [
+		GameState.population, GameState.housing, GameState.employed, GameState.jobs]
+
+
+func _refresh_speed() -> void:
+	for i in _speed_buttons.size():
+		_speed_buttons[i].set_pressed_no_signal(i == GameState.speed)

@@ -1,0 +1,241 @@
+================================================================================
+KINGDOM LEGACY — GAME DESIGN OUTLINE
+================================================================================
+Engine: Godot 4.7 (GDScript)        Art: 32x32 pixel art (PixelLab)
+View: Top-down 2D                   Status: Early prototype
+Last updated: 2026-09-22
+
+
+1. PITCH
+--------------------------------------------------------------------------------
+Grow a medieval hamlet into a thriving kingdom, then defend it. A deep city-
+building sim in the spirit of SimCity / Cities: Skylines / Banished, where every
+villager is a visible person hauling goods along the roads you lay, and where
+goblins, orcs and trolls raid in escalating waves that test the town you built.
+
+
+2. PILLARS
+--------------------------------------------------------------------------------
+  - A LIVING TOWN: every citizen is an agent you can watch. Goods physically
+    move. Bottlenecks are visible, not just numbers.
+  - ROADS AND LAYOUT MATTER: distance, road networks and placement drive
+    efficiency. A well-planned town outperforms a sprawling one.
+  - THE ECONOMY FEEDS THE ARMY: troops, walls and weapons come from supply
+    chains. A strong economy is your best defense.
+  - EARNED ESCALATION: raids grow with your kingdom. Expansion is always a
+    risk/reward decision.
+
+
+3. CORE LOOP
+--------------------------------------------------------------------------------
+  Build housing -> villagers arrive -> assign them to jobs (automatic)
+    -> gather raw resources -> process into goods -> satisfy needs
+    -> population grows & settlement tier rises -> unlock buildings/research
+    -> raids grow stronger -> build defenses & train troops -> survive -> repeat
+
+
+4. WIN / LOSE
+--------------------------------------------------------------------------------
+  Goal-based. Default scenario goals (tunable per map):
+    - WIN:  Reach the Kingdom tier AND survive the final great raid
+            (e.g. a troll warlord / dragon siege).
+    - LOSE: The Keep is destroyed, OR population falls to zero.
+  Future: scenario-specific goals (survive N raids, reach X population,
+  build a Cathedral, etc.).
+
+
+5. THE MAP
+--------------------------------------------------------------------------------
+  - Procedurally generated each game (128x128 tiles, seed shown for sharing).
+  - Terrain: Water, Sand, Grass, Forest, Stone. Planned: Hills, Iron/Gold ore,
+    Fertile soil, Rivers, Swamp.
+  - Resource tiles deplete (forests -> grass). Planned: forest regrowth,
+    forester building to replant.
+  - Start area is guaranteed clear with forest and stone nearby.
+  - Raid spawn points sit at the map edges (planned: monster lairs/caves
+    placed in the wilds that can be assaulted to reduce raid pressure).
+
+
+6. CITIZENS (AGENT SIMULATION)
+--------------------------------------------------------------------------------
+  Each villager has: a home, an optional job, a carried item, and a state.
+  - Spawn: move into houses with free space and road access.
+  - Jobs: auto-assigned to the nearest open workplace.
+  - Work: walk to resource / workplace, produce, carry goods to storage.
+  - Movement: A* pathfinding. Roads are ~1.6x faster; forests slower.
+
+  Planned needs (drive happiness, growth and productivity):
+    Tier 1  Food, Shelter
+    Tier 2  Water (well), Firewood, Religion (chapel)
+    Tier 3  Varied food, Market access, Tavern
+    Tier 4  Clothing, Healthcare, Safety (guard coverage)
+  Unmet needs -> unhappiness -> slower work, emigration, eventually unrest.
+  Planned: day/night cycle (villagers go home at night), aging, births.
+
+
+7. ECONOMY & SUPPLY CHAINS
+--------------------------------------------------------------------------------
+  Raw resources:  Wood, Stone, Wheat, Fish, Game, Iron ore, Clay, Wool, Gold ore
+  Storage:        Keep (starts), Stockpile (raw), Granary (food), Warehouse
+
+  Chains (-> = building transforms input to output):
+    Wood         Woodcutter                          [BUILT]
+    Stone        Quarry                              [BUILT]
+    Bread        Farm -> Wheat -> Mill -> Flour -> Bakery -> Bread   [BUILT]
+    Fish         Fisher's Hut (coast) -> Fish                       [BUILT]
+    Meat         Hunter's Lodge -> Game -> Butcher -> Meat
+    Planks       Wood -> Sawmill -> Planks
+    Tools        Iron Mine -> Ore -> Smelter -> Iron -> Blacksmith -> Tools
+    Weapons      Iron -> Weaponsmith -> Swords / Spears
+    Bows         Wood -> Fletcher -> Bows / Arrows
+    Armor        Iron -> Armorer -> Armor
+    Cloth        Sheep Farm -> Wool -> Weaver -> Cloth
+    Bricks       Clay Pit -> Clay -> Kiln -> Bricks
+    Gold         Market / Taxes on houses; Gold Mine -> Mint
+
+  Haulers: later, a dedicated hauler job moves goods between buildings and
+  storage so producers keep working.
+  Gold: collected as tax from happy households; spent on troops' upkeep,
+  research and advanced buildings.
+
+
+8. SETTLEMENT TIERS & RESEARCH
+--------------------------------------------------------------------------------
+  Tier        Requirement (draft)              Unlocks (draft)
+  ----------  -------------------------------  --------------------------------
+  Hamlet      Start                            House, Woodcutter, Quarry,
+                                               Stockpile, Farm, Well
+  Village     20 pop, food + water met         Mill, Bakery, Chapel, Market,
+                                               Palisade, Watchtower, Militia
+  Town        60 pop, + religion + market      Sawmill, Smithy, Stone walls,
+                                               Barracks, Archers, Tavern
+  City        150 pop, + tavern + clothing     Castle upgrade, Knights, Guilds,
+                                               Siege defenses, Hospital
+  Kingdom     300 pop, + all needs, castle     Cathedral, Elite troops,
+                                               final raid triggers
+
+  Research: done at a Library/Scholar's Hall with gold + time. Examples:
+    Crop Rotation (+farm yield), Masonry (stone walls), Wheelbarrows
+    (+carry amount), Longbows (archer range), Tempered Steel (+troop damage).
+
+
+9. DEFENSE & COMBAT (HYBRID)
+--------------------------------------------------------------------------------
+  Troops auto-defend by default; player may take direct control of squads.
+
+  Defensive structures:
+    Palisade (wood wall), Stone Wall, Gate (villagers pass, enemies don't),
+    Watchtower (archer slot), Guard Tower, Moat, Spike trap, Castle upgrade.
+
+  Troops (trained at Barracks; cost gold + equipment + a villager):
+    Militia     Cheap, weak, pulled from the workforce during raids
+    Spearman    Anti-large (good vs trolls)
+    Archer      Ranged, best on walls/towers
+    Swordsman   Solid all-rounder
+    Knight      Fast heavy cavalry (City tier)
+
+  Behavior:
+    - AUTO: squads hold a rally point, engage enemies within range, return.
+    - MANUAL: select squad -> move / attack / hold; returns to auto when
+      released.
+  Villagers flee to their home or the Keep when raiders are near.
+  Wounded troops heal at barracks/hospital; dead troops = lost citizens.
+
+
+10. ENEMIES (MONSTER RAIDS)
+--------------------------------------------------------------------------------
+  Raids arrive on a timer with a warning horn + direction indicator.
+  Raid strength scales with population, wealth and time elapsed.
+
+  Enemy types:
+    Goblin          Fast, weak, steals goods and flees       (early)
+    Goblin Archer   Ranged harassment                        (early)
+    Orc Warrior     Tough melee, attacks buildings           (mid)
+    Orc Shaman      Heals/buffs orcs                         (mid)
+    Troll           Very slow, huge HP, smashes walls        (late)
+    Wolf Riders     Fast flankers, target outlying farms     (mid)
+    Dragon          Boss; flies over walls, burns buildings  (final)
+
+  Enemy goals (varies by type): loot storage, burn buildings, kill villagers,
+  reach the Keep. Burning buildings spread fire if not put out (well coverage).
+
+
+11. CONTROLS
+--------------------------------------------------------------------------------
+  Pan camera        WASD / Arrow keys / Middle-mouse drag
+  Zoom              Mouse wheel (zooms to cursor)
+  Build             R Road, Tab cycles categories, 1-9 picks a building
+  Select            Left-click a building to inspect it
+  Demolish          X (50% refund)
+  Cancel            Right-click / Esc
+  Pause / speed     Space / top-bar buttons (1x, 2x, 4x)
+  Planned: unit selection box, squad hotkeys (Ctrl+1..9), overlays
+  (road access, needs coverage, happiness heatmap).
+
+
+12. UI
+--------------------------------------------------------------------------------
+  - Top bar: resources, population/housing, workers/jobs, speed.
+  - Bottom bar: build menu (will become categorized tabs:
+    Roads / Housing / Resources / Food / Industry / Military / Civic).
+  - Hover info: tile or building details.
+  - Planned: building inspector panel, raid warning banner, tier progress,
+    research screen, overlays, minimap.
+
+
+13. ART DIRECTION
+--------------------------------------------------------------------------------
+  - 32x32 top-down pixel art, warm medieval palette, readable when zoomed out.
+  - Generated with PixelLab; currently placeholder shapes drawn in code.
+  - Asset list (priority order):
+      1. Terrain tileset (grass, forest, water, sand, stone, road)
+      2. Villager (4-direction walk), carrying variants
+      3. Keep, House, Woodcutter, Quarry, Stockpile
+      4. Goblin + guard tower + archer
+      5. Farm/mill/bakery chain
+  - PixelLab trial budget is limited (~37 generations) — spend on locked-in
+    assets only.
+
+
+14. TECHNICAL ARCHITECTURE
+--------------------------------------------------------------------------------
+  scripts/autoload/game_state.gd       Resources, population stats, speed
+  scripts/world/terrain.gd             Terrain types, rules, tileset atlas
+  scripts/world/world_map.gd           Grid, generation, roads, placement, A*
+  scripts/world/building.gd            Placed building instance
+  scripts/data/building_defs.gd        Data table of all buildings
+  scripts/agents/villager.gd           Citizen agent state machine
+  scripts/systems/citizen_manager.gd   Spawning + job assignment
+  scripts/controllers/*.gd             Camera, build tools
+  scripts/ui/hud.gd                    HUD
+
+  Notes:
+    - Pathfinding: AStarGrid2D, road weight 1.0, terrain 2.0–3.5.
+    - Performance target: 300+ agents; move to flow fields / path caching /
+      staggered updates if needed.
+    - Save/load planned once core systems stabilize.
+
+
+15. ROADMAP
+--------------------------------------------------------------------------------
+  [DONE]  M0  Project setup, procedural map, camera, roads, building
+              placement, villagers, wood + stone gathering, HUD
+  [DONE]  M1  Food chain (farm -> mill -> bakery), hunger need, growth tied
+              to food
+  [NEXT]  M2  First raid: wave timer, goblins, guard tower, villager flee
+          M3  Troops: barracks, militia/archers, auto-defend + squad control
+          M4  Settlement tiers + first research
+          M5  Needs & happiness, taxes/gold
+          M6  PixelLab art pass
+          M7  Walls, gates, fire, more enemies (orcs, trolls)
+          M8  Win condition, final raid, save/load, balance pass
+
+
+16. OPEN QUESTIONS
+--------------------------------------------------------------------------------
+  - Seasons / winter (food and firewood pressure)?
+  - Should roads have tiers (dirt -> cobblestone) with speed bonuses?
+  - Can the player attack monster lairs, or is defense purely reactive?
+  - Trade with traveling merchants / neighboring kingdoms?
+  - Hero / lord character that the player controls directly?
+  - Campaign of handmade scenarios later, or procedural only?

@@ -1,0 +1,248 @@
+================================================================================
+KINGDOM LEGACY — IMPLEMENTATION ROADMAP
+================================================================================
+Companion to design.txt. Each milestone ends in a playable build.
+Legend:  [x] done   [ ] todo   (S/M/L) rough size   -> files touched
+Last updated: 2026-09-22
+
+
+GUIDING RULES
+--------------------------------------------------------------------------------
+  - Keep the game playable at the end of every milestone.
+  - Systems first, art later: placeholder shapes until a system is locked in.
+  - Data-driven: new buildings/units/enemies should mostly be new entries in
+    a defs file, not new code.
+  - Test each milestone with a headless smoke test (sim runs N minutes, check
+    resources/pop/raid outcome) before playtesting by hand.
+  - Spend PixelLab generations only on assets whose size/role is final.
+
+
+================================================================================
+M0 — FOUNDATION                                                    [DONE]
+================================================================================
+  [x] Godot 4.7 project, folders, main scene, GameState autoload
+  [x] Procedural 128x128 map (water, sand, grass, forest, stone)
+  [x] Camera: WASD/arrows, middle-drag pan, zoom to cursor
+  [x] Placeholder tileset generated in code (atlas ready for PixelLab swap)
+  [x] Building placement with ghost preview + validation
+  [x] Roads: L-shaped drag, clear trees, road access requirement
+  [x] Demolish with 50% refund
+  [x] Villager agents: spawn in housing, auto job assignment, A* pathing
+  [x] Gatherers: Woodcutter (wood), Quarry (stone), deplete tiles
+  [x] Storage: Keep + Stockpile, carry goods to nearest storage
+  [x] HUD: resources, population, build bar, hover info, speed/pause
+
+
+================================================================================
+M1 — FOOD & GROWTH                                    [DONE]
+================================================================================
+  Systems
+  [x] (M) Generic "produce" work type: worker fetches input from storage,
+          works work_time at the building, hauls output to storage
+          (building_defs keys: work, input, output, work_time)
+  [x] (S) Output space reservation so full storage can't deadlock a chain
+  [x] (M) Storage capacity limits per category (materials / food)
+          NOTE: stock is pooled kingdom-wide; villagers still walk goods to
+          the nearest storage accepting that category. True per-building
+          inventories are deferred (see BACKLOG).
+  [x] (M) Workers fetch inputs from storage, deliver outputs to storage
+          -> villager.gd
+  [x] (S) Food resource type(s): wheat, flour, bread, fish
+          -> scripts/data/item_defs.gd
+
+  Buildings
+  [x] (M) Farm: tills up to 8 field tiles around it, plant -> grow (45s)
+          -> harvest 3 wheat (new FIELD terrain with 3 growth visuals)
+  [x] (S) Mill: wheat -> flour
+  [x] (S) Bakery: flour -> bread
+  [x] (S) Fisher's Hut: must be placed next to water -> fish
+  [x] (S) Granary: food-only storage
+  [x] (S) Well: placeable, shows coverage radius (no effect until M5)
+
+  Population
+  [x] (M) Food consumption: each villager eats periodically from storage
+  [x] (S) Growth gated by food: no new villagers if food stock is 0
+  [x] (S) Starvation: villagers leave the town after X time without food
+  [x] (S) HUD: food total + "days of food" estimate
+
+  UI
+  [x] (M) Building inspector panel (click a building): workers, inventory,
+          status ("waiting for flour", "no road", "storage full")
+          -> scripts/ui/building_panel.gd
+  [x] (S) Categorized build menu tabs (Roads/Housing/Resources/Food)
+
+  Done when: a town of 20+ runs a farm->mill->bakery chain and grows only
+  while bread keeps up; inspector shows why a building is idle.
+
+
+================================================================================
+M2 — FIRST RAID                                        Goal: something attacks
+================================================================================
+  Systems
+  [ ] (M) Health component (hp, take_damage, died signal) shared by
+          buildings, villagers, troops, enemies -> scripts/combat/health.gd
+  [ ] (M) Raid director: timer, warning 30s ahead, spawn at map edge,
+          strength = f(population, wealth, raids survived)
+          -> scripts/systems/raid_director.gd
+  [ ] (S) Enemy defs table -> scripts/data/enemy_defs.gd
+  [ ] (M) Enemy agent: path to target (storage / nearest building / Keep),
+          attack in melee, retarget on block -> scripts/agents/enemy.gd
+  [ ] (S) Pathfinding for enemies: treat buildings as attackable obstacles
+          (path through, stop and bash)
+
+  Content
+  [ ] (M) Goblin: fast, low HP, steals goods from storage and runs off map
+  [ ] (M) Guard Tower: ranged auto-attack, needs 1 worker, arrows as simple
+          projectile -> scripts/combat/projectile.gd
+  [ ] (S) Building damage + destruction (rubble tile, can rebuild)
+
+  Villagers
+  [ ] (M) Flee behavior: on raid alert, villagers go home / to the Keep and
+          hide; resume work when raid ends
+  [ ] (S) Villagers can be killed (lose a citizen)
+
+  UI / feedback
+  [ ] (S) Raid warning banner + direction arrow at screen edge
+  [ ] (S) HP bars on damaged units/buildings
+  [ ] (S) Lose condition: Keep destroyed -> game over screen
+
+  Done when: goblin waves arrive on a timer, steal wood, get shot by towers,
+  and an undefended Keep can fall.
+
+
+================================================================================
+M3 — TROOPS (HYBRID CONTROL)                     Goal: player fights back
+================================================================================
+  Systems
+  [ ] (M) Unit defs table (militia, archer, spearman) -> unit_defs.gd
+  [ ] (L) Troop agent: states AUTO (guard rally point, engage in radius,
+          return) and MANUAL (move/attack/hold orders)
+          -> scripts/agents/troop.gd
+  [ ] (M) Squads: groups of troops with a rally flag, formation offsets
+          -> scripts/systems/squad_manager.gd
+  [ ] (M) Selection: click / box-select troops, right-click to order,
+          Ctrl+1..9 squad hotkeys, release to AUTO
+          -> scripts/controllers/unit_controller.gd
+  [ ] (S) Input modes: build tools vs unit control don't conflict
+
+  Content
+  [ ] (M) Barracks: converts a villager + gold + equipment into a troop
+  [ ] (S) Militia call-up: temporary troops from workers (production stops)
+  [ ] (S) Archer, Spearman; basic damage types (pierce vs large)
+  [ ] (S) Troop upkeep: gold per minute
+  [ ] (S) Healing at barracks when idle
+
+  Done when: you can train a squad, it defends automatically, and you can
+  grab it, send it to intercept a raid, then release it back to auto.
+
+
+================================================================================
+M4 — TIERS & RESEARCH                              Goal: long-term progress
+================================================================================
+  [ ] (M) Settlement tier system: requirements (pop + met needs), tier-up
+          event, unlock lists per tier -> scripts/systems/progression.gd
+  [ ] (S) Build menu shows locked buildings with requirements tooltip
+  [ ] (M) Research: Scholar's Hall building, research queue (gold + time)
+          -> scripts/data/research_defs.gd, scripts/ui/research_panel.gd
+  [ ] (S) Research effects as modifiers (yield %, speed %, range, damage)
+          -> game_state.gd modifier table read by buildings/agents
+  [ ] (S) Raid strength also scales with tier
+  [ ] (S) Keep upgrades visually/functionally with tier (more storage/HP)
+
+  Done when: Hamlet -> Village -> Town is achievable, each tier unlocks
+  visible new content, and 5+ research items work.
+
+
+================================================================================
+M5 — NEEDS, HAPPINESS & GOLD                          Goal: deep city sim
+================================================================================
+  [ ] (M) Coverage service buildings (Well, Chapel, Market, Tavern): radius-
+          based, walked to by villagers, or "service walker" model
+  [ ] (M) House needs + happiness score per household
+  [ ] (M) House upgrades (hut -> house -> manor) when needs met: more
+          residents, more tax
+  [ ] (S) Taxes: gold income from happy houses; tax rate slider
+  [ ] (S) Unhappiness effects: slower work, emigration, (later) unrest
+  [ ] (M) Overlays: road access, service coverage, happiness heatmap
+          -> scripts/ui/overlay.gd
+  [ ] (M) Haulers: dedicated job moving goods between buildings/storage
+  [ ] (S) Day/night cycle: villagers go home at night, lighting tint
+
+  Done when: a city's happiness visibly depends on layout and services,
+  and gold comes from a well-served population.
+
+
+================================================================================
+M6 — ART PASS (PIXELLAB)                                Goal: looks like a game
+================================================================================
+  Budget ~37 trial generations; prioritize in this order:
+  [ ] (M) Terrain tileset: grass, forest, water, sand, stone, road
+          (top-down tileset tool; keep atlas order from terrain.gd)
+  [ ] (S) Road autotiling (straight/corner/T/cross) via Godot terrain sets
+  [ ] (M) Villager: 4-direction walk, carrying variant
+  [ ] (M) Buildings: Keep, House, Woodcutter, Quarry, Stockpile, Farm,
+          Guard Tower, Barracks (sprites replace Building._draw)
+  [ ] (M) Goblin + Archer/Militia walk + attack animations
+  [ ] (S) Swap placeholder drawing to Sprite2D / AnimatedSprite2D with
+          fallback to placeholder if texture missing
+  [ ] (S) UI theme: medieval font, panel textures, resource icons
+  [ ] (S) Sound: placeholder SFX (chop, build, horn, combat), ambient
+
+  Done when: all M0–M3 content uses real art and a consistent palette.
+
+
+================================================================================
+M7 — WAR EXPANDED                                       Goal: real sieges
+================================================================================
+  [ ] (M) Walls (palisade, stone) with wall drag tool, auto-connecting
+  [ ] (M) Gates: villagers/troops pass, enemies must break
+  [ ] (M) Towers on walls (archer slots)
+  [ ] (M) Fire: burning buildings spread, wells/villagers extinguish
+  [ ] (M) Orcs (warrior, shaman), Wolf riders (target outlying farms)
+  [ ] (M) Troll: slow, siege-breaker, smashes walls
+  [ ] (S) Weapon/armor supply chains feed troop training (iron -> smithy)
+  [ ] (S) Knights (City tier)
+  [ ] (M) Monster lairs on map: optional assault targets that reduce raids
+
+  Done when: late-game raids require walls, mixed troops and a war economy.
+
+
+================================================================================
+M8 — COMPLETE GAME LOOP                                   Goal: shippable demo
+================================================================================
+  [ ] (M) Win condition: reach Kingdom tier, survive final raid (dragon)
+  [ ] (L) Dragon boss: flies over walls, burns buildings, multi-phase
+  [ ] (L) Save / load (world grid, buildings, agents, raid timer, research)
+  [ ] (M) Main menu, new game (seed input, map size, difficulty), settings
+  [ ] (M) Tutorial / first-time hints
+  [ ] (M) Balance pass: costs, yields, raid curve, tier requirements
+  [ ] (M) Performance pass: 300+ agents (path caching, staggered AI ticks,
+          flow fields for raids)
+  [ ] (S) Export builds (macOS, Windows)
+
+  Done when: a new player can start, learn, grow to Kingdom, and win or lose.
+
+
+================================================================================
+BACKLOG / MAYBE LATER
+================================================================================
+  - Seasons & winter (firewood, crop cycles)
+  - Road tiers (dirt -> cobblestone) with speed bonuses
+  - Traveling merchants / trade routes
+  - Hero / lord unit
+  - Handmade scenarios / campaign
+  - Disease & healthcare
+  - Forester (replant trees), forest regrowth
+  - Minimap
+  - Per-building inventories (goods stored physically in a specific
+    stockpile/granary; raiders loot what's actually there)
+  - More mills/bakeries auto-balancing, or haulers (M5) to smooth chains
+
+
+================================================================================
+SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
+================================================================================
+  1. M2: health component + goblin + guard tower   (first real threat)
+  2. M2: raid director + villager flee + lose screen
+  3. Quick art spike: 2–3 PixelLab generations to lock style before M3
+  4. M3: barracks + troops
