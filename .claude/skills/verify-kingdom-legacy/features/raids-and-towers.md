@@ -25,7 +25,8 @@ Preconditions:
 
 - Fresh run. `setup_grant` 200 wood / 100 stone (a tower costs 40 wood + 20 stone).
 
-- **Build towers.** `{"click_button": "Defense"}`, `{"click_button": "Guard Tower"}`, two `find_site`/`click_tile` pairs near `[3, 1]` and `[-3, 1]`. `expect` `buildings.guard_tower` = 2.
+- **Build towers.** `{"click_button": "Defense"}`, `{"click_button": "Guard Tower"}`, two `find_site`/`click_tile` pairs near `[3, 1]` and `[-3, 1]` with `"entrance_on_road": true`. `expect` `buildings.guard_tower` = 2.
+- **Towers manned.** `{"wait_game": 8}`, click `t1`; `expect` text `On watch` and `text_absent` `No road access`.
 - **Call raid.** `{"click_button": "4x"}`, `{"key": "F9"}`. `wait_until` `raid_phase` = `WARNING`; `expect` text `Goblins approach from the`.
 - **Raid starts.** `wait_until` `raid_phase` = `ACTIVE` (timeout 30); `expect` text `Raid!`.
 - **Raid ends.** `wait_until` `raid_phase` = `CALM` (timeout 150); `expect` message `The raid is over!`.
@@ -37,6 +38,9 @@ Preconditions:
   raid does nothing.
 - Raiders take 1-2 game minutes to walk in from the map edge. Use `4x` and
   `wait_until`, never a fixed wait.
+- A tower without road access gets no guard and never shoots, but the raid
+  still "ends" once thieves flee, so assert the tower is manned, not just
+  that the raid ended. (An earlier version of this scenario missed this.)
 - Towers only shoot once the guard arrives (`status: Guard on the way` in the
   panel until then).
 - With seed 12345 the first raid is 2 goblins; whether any steal before dying

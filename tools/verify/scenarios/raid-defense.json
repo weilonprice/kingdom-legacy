@@ -1,24 +1,125 @@
 [
-  {"setup_grant": {"wood": 200, "stone": 100}},
-  {"click_button": "Defense"},
-  {"find_site": {"building": "guard_tower", "as": "t1", "near": [3, 1]}},
-  {"click_button": "Guard Tower"},
-  {"click_tile": "t1"},
-  {"find_site": {"building": "guard_tower", "as": "t2", "near": [-3, 1]}},
-  {"click_tile": "t2"},
-  {"key": "Escape"},
-  {"expect": {"buildings": {"guard_tower": 2}}},
-  {"click_button": "4x"},
-  {"wait": 3},
-  {"key": "F9"},
-  {"wait_until": {"raid_phase": "WARNING"}, "timeout": 10},
-  {"expect": {"text": "Goblins approach from the"}},
-  {"screenshot": "01-raid-warning"},
-  {"wait_until": {"raid_phase": "ACTIVE"}, "timeout": 30},
-  {"expect": {"text": "Raid!"}},
-  {"screenshot": "02-raid-active"},
-  {"wait_until": {"raid_phase": "CALM"}, "timeout": 150},
-  {"expect": {"message": "The raid is over!"}},
-  {"screenshot": "03-raid-over"},
-  {"state": "end"}
+  {
+    "setup_grant": {
+      "wood": 200,
+      "stone": 100
+    }
+  },
+  {
+    "click_button": "Defense"
+  },
+  {
+    "find_site": {
+      "building": "guard_tower",
+      "as": "t1",
+      "near": [
+        3,
+        1
+      ],
+      "entrance_on_road": true
+    }
+  },
+  {
+    "click_button": "Guard Tower"
+  },
+  {
+    "click_tile": "t1"
+  },
+  {
+    "find_site": {
+      "building": "guard_tower",
+      "as": "t2",
+      "near": [
+        -3,
+        1
+      ],
+      "entrance_on_road": true
+    }
+  },
+  {
+    "click_tile": "t2"
+  },
+  {
+    "key": "Escape"
+  },
+  {
+    "expect": {
+      "buildings": {
+        "guard_tower": 2
+      }
+    }
+  },
+  {
+    "wait_game": 8
+  },
+  {
+    "click_tile": "t1"
+  },
+  {
+    "expect": {
+      "selected_building": "Guard Tower",
+      "text": "On watch",
+      "text_absent": "No road access"
+    }
+  },
+  {
+    "screenshot": "00-tower-manned"
+  },
+  {
+    "key": "Escape"
+  },
+  {
+    "click_button": "4x"
+  },
+  {
+    "wait": 3
+  },
+  {
+    "key": "F9"
+  },
+  {
+    "wait_until": {
+      "raid_phase": "WARNING"
+    },
+    "timeout": 10
+  },
+  {
+    "expect": {
+      "text": "Goblins approach from the"
+    }
+  },
+  {
+    "screenshot": "01-raid-warning"
+  },
+  {
+    "wait_until": {
+      "raid_phase": "ACTIVE"
+    },
+    "timeout": 30
+  },
+  {
+    "expect": {
+      "text": "Raid!"
+    }
+  },
+  {
+    "screenshot": "02-raid-active"
+  },
+  {
+    "wait_until": {
+      "raid_phase": "CALM"
+    },
+    "timeout": 150
+  },
+  {
+    "expect": {
+      "message": "The raid is over!"
+    }
+  },
+  {
+    "screenshot": "03-raid-over"
+  },
+  {
+    "state": "end"
+  }
 ]

@@ -225,7 +225,12 @@ M6 — ART PASS (PIXELLAB)                                Goal: looks like a gam
   [ ] (S) UI theme: medieval font, panel textures, resource icons
   [ ] (S) Sound: placeholder SFX (chop, build, horn, combat), ambient
 
-  Done when: all M0–M3 content uses real art and a consistent palette.
+  Buildings now include (M4-M5b): Stone House, Chapel, Market, Tavern,
+  Scholar's Hall, Carter's Yard, Stone Tower, Warehouse, Granary, Mill,
+  Bakery, Fisher's Hut, Well. Prioritize the ones seen most; others can
+  share a palette-matched generic building until budget allows.
+
+  Done when: all M0–M5b content uses real art and a consistent palette.
 
 
 ================================================================================
@@ -240,6 +245,10 @@ M7 — WAR EXPANDED                                       Goal: real sieges
   [ ] (S) Weapon/armor supply chains feed troop training (iron -> smithy)
   [ ] (S) Knights (City tier)
   [ ] (M) Monster lairs on map: optional assault targets that reduce raids
+  [ ] (S) Enemies bash through buildings when walls block every route
+          (deferred from M2)
+  [ ] (S) Militia call-up: workers take up arms during a raid (deferred
+          from M3)
 
   Done when: late-game raids require walls, mixed troops and a war economy.
 

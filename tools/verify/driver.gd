@@ -326,6 +326,8 @@ func _check(expect: Dictionary) -> String:
 			problems.append("%s '%s' != '%s'" % [key, s[key], expect[key]])
 	if expect.has("text") and not s.visible_text.any(func(t: String) -> bool: return expect.text in t):
 		problems.append("no visible text containing '%s'" % expect.text)
+	if expect.has("text_absent") and s.visible_text.any(func(t: String) -> bool: return expect.text_absent in t):
+		problems.append("visible text still contains '%s'" % expect.text_absent)
 	if expect.has("message") and not s.messages.any(func(m: String) -> bool: return expect.message in m):
 		problems.append("no message containing '%s'" % expect.message)
 	for key: String in expect.get("min", {}):

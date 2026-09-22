@@ -40,6 +40,7 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 `expect` keys: `buildings` (exact counts), `tier`, `raid_phase`
 (`CALM`/`WARNING`/`ACTIVE`), `build_mode` (`NONE`/`BUILD`/`ROAD`/`DEMOLISH`),
 `selected_building` (title), `text` (any visible HUD label/button contains it),
+`text_absent` (no visible HUD label/button contains it),
 `message` (any notification so far contains it), `min` / `max` (`population`,
 `roads`, `happiness`, or any resource), `tax_rate` (`None`..`Harsh`),
 `house_level_min` (`{"level": 2, "count": 1}`), `night` (bool),

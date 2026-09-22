@@ -2,7 +2,7 @@
 KINGDOM LEGACY — GAME DESIGN OUTLINE
 ================================================================================
 Engine: Godot 4.7 (GDScript)        Art: 32x32 pixel art (PixelLab)
-View: Top-down 2D                   Status: Early prototype
+View: Top-down 2D                   Status: Playable prototype (M0-M5b)
 Last updated: 2026-09-22
 
 
@@ -40,6 +40,7 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     - WIN:  Reach the Kingdom tier AND survive the final great raid
             (e.g. a troll warlord / dragon siege).
     - LOSE: The Keep is destroyed, OR population falls to zero.
+            [both implemented: game-over screen with a New Game button]
   Future: scenario-specific goals (survive N raids, reach X population,
   build a Cathedral, etc.).
 
@@ -61,7 +62,9 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   Each villager has: a home, an optional job, a carried item, and a state.
   - Spawn: move into houses with free space and road access.
   - Jobs: auto-assigned to the nearest open workplace.
-  - Work: walk to resource / workplace, produce, carry goods to storage.
+  - Work: walk to resource / workplace, produce, drop goods at the
+    workplace pile; haulers (or the worker, when the pile is full) carry
+    them to storage.
   - Movement: A* pathfinding. Roads are ~1.6x faster; forests slower.
 
   Needs (implemented M5; see scripts/data/need_defs.gd):
@@ -83,7 +86,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 7. ECONOMY & SUPPLY CHAINS
 --------------------------------------------------------------------------------
   Raw resources:  Wood, Stone, Wheat, Fish, Game, Iron ore, Clay, Wool, Gold ore
-  Storage:        Keep (starts), Stockpile (raw), Granary (food), Warehouse
+  Storage:        Keep (starts, + gold treasury), Stockpile (materials),
+                  Granary (food), Warehouse (both, Town); Carter's Yard haulers
 
   Chains (-> = building transforms input to output):
     Wood         Woodcutter                          [BUILT]
@@ -148,40 +152,46 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   Troops auto-defend by default; player may take direct control of squads.
 
   Defensive structures:
-    Palisade (wood wall), Stone Wall, Gate (villagers pass, enemies don't),
-    Watchtower (archer slot), Guard Tower, Moat, Spike trap, Castle upgrade.
+    Built:   Guard Tower (Hamlet; range 7), Stone Tower (Town; range 9,
+             700 HP). Both need a villager on watch.
+    Planned: Palisade, Stone Wall, Gate, towers on walls, Moat, Spike trap
+             (M7).
 
-  Troops (trained at Barracks; cost gold + equipment + a villager):
-    Militia     Cheap, weak, pulled from the workforce during raids
-    Spearman    Anti-large (good vs trolls)
-    Archer      Ranged, best on walls/towers
-    Swordsman   Solid all-rounder
-    Knight      Fast heavy cavalry (City tier)
+  Troops (trained at the Barracks, Village tier; each uses up a villager):
+    Built:   Militia (10 gold), Spearman (25 gold + 10 wood; 2.5x damage vs
+             large enemies), Archer (Town; 25 gold + 15 wood; range 5).
+             Upkeep 1-2 gold/min; troops eat; unpaid troops desert.
+    Planned: Swordsman, Knight (City), weapon/armor supply chains (M7),
+             militia call-up from workers during a raid.
 
   Behavior:
-    - AUTO: squads hold a rally point, engage enemies within range, return.
-    - MANUAL: select squad -> move / attack / hold; returns to auto when
-      released.
-  Villagers flee to their home or the Keep when raiders are near.
-  Wounded troops heal at barracks/hospital; dead troops = lost citizens.
+    - AUTO: squads hold their rally flag and attack raiders within 8 tiles
+      of it or within 12 tiles of the Keep.
+    - MANUAL: select a squad, right-click to move or attack; G releases it
+      back to AUTO guarding where it stands.
+  Villagers hide at home when raiders come within 10 tiles.
+  Troops heal near their barracks; dead troops are lost citizens.
 
 
 10. ENEMIES (MONSTER RAIDS)
 --------------------------------------------------------------------------------
-  Raids arrive on a timer with a warning horn + direction indicator.
-  Raid strength scales with population, wealth and time elapsed.
+  Raids (implemented M2): first at ~7 min, then every 5 min, with a 30s
+  warning naming the direction and an arrow to off-screen raiders.
+  Strength: 2 + pop/6 + raids survived + 2 per tier goblins; brutes from
+  the 2nd raid on (+1 per tier).
 
   Enemy types:
-    Goblin          Fast, weak, steals goods and flees       (early)
-    Goblin Archer   Ranged harassment                        (early)
-    Orc Warrior     Tough melee, attacks buildings           (mid)
-    Orc Shaman      Heals/buffs orcs                         (mid)
-    Troll           Very slow, huge HP, smashes walls        (late)
-    Wolf Riders     Fast flankers, target outlying farms     (mid)
-    Dragon          Boss; flies over walls, burns buildings  (final)
+    Goblin          Fast, weak, steals from a storehouse and flees  [BUILT]
+    Goblin Brute    Large; smashes buildings, then the Keep          [BUILT]
+    Goblin Archer   Ranged harassment                        (planned, early)
+    Orc Warrior     Tough melee, attacks buildings           (planned, M7)
+    Orc Shaman      Heals/buffs orcs                         (planned, M7)
+    Troll           Very slow, huge HP, smashes walls        (planned, M7)
+    Wolf Riders     Fast flankers, target outlying farms     (planned, M7)
+    Dragon          Boss; flies over walls, burns buildings  (planned, M8)
 
   Enemy goals (varies by type): loot storage, burn buildings, kill villagers,
-  reach the Keep. Burning buildings spread fire if not put out (well coverage).
+  reach the Keep. Burning buildings spread fire if not put out (planned M7).
 
 
 11. CONTROLS
@@ -199,18 +209,23 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   Overlays          O cycles happiness / services / road access
   Tax rate          Click the Keep
   Debug             F9 calls a raid now (30s warning)
-  Planned: overlays
-  (road access, needs coverage, happiness heatmap).
 
 
 12. UI
 --------------------------------------------------------------------------------
-  - Top bar: resources, population/housing, workers/jobs, speed.
-  - Bottom bar: build menu (will become categorized tabs:
-    Roads / Housing / Resources / Food / Industry / Military / Civic).
-  - Hover info: tile or building details.
-  - Planned: building inspector panel, raid warning banner, tier progress,
-    research screen, overlays, minimap.
+  - Top bar: settlement tier (click for the tier panel), materials and food
+    with storage use, gold with net income, population / jobs / happiness,
+    raid countdown, day/night clock, speed buttons. Labels truncate with
+    their full text in a tooltip.
+  - Bottom bar: Road and Demolish tools, category tabs (Housing, Resources,
+    Food, Storage, Defense, Civic) and the buildings in the current tab;
+    locked ones show a lock and their requirement.
+  - Building panel (click a building): status, workers and what each is
+    doing, residents, needs, stored goods, workplace pile, recipe; training
+    at the Barracks, research at the Scholar's Hall, tax rate on the Keep.
+  - Squad panel, tier panel (T), raid banner and edge arrow, overlays (O),
+    hover info, notifications, game-over screen.
+  - Planned: minimap, main menu, settings, tutorial hints (M8).
 
 
 13. ART DIRECTION
@@ -238,20 +253,23 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 
 14. TECHNICAL ARCHITECTURE
 --------------------------------------------------------------------------------
-  scripts/autoload/game_state.gd       Stock, capacity, population, speed,
-                                       game over
-  scripts/data/                        Data tables: building_defs, item_defs,
-                                       enemy_defs, unit_defs, tier_defs,
-                                       research_defs
+  scripts/main.gd                      Wires systems together; --seed=N
+  scripts/autoload/game_state.gd       Resource totals (front for Stock),
+                                       population, happiness, tax rate,
+                                       research modifiers, speed, game over
+  scripts/data/                        Data tables: building, item, enemy,
+                                       unit, tier, research, need defs
   scripts/world/terrain.gd             Terrain types, rules, tileset atlas
   scripts/world/world_map.gd           Grid, generation, roads, fields,
                                        placement, A*, enemy registry
-  scripts/world/building.gd            Placed building (health, towers)
-  scripts/agents/villager.gd           Citizen agent (work loops, hiding)
+  scripts/world/building.gd            Placed building: health, towers,
+                                       inventory, workplace piles, home data
+  scripts/agents/villager.gd           Citizen agent: work loops, hauling,
+                                       hiding, sleeping
   scripts/agents/enemy.gd              Raider agent (thief / wrecker)
   scripts/agents/troop.gd              Soldier agent (auto / manual)
   scripts/combat/                      Health, projectiles
-  scripts/systems/citizen_manager.gd   Spawning, jobs, food, tax, drafting
+  scripts/systems/citizen_manager.gd   Spawning, jobs, food, drafting
   scripts/systems/raid_director.gd     Raid schedule, spawning, repair
   scripts/systems/military.gd          Training, squads, upkeep
   scripts/systems/squad.gd             Squad modes, orders, formation
@@ -261,8 +279,10 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   scripts/systems/stock.gd             Per-building inventories, sources
   scripts/systems/day_night.gd         Day/night cycle and world tint
   scripts/controllers/                 Camera, build tools, unit control
-  scripts/ui/                          HUD, building panel, squad panel,
-                                       raid arrow, game over
+  scripts/ui/                          HUD, building/squad/tier panels,
+                                       overlays, raid arrow, game over
+  tools/verify/                        Real-input verification harness
+  .claude/skills/verify-kingdom-legacy Agent guide + feature map for it
 
   Notes:
     - Pathfinding: AStarGrid2D, road weight 1.0, terrain 2.0–3.5.
