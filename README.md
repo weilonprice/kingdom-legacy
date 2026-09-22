@@ -1,50 +1,164 @@
 # Kingdom Legacy
 
-A medieval city builder with monster raids, made in Godot 4.
+**A medieval city builder where every villager is a real person hauling real goods, and goblins come to take them.**
 
-Grow a hamlet into a kingdom: lay roads, build supply chains, and keep your
-villagers fed, while goblins, orcs and trolls raid in escalating waves.
+Grow a hamlet into a kingdom. Lay roads, build farms, mills and bakeries, keep
+your people fed, housed and happy, then train an army and raise towers before
+the next raid hits. Made with Godot 4.
 
-- **Engine:** Godot 4.7 (GDScript)
-- **View:** top-down 2D, 32x32 pixel art
-- **Design:** see [design.txt](design.txt)
-- **Roadmap:** see [roadmap.txt](roadmap.txt)
+![A village with the service-coverage overlay: a chapel's and a well's coverage circles, need icons on each home](docs/screenshots/village-overview.png)
 
-## Running
+> **Status: playable prototype.** Milestones M0–M5b are done: economy,
+> raids, troops, tiers, research, needs and day/night. Buildings and units are
+> still drawn as placeholder shapes; the pixel-art pass (M6) is next. See the
+> [roadmap](roadmap.txt).
 
-1. Open the Godot Project Manager, click **Import**, and select `project.godot`.
-2. Press **F5** to run.
+## Features
+
+- **A living town.** Every villager is an agent with a home and a job. You can
+  watch them chop trees, harvest wheat, carry flour from the mill to the bakery
+  and haul goods to storage. When there's a bottleneck, you can see it.
+- **Supply chains.** Woodcutters, quarries, fishers, and farms that till and
+  harvest their own fields. Wheat goes to the mill, flour to the bakery, bread
+  to the granary. Goods sit in specific buildings, and haulers from a Carter's
+  Yard keep them moving.
+- **Needs and happiness.** Homes need food, water, religion, a market and a
+  tavern. Cover them with Wells, Chapels, Markets and Taverns, and cottages grow
+  into townhouses and manors that hold more people and pay more tax. Set the tax
+  rate on the Keep and trade gold for happiness.
+- **Monster raids.** Goblins arrive every few minutes from a direction the game
+  announces. Thieves loot the storehouse they reach and run, and brutes smash
+  buildings. Villagers hide when raiders get close. Lose the Keep and the game
+  is over.
+- **Hybrid combat.** Guard towers shoot on their own. Barracks train militia,
+  spearmen and archers into squads that defend automatically. Select a squad
+  whenever you want to send it somewhere, then let it go back to guarding.
+- **Progression.** Grow from Hamlet to Village, Town, City and Kingdom. Each
+  tier unlocks buildings, units and research, and upgrades the Keep into a
+  Castle and then a Citadel. The raids grow with you.
+- **Day and night.** At dusk the town goes quiet as villagers head home to
+  sleep. Guards stay on watch.
+- **Procedural maps.** Every game is a new 128×128 map. Pass a seed to replay
+  one.
+
+## Screenshots
+
+| | |
+|---|---|
+| ![Home panel showing needs met and missing](docs/screenshots/needs-panel.png) | ![A goblin raid with manned guard towers and the raid banner](docs/screenshots/raid.png) |
+| **Needs.** A Chapel turned this home into a Townhouse. A market and a tavern would make it a Manor. | **Raids.** Manned guard towers wait for 2 goblins; the red arrow points at them off-screen. |
+| ![A selected squad marching to an ordered position](docs/screenshots/squads.png) | ![The town at night, everyone asleep](docs/screenshots/night.png) |
+| **Squads.** A selected squad is sent south; its rally flag and guard radius are shown. | **Night.** The villagers are asleep and the town is empty until morning. |
+
+## Getting started
+
+**Requirements:** [Godot 4.7](https://godotengine.org/download) (standard
+build; no .NET needed).
+
+```bash
+git clone https://github.com/weilonprice/kingdom-legacy.git
+```
+
+1. Open the Godot Project Manager, click **Import**, and select
+   `kingdom-legacy/project.godot`.
+2. Press **F5** to play.
+
+To replay a specific map, run it from a terminal with a seed:
+
+```bash
+godot --path kingdom-legacy -- --seed=12345
+```
+
+### Your first few minutes
+
+1. Four settlers live in the **Keep**. Press **1** (House) and place homes
+   along the road, with their yellow entrance square on the road.
+2. Open the **Resources** tab and build a **Woodcutter** next to the forest
+   and a **Quarry** next to the rocks. Unemployed villagers take the jobs.
+3. Open the **Food** tab. A **Fisher's Hut** by the water feeds people quickly;
+   **Farm → Mill → Bakery** feeds more of them in the long run.
+4. Build a **Well** and a **Granary** to reach **Village**. Press **T** to see
+   what the next tier needs.
+5. The first raid comes at about 7 minutes. Put a couple of **Guard Towers**
+   near your storage, and later a **Barracks**.
 
 ## Controls
 
 | Action | Input |
 |---|---|
-| Pan camera | WASD / arrow keys / middle-mouse drag |
-| Zoom | Mouse wheel |
-| Road / Demolish | R / X |
-| Build categories | Tab, then 1-9 to pick a building |
-| Inspect building | Left-click |
-| Select squad | Click a troop / drag a box / Ctrl+1-9 |
-| Order squad | Right-click ground (move) or a raider (attack) |
-| Squad back to guarding | G |
-| Cancel / deselect | Right-click / Esc |
-| Pause / speed | Space / top-bar buttons |
-| Tier progress | T |
-| Map overlays | O |
+| Pan / zoom | WASD or arrow keys, middle-mouse drag / mouse wheel |
+| Build | Category tabs at the bottom (**Tab** cycles), **1–9** picks a building |
+| Road / Demolish | **R** (drag to lay) / **X** |
+| Inspect a building | Left-click |
+| Cancel / deselect | Right-click / **Esc** |
+| Select a squad | Click a troop, drag a box, or **Ctrl+1–9** |
+| Order a squad | Right-click the ground (move) or a raider (attack) |
+| Squad back to guarding | **G** |
+| Tier progress | **T** |
+| Map overlays (happiness, services, roads) | **O** |
 | Tax rate | Click the Keep |
-| Call a raid now (testing) | F9 |
+| Pause / speed | **Space** / top-bar buttons |
+| Call a raid now (testing) | **F9** |
 
-## Verification
+## Project layout
 
-`tools/verify/` drives the real game with injected mouse and keyboard input and
+```
+scenes/main.tscn          Entry scene
+scripts/
+  data/                   Data tables: buildings, items, units, enemies, tiers, research, needs
+  world/                  Map generation, terrain, buildings, pathfinding
+  agents/                 Villagers, raiders, troops
+  systems/                Citizens, raids, military, needs, research, tiers, storage, day/night
+  controllers/            Camera, build tools, unit control
+  ui/                     HUD, panels, overlays
+assets/                   PixelLab art (style locked, not wired in yet)
+tools/verify/             Real-input verification harness
+design.txt                Game design outline
+roadmap.txt               Milestones M0–M8
+```
+
+Most content is data-driven. A new building is mostly a new entry in
+`scripts/data/building_defs.gd`.
+
+## Development
+
+### Verifying changes
+
+`tools/verify/` plays the real game with injected mouse and keyboard input and
 records screenshots, state snapshots and a pass/fail report:
 
 ```bash
-tools/verify/doctor.sh
-tools/verify/run.sh tools/verify/scenarios/build-and-inspect.json
-tools/verify/cleanup.sh
+tools/verify/doctor.sh                                   # is the checkout healthy?
+tools/verify/run.sh tools/verify/scenarios/squads.json   # plays a scenario
+tools/verify/cleanup.sh                                  # stops leftover instances
 ```
 
-See `tools/verify/README.md` for the scenario format and
-`.claude/skills/verify-kingdom-legacy/` for the agent guide and feature map.
-Pass `-- --seed=N` to Godot to replay a specific map.
+There are scenarios for building, raids, squads, tiers and research, needs,
+hauling and day/night. Add `--headless` to run without a window. Evidence goes
+to `.verify-evidence/`. The scenario format is in
+[`tools/verify/README.md`](tools/verify/README.md), and the agent guide and
+feature map are in `.claude/skills/verify-kingdom-legacy/`.
+
+### Workflow
+
+Each milestone is developed on its own branch and merged through a pull request
+after its scenarios pass.
+
+## Roadmap
+
+| Milestone | |
+|---|---|
+| M0–M1 | Map, roads, villagers, gathering, food chain ✅ |
+| M2–M3 | Goblin raids, towers, troops and squads ✅ |
+| M4–M5b | Tiers, research, needs, happiness, taxes, storage, haulers, day/night ✅ |
+| **M6** | **Pixel-art pass: terrain, buildings, animated villagers and goblins** |
+| M7 | Walls, gates, fire, orcs and trolls, weapon supply chains |
+| M8 | Win condition, dragon siege, save/load, menus, balance, export |
+
+Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
+
+## Credits
+
+- Built with [Godot Engine](https://godotengine.org).
+- Pixel art generated with [PixelLab](https://pixellab.ai). See
+  [the art style test](docs/style_test.png).
