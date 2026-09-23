@@ -1,0 +1,53 @@
+# Autoplayer
+
+A bot that plays whole games for balance data. It uses the game's own rules —
+costs, tier locks, placement and road access, real game time at 4x — with no
+test shortcuts, and writes a timeline and summary per game.
+
+```bash
+tools/autoplay/run.sh --seeds 12345,7,99 --minutes 90      # Normal difficulty
+tools/autoplay/run.sh --seeds 12345 --minutes 60 --difficulty 0
+```
+
+Reports: `.autoplay/<timestamp>/seed-<n>/summary.md` (tiers, counters, per-minute
+table, events) and `report.json` (everything, including per-minute
+production/spending rates, building counts, the bot's actions and why builds
+failed). A 90-minute game takes about 10–40 seconds headless.
+
+`probe.tscn` measures one workplace in a quiet game (no raids):
+
+```bash
+godot --headless --fixed-fps 30 --path . res://tools/autoplay/probe.tscn -- --building=quarry --minutes=5
+```
+
+It prints output per minute and how the workers spent their time.
+
+## How the bot plays
+
+Every 2 game seconds it takes the most urgent action it can afford:
+1. War first: Call to Arms when raiders swamp the Keep; lair assault at City
+   with 6+ troops; a guard tower before the first raid; barracks at Village.
+2. Food when stocks are low (fishers by water, farms, then mills/bakeries).
+3. Woodcutters when wood runs short, and firewood stock before winter.
+4. Housing, only while food (2.5+ minutes of stock) and a firewood reserve
+   allow.
+5. Quarries, storage when 85% full, wells where homes lack water, services
+   and tier buildings, research, and troops (once the town has 20 people).
+
+Streets: horizontal avenues every 3 rows around the Keep, joined by a spine,
+lengthened when there's no room; branch roads out to forests, rocks and water.
+
+It is a sensible but plain player: no walls, no clever tower placement, no
+micro. Treat its results as "what an average player may hit", not as limits.
+
+## First findings (M12, Normal, seeds 12345 / 7 / 99, 90 minutes)
+
+All three towns lost between minutes 26 and 39:
+- Towns reach Village in 1-9 minutes, grow to 25-30 people by minutes 6-10,
+  then stall; none reached Town (35 people, 2 raids, 4 level-2 homes).
+- Food production (30-40 a minute) barely matched consumption at that size.
+- Raids 3-5 (minutes 20-35, 14-25 raiders with orcs) burned the towns:
+  25-57 fires and 21-66 buildings lost per game, 30-48 villagers killed.
+- Storage: materials share one capacity, so wood surpluses (300+ idle) fill
+  it and block stone; a probed woodcutter spent about half its time on
+  "Storage full" and produced 14 wood/min instead of about 25-30.
