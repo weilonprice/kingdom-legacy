@@ -11,7 +11,7 @@ const TIERS := [
 		"requires": {},
 		"unlocks": {
 			"buildings": ["house", "well", "woodcutter", "quarry", "farm", "fisher", "mill",
-				"bakery", "stockpile", "granary", "carter", "guard_tower"],
+				"bakery", "stockpile", "granary", "carter", "guard_tower", "palisade", "gate"],
 		},
 		"keep": {"title": "Keep", "hp": 800.0, "capacity": 200},
 	},
@@ -30,7 +30,7 @@ const TIERS := [
 		"requires": {"population": 35, "raids_survived": 2, "buildings": ["barracks", "scholars_hall"],
 			"house_level": {"level": 2, "count": 4}},
 		"unlocks": {
-			"buildings": ["stone_tower", "warehouse", "tavern"],
+			"buildings": ["stone_tower", "warehouse", "tavern", "stone_wall"],
 			"units": ["archer"],
 			"research": ["tempered_steel", "masonry"],
 		},

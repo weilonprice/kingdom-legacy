@@ -11,6 +11,7 @@ var progression: Progression
 var needs: Needs
 var overlay: Overlay
 var day_night: DayNight
+var fire: FireSystem
 var build: BuildController
 var camera: CameraController
 var hud: HUD
@@ -36,6 +37,10 @@ func _ready() -> void:
 	day_night = DayNight.new()
 	day_night.world = world
 	add_child(day_night)
+
+	fire = FireSystem.new()
+	fire.world = world
+	add_child(fire)
 
 	needs = Needs.new()
 	needs.setup(world, citizens)

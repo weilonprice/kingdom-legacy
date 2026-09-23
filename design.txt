@@ -154,8 +154,11 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   Defensive structures:
     Built:   Guard Tower (Hamlet; range 7), Stone Tower (Town; range 9,
              700 HP). Both need a villager on watch.
-    Planned: Palisade, Stone Wall, Gate, towers on walls, Moat, Spike trap
-             (M7).
+             Palisade (Hamlet; 4 wood/segment, 250 HP), Stone Wall (Town;
+             6 stone/segment, 800 HP, fireproof), Gate (Hamlet; lets
+             villagers and troops through, can sit on a road). Walls are
+             dragged like roads and join up with their neighbours.
+    Planned: towers on walls, Moat, Spike trap.
 
   Troops (trained at the Barracks, Village tier; each uses up a villager):
     Built:   Militia (10 gold), Spearman (25 gold + 10 wood; 2.5x damage vs
@@ -184,14 +187,19 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     Goblin          Fast, weak, steals from a storehouse and flees  [BUILT]
     Goblin Brute    Large; smashes buildings, then the Keep          [BUILT]
     Goblin Archer   Ranged harassment                        (planned, early)
-    Orc Warrior     Tough melee, attacks buildings           (planned, M7)
-    Orc Shaman      Heals/buffs orcs                         (planned, M7)
-    Troll           Very slow, huge HP, smashes walls        (planned, M7)
-    Wolf Riders     Fast flankers, target outlying farms     (planned, M7)
+    Orc Warrior     Tough melee, smashes buildings, starts fires [BUILT]
+    Orc Shaman      Heals nearby raiders                     [BUILT]
+    Troll           Very slow, huge HP, smashes walls        [BUILT]
+    Wolf Riders     Fast flankers, target outlying farms     [BUILT]
     Dragon          Boss; flies over walls, burns buildings  (planned, M8)
 
   Enemy goals (varies by type): loot storage, burn buildings, kill villagers,
-  reach the Keep. Burning buildings spread fire if not put out (planned M7).
+  reach the Keep. Raiders smash through walls and gates when those are the
+  cheapest way in. Orcs can set wooden buildings on fire: fire eats 3% of HP
+  a second, spreads to flammable neighbours, and a Well covering the
+  building puts it out after 8 seconds.
+  Raid mix (M7): orcs from the 2nd raid, a shaman per 3 orcs, wolf riders
+  from Town tier, trolls from the 5th raid or City tier.
 
 
 11. CONTROLS
@@ -304,7 +312,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   [DONE]  M5  Needs & happiness, taxes/gold
   [DONE]  M5b Per-building storage, haulers, day/night
   [DONE]  M6  PixelLab art pass
-  [NEXT]  M7  Walls, gates, fire, more enemies (orcs, trolls)
+  [DONE]  M7a Walls, gates, fire, orcs, wolf riders, trolls
+  [NEXT]  M7b War economy: weapon chains, knights, lairs, towers on walls
           M8  Win condition, final raid, save/load, balance pass
 
 

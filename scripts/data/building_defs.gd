@@ -11,6 +11,10 @@ extends RefCounted
 ## Service buildings `provide` a need (water, religion, market, tavern) to homes
 ## within `coverage` tiles; those with `jobs` only work while staffed.
 ## Homes have `housing` and gain `level_bonus` residents per house level.
+## Fortifications (`wall` / `gate`) are 1x1, need no entrance or road, and
+## block villagers (gates let them through). Raiders can walk through them
+## only by smashing them; `siege_cost` is how hard their pathfinding avoids
+## that. Buildings without `flammable: false` can catch fire.
 
 const DEFS := {
 	"keep": {
@@ -23,6 +27,7 @@ const DEFS := {
 		"accepts": ["materials", "food"],
 		"capacity": 200,
 		"hp": 800.0,
+		"flammable": false,
 	},
 	"house": {
 		"name": "House",
@@ -213,6 +218,7 @@ const DEFS := {
 		"jobs": 1,
 		"work": "guard",
 		"hp": 700.0,
+		"flammable": false,
 		"range": 9,
 		"damage": 16.0,
 		"attack_cooldown": 1.1,
@@ -226,6 +232,37 @@ const DEFS := {
 		"hp": 450.0,
 		"trains": ["militia", "spearman", "archer"],
 		"troop_capacity": 6,
+	},
+	"palisade": {
+		"name": "Palisade",
+		"desc": "A wooden stake wall. Drag to build. Raiders must smash through it; it can burn.",
+		"size": Vector2i(1, 1),
+		"cost": {"wood": 4},
+		"color": Color(0.52, 0.36, 0.20),
+		"hp": 250.0,
+		"wall": true,
+		"siege_cost": 20.0,
+	},
+	"stone_wall": {
+		"name": "Stone Wall",
+		"desc": "A thick fireproof stone wall. Drag to build. Very hard for raiders to break.",
+		"size": Vector2i(1, 1),
+		"cost": {"stone": 6},
+		"color": Color(0.58, 0.58, 0.60),
+		"hp": 800.0,
+		"wall": true,
+		"siege_cost": 45.0,
+		"flammable": false,
+	},
+	"gate": {
+		"name": "Gate",
+		"desc": "Lets your villagers and troops through a wall; raiders must break it. Can go on a road.",
+		"size": Vector2i(1, 1),
+		"cost": {"wood": 20, "stone": 10},
+		"color": Color(0.45, 0.32, 0.18),
+		"hp": 600.0,
+		"gate": true,
+		"siege_cost": 35.0,
 	},
 	"stockpile": {
 		"name": "Stockpile",
@@ -263,13 +300,18 @@ const CATEGORIES := [
 	{"name": "Resources", "items": ["woodcutter", "quarry"]},
 	{"name": "Food", "items": ["farm", "fisher", "mill", "bakery"]},
 	{"name": "Storage", "items": ["stockpile", "granary", "warehouse", "carter"]},
-	{"name": "Defense", "items": ["guard_tower", "stone_tower", "barracks"]},
+	{"name": "Defense", "items": ["guard_tower", "stone_tower", "barracks", "palisade", "gate", "stone_wall"]},
 	{"name": "Civic", "items": ["chapel", "market", "tavern", "scholars_hall"]},
 ]
 
 
 static func get_def(id: String) -> Dictionary:
 	return DEFS[id]
+
+
+## Walls and gates: 1x1, no entrance, block civilians (gates excepted).
+static func is_fortification(def: Dictionary) -> bool:
+	return def.get("wall", false) or def.get("gate", false)
 
 
 ## The tile just below the bottom-middle of the footprint. Villagers enter here,

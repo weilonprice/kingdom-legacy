@@ -106,6 +106,29 @@ func _run_step(step: Dictionary) -> String:
 		for item: String in step.setup_grant:
 			GameState.add_resource(item, int(step.setup_grant[item]))
 		report.setup_shortcuts.append(step)
+	elif step.has("setup_tier"):
+		# Test-only: advance straight to a tier by name.
+		while main.progression.tier_name() != step.setup_tier and not main.progression.is_max_tier():
+			main.progression._advance()
+		report.setup_shortcuts.append(step)
+		return "ok (tier %s)" % main.progression.tier_name()
+	elif step.has("setup_ignite"):
+		# Test-only: sets the building on this tile alight (as a raider would).
+		var b: Building = world.occupancy.get(_tile_of(step.setup_ignite))
+		report.setup_shortcuts.append(step)
+		if b == null or not b.ignite():
+			return "FAIL nothing flammable at %s" % str(step.setup_ignite)
+		return "ok (%s burning)" % b.title
+	elif step.has("setup_spawn"):
+		# Test-only: {"setup_spawn": {"enemy": "troll", "count": 1, "at": [dx, dy]}}
+		var spec: Dictionary = step.setup_spawn
+		var tile := world.nearest_walkable(_tile_of(spec.at))
+		for i in int(spec.get("count", 1)):
+			var enemy := Enemy.new()
+			enemy.setup(world, spec.enemy, tile, main.raids._pick_spawn_tile())
+			world.unit_root.add_child(enemy)
+		report.setup_shortcuts.append(step)
+		return "ok (%s x%d at %s)" % [spec.enemy, int(spec.get("count", 1)), tile]
 	else:
 		return "FAIL unknown step"
 	return "ok"
@@ -283,6 +306,8 @@ func _snapshot() -> Dictionary:
 		"raid_phase": ["CALM", "WARNING", "ACTIVE"][main.raids.phase],
 		"raids_survived": main.raids.raids_survived,
 		"enemies": world.enemies.size(),
+		"enemy_types": _count_enemy_types(),
+		"burning": world.buildings.filter(func(b: Building) -> bool: return b.burning).size(),
 		"buildings": buildings,
 		"roads": world.roads.size(),
 		"night": world.is_night,
@@ -290,7 +315,7 @@ func _snapshot() -> Dictionary:
 			func(v: Villager) -> bool: return v.visible).size(),
 		"stored": _sum_by_building("inventory"),
 		"piles": _sum_by_building("output_stock"),
-		"build_mode": ["NONE", "BUILD", "ROAD", "DEMOLISH"][main.build.mode],
+		"build_mode": BuildController.Mode.keys()[main.build.mode],
 		"selected_building": main.build.selected.title if main.build.selected != null else "",
 		"squads": main.military.squads.map(func(s: Squad) -> Dictionary: return {
 			"name": s.display_name(), "troops": s.troops.size(), "selected": s.selected,
@@ -300,6 +325,13 @@ func _snapshot() -> Dictionary:
 		"visible_text": _visible_text(main.hud),
 		"messages": report.messages.duplicate(),
 	}
+
+
+func _count_enemy_types() -> Dictionary:
+	var counts := {}
+	for e in world.enemies:
+		counts[e.enemy_id] = counts.get(e.enemy_id, 0) + 1
+	return counts
 
 
 func _visible_text(node: Node) -> Array:
@@ -321,6 +353,12 @@ func _check(expect: Dictionary) -> String:
 	for id: String in expect.get("buildings", {}):
 		if s.buildings.get(id, 0) != int(expect.buildings[id]):
 			problems.append("%s count %d != %d" % [id, s.buildings.get(id, 0), expect.buildings[id]])
+	for id: String in expect.get("buildings_min", {}):
+		if s.buildings.get(id, 0) < int(expect.buildings_min[id]):
+			problems.append("%s count %d < %d" % [id, s.buildings.get(id, 0), expect.buildings_min[id]])
+	for id: String in expect.get("buildings_max", {}):
+		if s.buildings.get(id, 0) > int(expect.buildings_max[id]):
+			problems.append("%s count %d > %d" % [id, s.buildings.get(id, 0), expect.buildings_max[id]])
 	for key in ["tier", "raid_phase", "build_mode", "selected_building"]:
 		if expect.has(key) and s[key] != expect[key]:
 			problems.append("%s '%s' != '%s'" % [key, s[key], expect[key]])
@@ -384,7 +422,7 @@ func _sum_by_building(field: String) -> Dictionary:
 ## Numeric state for min/max: population, roads, happiness, villagers_awake,
 ## or a kingdom resource total.
 func _metric(s: Dictionary, key: String) -> float:
-	if key in ["population", "roads", "happiness", "villagers_awake"]:
+	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning"]:
 		return float(s[key])
 	return float(s.resources.get(key, 0))
 

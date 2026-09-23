@@ -7,7 +7,7 @@ signal mode_changed(text: String)
 signal message(text: String)
 signal building_selected(building: Building)
 
-enum Mode { NONE, BUILD, ROAD, DEMOLISH }
+enum Mode { NONE, BUILD, ROAD, WALL, DEMOLISH }
 
 const HOTKEYS := {KEY_R: "road", KEY_X: "demolish"}
 const COLOR_OK := Color(0.3, 1.0, 0.4, 0.45)
@@ -23,8 +23,8 @@ var selected: Building
 ## Last cursor position in screen space, taken from mouse events (polling the
 ## viewport would miss injected input and lag behind the event being handled).
 var _mouse_screen := Vector2.ZERO
-var _road_start := Vector2i.ZERO
-var _dragging_road := false
+var _drag_start := Vector2i.ZERO
+var _dragging := false
 
 
 func _ready() -> void:
@@ -47,9 +47,9 @@ func select(id: String) -> void:
 			if locked != "":
 				message.emit("%s: %s" % [BuildingDefs.get_def(id).name, locked])
 				return
-			mode = Mode.BUILD
 			build_id = id
-	_dragging_road = false
+			mode = Mode.WALL if BuildingDefs.get_def(id).get("wall", false) else Mode.BUILD
+	_dragging = false
 	mode_changed.emit(mode_text())
 	queue_redraw()
 
@@ -62,7 +62,7 @@ func select_building(b: Building) -> void:
 
 func cancel() -> void:
 	mode = Mode.NONE
-	_dragging_road = false
+	_dragging = false
 	mode_changed.emit(mode_text())
 	queue_redraw()
 
@@ -74,6 +74,10 @@ func mode_text() -> String:
 			return "Placing %s (%s) — right-click to cancel" % [def.name, BuildingDefs.cost_text(def.cost)]
 		Mode.ROAD:
 			return "Road — drag to lay a path, right-click to cancel"
+		Mode.WALL:
+			var wdef := BuildingDefs.get_def(build_id)
+			return "%s — drag to build (%s per segment), right-click to cancel" % [
+				wdef.name, BuildingDefs.cost_text(wdef.cost)]
 		Mode.DEMOLISH:
 			return "Demolish — click a building or road (50% refund)"
 	return ""
@@ -123,14 +127,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		Mode.BUILD:
 			if event.pressed:
 				_try_build()
-		Mode.ROAD:
+		Mode.ROAD, Mode.WALL:
 			if event.pressed:
-				_dragging_road = true
-				_road_start = hover_tile
-			elif _dragging_road:
-				var tiles := _road_tiles()  # before clearing the flag it depends on
-				_dragging_road = false
-				world.place_roads(tiles)
+				_dragging = true
+				_drag_start = hover_tile
+			elif _dragging:
+				var tiles := _drag_tiles()  # before clearing the flag it depends on
+				_dragging = false
+				if mode == Mode.ROAD:
+					world.place_roads(tiles)
+				else:
+					_build_wall(tiles)
 		Mode.DEMOLISH:
 			if event.pressed:
 				_emit_if(world.demolish_at(hover_tile))
@@ -150,6 +157,21 @@ func _try_build() -> void:
 		world.place_building(build_id, origin)
 
 
+## Places a segment on each free tile of the drag, paying per segment, and
+## stops when materials run out.
+func _build_wall(tiles: Array[Vector2i]) -> void:
+	var def := BuildingDefs.get_def(build_id)
+	var built := 0
+	for t in tiles:
+		if world.can_place_building(build_id, t) != "":
+			continue
+		if not GameState.spend(def.cost):
+			message.emit("Ran out of materials after %d segments (%s each)" % [built, BuildingDefs.cost_text(def.cost)])
+			return
+		world.place_building(build_id, t)
+		built += 1
+
+
 func _emit_if(text: String) -> void:
 	if text != "":
 		message.emit(text)
@@ -160,13 +182,13 @@ func _build_origin() -> Vector2i:
 	return hover_tile - Vector2i(int(size.x * 0.5), int(size.y * 0.5))
 
 
-## An L-shaped path: horizontal from the drag start, then vertical to the cursor.
-func _road_tiles() -> Array[Vector2i]:
+## Road/wall drag: an L-shaped path, horizontal from the drag start, then vertical to the cursor.
+func _drag_tiles() -> Array[Vector2i]:
 	var tiles: Array[Vector2i] = []
-	if not _dragging_road:
+	if not _dragging:
 		tiles.append(hover_tile)
 		return tiles
-	var a := _road_start
+	var a := _drag_start
 	var b := hover_tile
 	var step_x := 1 if b.x >= a.x else -1
 	for x in range(a.x, b.x + step_x, step_x):
@@ -198,8 +220,12 @@ func _draw() -> void:
 			draw_rect(Rect2(Vector2(e * tile), Vector2(tile, tile)), Color(1, 0.9, 0.3, 0.45))
 			_draw_area(def, e)
 		Mode.ROAD:
-			for t in _road_tiles():
+			for t in _drag_tiles():
 				var color := COLOR_OK if world.can_place_road(t) or world.is_road(t) else COLOR_BAD
+				draw_rect(Rect2(Vector2(t * tile), Vector2(tile, tile)), color)
+		Mode.WALL:
+			for t in _drag_tiles():
+				var color := COLOR_OK if world.can_place_building(build_id, t) == "" else COLOR_BAD
 				draw_rect(Rect2(Vector2(t * tile), Vector2(tile, tile)), color)
 		Mode.DEMOLISH:
 			var rect := Rect2(Vector2(hover_tile * tile), Vector2(tile, tile))

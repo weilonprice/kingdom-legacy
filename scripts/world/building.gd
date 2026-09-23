@@ -26,6 +26,9 @@ var input_stock := {}
 ## Hauler currently fetching from / supplying this building (one at a time).
 var pickup_claim: Object
 var supply_claim: Object
+## Fire: see FireSystem. Progress toward being put out, 0..1.
+var burning := false
+var extinguish_progress := 0.0
 var needs_met := {}
 var happiness := NeedDefs.BASE_HAPPINESS
 var level := 1
@@ -145,6 +148,45 @@ func _stock_line(stock: Dictionary, skip: Array) -> String:
 	return ", ".join(parts)
 
 
+func is_flammable() -> bool:
+	return def.get("flammable", true)
+
+
+## Sets the building alight. Returns true if it caught fire.
+func ignite() -> bool:
+	if burning or not is_flammable() or health.is_dead():
+		return false
+	burning = true
+	extinguish_progress = 0.0
+	GameState.notify("The %s is on fire!" % title)
+	queue_redraw()
+	return true
+
+
+func extinguish() -> void:
+	burning = false
+	extinguish_progress = 0.0
+	queue_redraw()
+
+
+## Flames over the top of the building, animated from the fire sprite when
+## it exists (else simple flickering shapes).
+func _draw_fire(px: Vector2) -> void:
+	var t := Time.get_ticks_msec() / 1000.0
+	var count := clampi(int(px.x / 24.0), 1, 4)
+	for i in count:
+		var at := Vector2((i + 0.5) * px.x / count, px.y * 0.35 + (i % 2) * 8.0)
+		var frame := Art.fire_frame(t + i * 0.37)
+		if frame != null:
+			draw_texture(frame, at - Vector2(frame.get_size()) * Vector2(0.5, 0.8))
+		else:
+			var h := 10.0 + 3.0 * sin(t * 12.0 + i)
+			draw_colored_polygon(PackedVector2Array([at + Vector2(-6, 0), at + Vector2(0, -h), at + Vector2(6, 0)]),
+				Color(1.0, 0.45, 0.1, 0.9))
+			draw_colored_polygon(PackedVector2Array([at + Vector2(-3, 0), at + Vector2(0, -h * 0.6), at + Vector2(3, 0)]),
+				Color(1.0, 0.85, 0.3, 0.95))
+
+
 func is_home() -> bool:
 	return def.get("housing", 0) > 0
 
@@ -223,7 +265,7 @@ func footprint() -> Array[Vector2i]:
 
 ## The Keep is the kingdom's heart and always counts as connected.
 func refresh_road_access() -> void:
-	has_road = self == world.keep or world.is_road(entrance())
+	has_road = self == world.keep or BuildingDefs.is_fortification(def) or world.is_road(entrance())
 	queue_redraw()
 
 
@@ -332,6 +374,10 @@ func inspect_text() -> String:
 func _draw() -> void:
 	var tile := Terrain.TILE_SIZE
 	var px := Vector2(size * tile)
+	if BuildingDefs.is_fortification(def):
+		_draw_fortification()
+		health.draw_bar(self, Vector2(px.x * 0.5, -7), px.x - 4)
+		return
 	var sprite := Art.building(def_id)
 	# Top edge of what's drawn, for the health bar (tall sprites rise above
 	# their footprint).
@@ -349,6 +395,9 @@ func _draw() -> void:
 		for i in level:
 			draw_circle(Vector2(8 + i * 8, px.y - 6), 3, Color(1, 0.85, 0.3))
 			draw_arc(Vector2(8 + i * 8, px.y - 6), 3, 0, TAU, 8, Color(0.3, 0.2, 0.05), 1.0)
+
+	if burning:
+		_draw_fire(px)
 
 	health.draw_bar(self, Vector2(px.x * 0.5, top - 7), minf(px.x - 4, 40))
 
@@ -378,3 +427,70 @@ func _draw_placeholder(px: Vector2) -> void:
 		for i in 3:
 			draw_rect(Rect2(Vector2(3 + i * 10, 0), Vector2(6, 5)), base.darkened(0.4))
 		draw_circle(px * 0.5, 6, base.darkened(0.3))
+
+
+# --- Walls & gates -----------------------------------------------------------
+
+const _DIRS := {"n": Vector2i(0, -1), "e": Vector2i(1, 0), "s": Vector2i(0, 1), "w": Vector2i(-1, 0)}
+
+
+## Which neighbouring tiles hold a wall or gate (so segments join up).
+func _links() -> Dictionary:
+	var links := {}
+	for d: String in _DIRS:
+		links[d] = world.fortification_at(origin + _DIRS[d]) != null
+	return links
+
+
+## A post in the middle plus a beam toward each linked neighbour, drawn in
+## 3/4 view: wall faces are 12px tall, their tops a lighter band.
+func _draw_fortification() -> void:
+	var links := _links()
+	var stone: bool = def_id == "stone_wall"
+	var base: Color = def.color
+	var face := base.darkened(0.25)
+	var top := base.lightened(0.15)
+	var dark := base.darkened(0.6)
+	var c := Vector2(16, 16)
+	# Horizontal run (east-west): a wall face along the tile's middle.
+	for d in ["w", "e"]:
+		if links[d]:
+			var x0 := 0.0 if d == "w" else 16.0
+			_wall_block(Rect2(x0, 10, 16, 14), face, top, dark, stone)
+	# Vertical run (north-south): a narrower band seen from above.
+	for d in ["n", "s"]:
+		if links[d]:
+			var y0 := 0.0 if d == "n" else 16.0
+			_wall_block(Rect2(10, y0, 12, 16), face, top, dark, stone)
+	# Central post / tower.
+	_wall_block(Rect2(c - Vector2(8, 9), Vector2(16, 18)), face, top, dark, stone)
+	if stone:
+		for i in 3:
+			draw_rect(Rect2(Vector2(9 + i * 5, 5), Vector2(3, 3)), top)
+	if def.get("gate", false):
+		# Arched wooden door on the post, iron bands.
+		var door := Rect2(Vector2(10, 12), Vector2(12, 14))
+		draw_rect(door, Color(0.42, 0.26, 0.12))
+		draw_circle(Vector2(16, 12), 6, Color(0.42, 0.26, 0.12))
+		for yy in [15.0, 21.0]:
+			draw_line(Vector2(10, yy), Vector2(22, yy), Color(0.25, 0.25, 0.28), 1.5)
+		draw_rect(Rect2(Vector2(10, 6), Vector2(12, 20)), dark, false, 1.0)
+	if burning:
+		_draw_fire(Vector2(32, 32))
+
+
+func _wall_block(r: Rect2, face: Color, top: Color, dark: Color, stone: bool) -> void:
+	var top_h := minf(6.0, r.size.y * 0.4)
+	draw_rect(r, face)
+	draw_rect(Rect2(r.position, Vector2(r.size.x, top_h)), top)
+	if stone:
+		# Mortar courses.
+		for yy in range(int(r.position.y + top_h + 4), int(r.end.y), 5):
+			draw_line(Vector2(r.position.x, yy), Vector2(r.end.x, yy), dark.lightened(0.2), 1.0)
+	else:
+		# Pointed stakes.
+		var x := r.position.x + 2
+		while x < r.end.x - 1:
+			draw_line(Vector2(x, r.position.y + 1), Vector2(x, r.end.y - 1), dark.lightened(0.15), 1.0)
+			x += 4
+	draw_rect(r, dark, false, 1.0)

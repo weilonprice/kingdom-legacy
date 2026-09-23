@@ -39,7 +39,10 @@ var keep: Building
 var renderer: TerrainRenderer
 var building_root: Node2D
 var unit_root: Node2D
+## Villagers and troops: walls are solid, gates are open.
 var astar := AStarGrid2D.new()
+## Raiders: walls and gates are passable but costly (they smash through).
+var enemy_astar := AStarGrid2D.new()
 
 
 func _ready() -> void:
@@ -90,12 +93,13 @@ func generate(seed_value: int) -> void:
 
 	renderer.rebuild()
 
-	astar.region = Rect2i(0, 0, width, height)
-	astar.cell_size = Vector2(T, T)
-	astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
-	astar.default_compute_heuristic = AStarGrid2D.HEURISTIC_OCTILE
-	astar.default_estimate_heuristic = AStarGrid2D.HEURISTIC_OCTILE
-	astar.update()
+	for grid in [astar, enemy_astar]:
+		grid.region = Rect2i(0, 0, width, height)
+		grid.cell_size = Vector2(T, T)
+		grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
+		grid.default_compute_heuristic = AStarGrid2D.HEURISTIC_OCTILE
+		grid.default_estimate_heuristic = AStarGrid2D.HEURISTIC_OCTILE
+		grid.update()
 	for y in height:
 		for x in width:
 			_update_nav(Vector2i(x, y))
@@ -215,10 +219,21 @@ func describe_tile(t: Vector2i) -> String:
 # --- Pathfinding ------------------------------------------------------------
 
 func _update_nav(t: Vector2i) -> void:
-	var solid := get_terrain(t) == Terrain.WATER or occupancy.has(t)
+	var water := get_terrain(t) == Terrain.WATER
+	var ground_cost := 1.0 if roads.has(t) else Terrain.walk_cost(get_terrain(t))
+	var b: Building = occupancy.get(t)
+	var fortification: bool = b != null and BuildingDefs.is_fortification(b.def)
+	var gate: bool = b != null and b.def.get("gate", false)
+
+	var solid: bool = water or (b != null and not gate)
 	astar.set_point_solid(t, solid)
 	if not solid:
-		astar.set_point_weight_scale(t, 1.0 if roads.has(t) else Terrain.walk_cost(get_terrain(t)))
+		astar.set_point_weight_scale(t, ground_cost)
+
+	var enemy_solid: bool = water or (b != null and not fortification)
+	enemy_astar.set_point_solid(t, enemy_solid)
+	if not enemy_solid:
+		enemy_astar.set_point_weight_scale(t, b.def.siege_cost if fortification else ground_cost)
 
 
 func find_path(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
@@ -240,6 +255,25 @@ func approach_tile(t: Vector2i) -> Vector2i:
 		if is_walkable(t + offset):
 			return t + offset
 	return INVALID_TILE
+
+
+## Route for raiders: walls and gates count as (costly) passable tiles.
+func find_enemy_path(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
+	if not is_in_bounds(to) or enemy_astar.is_point_solid(to):
+		return []
+	if not is_in_bounds(from) or enemy_astar.is_point_solid(from):
+		from = nearest_walkable(from)
+		if from == INVALID_TILE:
+			return []
+	return enemy_astar.get_id_path(from, to)
+
+
+## The wall or gate standing on `t`, or null.
+func fortification_at(t: Vector2i) -> Building:
+	var b: Building = occupancy.get(t)
+	if b != null and BuildingDefs.is_fortification(b.def) and not b.health.is_dead():
+		return b
+	return null
 
 
 func nearest_walkable(t: Vector2i, max_radius := 6) -> Vector2i:
@@ -296,6 +330,8 @@ func harvest(t: Vector2i, type: int, amount: int) -> int:
 ## Returns "" when placement is valid, otherwise a player-facing reason.
 func can_place_building(id: String, origin: Vector2i) -> String:
 	var def := BuildingDefs.get_def(id)
+	if BuildingDefs.is_fortification(def):
+		return _can_place_fortification(def, origin)
 	var size: Vector2i = def.size
 	for dy in size.y:
 		for dx in size.x:
@@ -318,6 +354,20 @@ func can_place_building(id: String, origin: Vector2i) -> String:
 	return ""
 
 
+func _can_place_fortification(def: Dictionary, t: Vector2i) -> String:
+	if not is_in_bounds(t):
+		return "Out of bounds"
+	if occupancy.has(t):
+		return "Space is blocked"
+	if entrances.has(t):
+		return "Would block an entrance"
+	if roads.has(t) and not def.get("gate", false):
+		return "Walls can't go on roads (use a Gate)"
+	if not roads.has(t) and not Terrain.is_buildable(get_terrain(t)):
+		return "Must build on clear ground"
+	return ""
+
+
 func place_building(id: String, origin: Vector2i) -> Building:
 	var b := Building.new()
 	b.setup(self, id, origin)
@@ -326,10 +376,12 @@ func place_building(id: String, origin: Vector2i) -> Building:
 	for t in b.footprint():
 		occupancy[t] = b
 		_update_nav(t)
-	entrances[b.entrance()] = b
+	if not BuildingDefs.is_fortification(b.def):
+		entrances[b.entrance()] = b
 	if b.def.has("fields"):
 		_allocate_fields(b)
 	b.refresh_road_access()
+	_redraw_fortifications_around(b)
 	recompute_capacity()
 	building_placed.emit(b)
 	return b
@@ -339,14 +391,26 @@ func remove_building(b: Building) -> void:
 	for t in b.footprint():
 		occupancy.erase(t)
 		_update_nav(t)
-	entrances.erase(b.entrance())
+	if entrances.get(b.entrance()) == b:
+		entrances.erase(b.entrance())
 	for t in b.fields:
 		if fields.has(t) and fields[t].farm == b:
 			set_terrain(t, Terrain.GRASS)
 	buildings.erase(b)
+	_redraw_fortifications_around(b)
 	recompute_capacity()
 	building_removed.emit(b)
 	b.queue_free()
+
+
+## Wall segments draw links to their neighbours, so repaint those next to `b`.
+func _redraw_fortifications_around(b: Building) -> void:
+	if not BuildingDefs.is_fortification(b.def):
+		return
+	for off in [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]:
+		var n: Building = occupancy.get(b.origin + off)
+		if n != null and n != b:
+			n.queue_redraw()
 
 
 ## Called when a building's health reaches zero.
