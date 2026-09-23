@@ -14,13 +14,15 @@ extends Node2D
 ##   guard / study / service: walk to the building and stay inside
 ## When a workplace pile is full its own worker carries a load to storage.
 ## At night villagers (except those working inside) finish their delivery and
-## sleep at home; during a raid they hide when raiders come close.
+## sleep at home; during a raid they hide when raiders come close, or, under
+## a Call to Arms, grab a pitchfork and fight them.
 
 signal died(villager: Villager)
 
 enum State {
 	IDLE, WANDER, TO_TARGET, WORKING, TO_DEPOSIT, TO_FETCH, TO_WORKPLACE, TO_DROP,
 	TO_PICKUP, TO_SUPPLY, TO_SHELTER, HIDING, TO_POST, STATIONED, TO_BED, SLEEPING,
+	FIGHTING,
 }
 enum Task { NONE, GATHER, PLANT, HARVEST, PRODUCE }
 
@@ -33,6 +35,14 @@ const MAX_HP := 20.0
 const DANGER_TILES := 10
 const SAFE_TILES := 14
 const DANGER_CHECK_INTERVAL := 0.4
+## Call to Arms: pitchfork damage per strike, strike interval, reach (px).
+const MILITIA_DAMAGE := 6.0
+const MILITIA_COOLDOWN := 1.0
+const MILITIA_REACH := 20.0
+## Armed villagers toughen up to this many HP (back to MAX_HP afterwards).
+const MILITIA_HP := 40.0
+## Wounded villagers stop fighting and hide below this share of their HP.
+const MILITIA_RETREAT := 0.4
 ## Most goods one villager carries in a single trip.
 const HAUL_LOAD := 8
 ## Haulers only bother with piles at least this big.
@@ -65,6 +75,8 @@ var _dest: Building
 ## Haulers: the producer being supplied.
 var _supply_target: Building
 var _danger_timer := 0.0
+var _foe: Enemy
+var _strike_timer := 0.0
 var _facing := "south"
 var _moving := false
 var _anim_time := 0.0
@@ -169,6 +181,8 @@ func _process(delta: float) -> void:
 	match state:
 		State.HIDING, State.STATIONED:
 			pass
+		State.FIGHTING:
+			_fight(delta)
 		State.SLEEPING:
 			if not world.is_night:
 				visible = true
@@ -411,10 +425,18 @@ func _wander() -> void:
 func _update_raid_response() -> void:
 	if state == State.SLEEPING or state == State.TO_BED:
 		return  # already heading indoors
+	if state == State.FIGHTING:
+		if not world.call_to_arms:
+			_set_armed(false)
+			_reset()
+			note = "Back to work"
+		return
 	var sheltering := state == State.TO_SHELTER or state == State.HIDING
 	var radius := (SAFE_TILES if sheltering else DANGER_TILES) * Terrain.TILE_SIZE
 	var should_hide := world.raid_active and not works_inside() and world.enemy_within(position, radius)
-	if should_hide and not sheltering:
+	if should_hide and world.call_to_arms and not _wounded():
+		_take_up_arms()
+	elif should_hide and not sheltering:
 		_seek_shelter()
 	elif not should_hide and sheltering:
 		visible = true
@@ -429,6 +451,56 @@ func _seek_shelter() -> void:
 		note = "Fleeing to shelter"
 	else:
 		_hide()
+
+
+func _take_up_arms() -> void:
+	_reset()
+	_set_armed(true)
+	state = State.FIGHTING
+	note = "Fighting raiders"
+	_foe = null
+
+
+## Chase the nearest raider and jab it; go back to work once none are near.
+func _fight(delta: float) -> void:
+	_strike_timer -= delta
+	if _wounded():
+		_set_armed(false)
+		_seek_shelter()
+		note = "Wounded, fleeing to shelter"
+		return
+	if _foe == null or not is_instance_valid(_foe) or _foe.health.is_dead():
+		_foe = world.nearest_enemy(position, SAFE_TILES * Terrain.TILE_SIZE)
+		if _foe == null:
+			_set_armed(false)
+			_wait("Back to work", randf_range(0.2, 1.5))
+			return
+	var dist := position.distance_to(_foe.position)
+	_facing = Art.facing(_foe.position - position, _facing)
+	if dist <= MILITIA_REACH:
+		if _strike_timer <= 0.0:
+			_strike_timer = MILITIA_COOLDOWN
+			_foe.health.take_damage(MILITIA_DAMAGE * GameState.mod("troop_damage"))
+	elif dist < Terrain.TILE_SIZE * 1.5:
+		# Close enough to step straight at it.
+		position = position.move_toward(_foe.position, SPEED * delta)
+		queue_redraw()
+	elif not _walk_to(_foe.current_tile()):
+		_foe = null
+
+
+func _wounded() -> bool:
+	return health.hp < health.max_hp * MILITIA_RETREAT
+
+
+## Pitchfork and a leather jerkin: extra HP while fighting, kept in proportion.
+func _set_armed(armed: bool) -> void:
+	var new_max := MILITIA_HP if armed else MAX_HP
+	if is_equal_approx(health.max_hp, new_max):
+		return
+	health.hp = health.hp / health.max_hp * new_max
+	health.max_hp = new_max
+	health.changed.emit()
 
 
 func _hide() -> void:
@@ -617,6 +689,11 @@ func _draw() -> void:
 		draw_circle(Vector2(0, 3), 5.0, body.darkened(0.6))
 		draw_circle(Vector2(0, 3), 4.0, body)
 		draw_circle(Vector2(0, -4), 3.0, COLOR_SKIN)
+	if state == State.FIGHTING:
+		# Pitchfork.
+		draw_line(Vector2(6, 8), Vector2(6, top + 4), Color(0.50, 0.35, 0.18), 1.5)
+		for dx in [-2, 0, 2]:
+			draw_line(Vector2(6 + dx, top + 4), Vector2(6 + dx, top), Color(0.75, 0.75, 0.8), 1.0)
 	if carrying != "":
 		var c := ItemDefs.color_of(carrying)
 		var box := Rect2(Vector2(4, top + 12), Vector2(7, 7))

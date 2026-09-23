@@ -141,8 +141,13 @@ func _troop_at(pos: Vector2) -> Troop:
 
 
 func _enemy_at(pos: Vector2) -> Enemy:
-	for e in world.enemies:
-		if e.position.distance_to(pos) <= CLICK_RADIUS + 4.0:
+	for e in world.hostiles():
+		if e.is_lair():
+			# The den is drawn well above its foot point: hit-test the sprite.
+			var r: float = e.def.radius
+			if Rect2(e.position + Vector2(-r * 1.7, -r * 3.2), Vector2(r * 3.4, r * 3.8)).has_point(pos):
+				return e
+		elif e.position.distance_to(pos) <= CLICK_RADIUS + 4.0:
 			return e
 	return null
 

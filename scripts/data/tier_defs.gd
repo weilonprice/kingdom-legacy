@@ -19,7 +19,7 @@ const TIERS := [
 		"name": "Village",
 		"requires": {"population": 15, "buildings": ["well", "granary"]},
 		"unlocks": {
-			"buildings": ["barracks", "scholars_hall", "stone_house", "chapel", "market"],
+			"buildings": ["barracks", "scholars_hall", "stone_house", "chapel", "market", "iron_mine", "smithy"],
 			"units": ["militia", "spearman"],
 			"research": ["crop_rotation", "sharp_tools", "wheelbarrows", "fletching", "ledgers"],
 		},
@@ -30,7 +30,7 @@ const TIERS := [
 		"requires": {"population": 35, "raids_survived": 2, "buildings": ["barracks", "scholars_hall"],
 			"house_level": {"level": 2, "count": 4}},
 		"unlocks": {
-			"buildings": ["stone_tower", "warehouse", "tavern", "stone_wall"],
+			"buildings": ["stone_tower", "warehouse", "tavern", "stone_wall", "wall_tower", "armory"],
 			"units": ["archer"],
 			"research": ["tempered_steel", "masonry"],
 		},
@@ -40,7 +40,7 @@ const TIERS := [
 		"name": "City",
 		"requires": {"population": 70, "raids_survived": 5, "research": 4, "buildings": ["warehouse", "stone_tower"],
 			"house_level": {"level": 3, "count": 6}, "happiness": 60},
-		"unlocks": {},
+		"unlocks": {"units": ["knight"]},
 		"keep": {"title": "Castle", "hp": 2000.0, "capacity": 500},
 	},
 	{

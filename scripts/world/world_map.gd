@@ -28,8 +28,12 @@ var reserved := {}     # Vector2i -> Object reserving that resource tile
 var fields := {}       # Vector2i -> {"farm": Building, "stage": FieldStage, "timer": float}
 var buildings: Array[Building] = []
 var enemies: Array[Enemy] = []
+## Lairs and their guards: hostile, but not part of a raid.
+var wild: Array[Enemy] = []
 ## True while raiders are on the map; villagers hide.
 var raid_active := false
+## Call to Arms: during a raid villagers fight nearby raiders instead of hiding.
+var call_to_arms := false
 ## Set by DayNight; villagers sleep at night.
 var is_night := false
 ## Per-building inventories (storages, the Keep's treasury).
@@ -426,11 +430,24 @@ func enemy_within(pos: Vector2, radius: float) -> bool:
 	return nearest_enemy(pos, radius) != null
 
 
+## Raiders plus lairs and their guards.
+func hostiles() -> Array[Enemy]:
+	var all: Array[Enemy] = enemies.duplicate()
+	all.append_array(wild)
+	return all
+
+
+func lairs() -> Array[Enemy]:
+	var found: Array[Enemy] = []
+	found.assign(wild.filter(func(e: Enemy) -> bool: return e.is_lair() and not e.health.is_dead()))
+	return found
+
+
 func nearest_enemy(pos: Vector2, radius: float) -> Enemy:
 	var best: Enemy = null
 	var best_dist := radius * radius
-	for e in enemies:
-		if e.health.is_dead():
+	for e in hostiles():
+		if e.health.is_dead() or e.is_lair():
 			continue
 		var d := pos.distance_squared_to(e.position)
 		if d <= best_dist:

@@ -8,9 +8,10 @@ the next raid hits. Made with Godot 4.
 
 ![A village by a lake: the castle Keep, thatched cottages, a barracks, villagers on the dirt road, and a selected squad marching south](docs/screenshots/village-overview.png)
 
-> **Status: playable prototype.** Milestones M0–M7a are done: economy,
-> raids, troops, tiers, research, needs, day/night, the pixel-art pass, and
-> walls, fire, orcs and trolls. The war economy (M7b) is next. See the [roadmap](roadmap.txt).
+> **Status: playable prototype.** Milestones M0–M7 are done: economy,
+> raids, troops, tiers, research, needs, day/night, the pixel-art pass,
+> walls, fire, orcs and trolls, and the war economy. The win condition and
+> save/load (M8) are next. See the [roadmap](roadmap.txt).
 
 ## Features
 
@@ -30,6 +31,11 @@ the next raid hits. Made with Godot 4.
   buildings. Later come orcs who set fires, shamans who heal them, wolf riders
   who hit outlying farms, and trolls that smash through walls. Villagers hide
   when raiders get close. Lose the Keep and the game is over.
+- **A war economy.** Iron mines feed a smithy and an armory; spearmen and
+  archers need weapons, knights need weapons and armor. Goblin lairs out in
+  the wilds make every raid bigger until you march a squad out and burn them
+  down. In a pinch, sound the Call to Arms and villagers fight with
+  pitchforks.
 - **Walls and fire.** Drag palisades and stone walls around the town and put
   gates where your roads cross them. Raiders have to break through. Fire
   spreads between wooden buildings unless a Well is close enough to put it
@@ -102,6 +108,7 @@ godot --path kingdom-legacy -- --seed=12345
 | Map overlays (happiness, services, roads) | **O** |
 | Tax rate | Click the Keep |
 | Pause / speed | **Space** / top-bar buttons |
+| Call to Arms during a raid | **C** or the button under the raid banner |
 | Call a raid now (testing) | **F9** |
 
 ## Project layout
@@ -139,7 +146,7 @@ tools/verify/cleanup.sh                                  # stops leftover instan
 ```
 
 There are scenarios for building, raids, squads, tiers and research, needs,
-hauling, day/night, and walls/fire/sieges. Add `--headless` to run without a window. Evidence goes
+hauling, day/night, walls/fire/sieges, and the war economy. Add `--headless` to run without a window. Evidence goes
 to `.verify-evidence/`. The scenario format is in
 [`tools/verify/README.md`](tools/verify/README.md), and the agent guide and
 feature map are in `.claude/skills/verify-kingdom-legacy/`.
@@ -158,7 +165,7 @@ after its scenarios pass.
 | M4–M5b | Tiers, research, needs, happiness, taxes, storage, haulers, day/night ✅ |
 | M6 | Pixel-art pass: terrain, buildings, animated characters, HUD theme ✅ |
 | M7a | Walls, gates, fire, orcs, wolf riders and trolls ✅ |
-| M7b | Weapon supply chains, knights, monster lairs, towers on walls |
+| M7b | Iron, smithy and armory, knights, goblin lairs, wall towers, Call to Arms ✅ |
 | M8 | Win condition, dragon siege, save/load, menus, balance, export |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).

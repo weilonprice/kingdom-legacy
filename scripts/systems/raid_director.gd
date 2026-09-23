@@ -15,6 +15,10 @@ const RAID_INTERVAL := 300.0
 const WARNING_TIME := 30.0
 ## Fraction of max HP repaired per second between raids.
 const REPAIR_RATE := 0.02
+const LAIR_COUNT := 2
+## Lairs sit at least this many tiles from the Keep and from each other.
+const LAIR_MIN_KEEP_TILES := 30
+const LAIR_MIN_APART_TILES := 24
 
 var world: WorldMap
 ## Set by main; raids grow with the settlement tier.
@@ -60,6 +64,8 @@ func call_raid_now() -> void:
 func composition() -> Dictionary:
 	var tier := progression.tier if progression != null else 0
 	var goblins := 2 + floori(GameState.population / 6.0) + raids_survived + tier * 2
+	for lair in world.lairs():
+		goblins += int(lair.def.raid_bonus)
 	var brutes := 0
 	if raids_survived >= 1:
 		brutes = 1 + floori((raids_survived - 1) / 2.0) + tier
@@ -71,6 +77,48 @@ func composition() -> Dictionary:
 	var trolls := (1 + floori((raids_survived - 5) / 3.0)) if raids_survived >= 5 or tier >= 3 else 0
 	return {"goblin": goblins, "goblin_brute": brutes, "orc": orcs, "orc_shaman": shamans,
 		"wolf_rider": wolves, "troll": trolls}
+
+
+## Puts goblin lairs out in the wilds: reachable, far from the Keep and from
+## each other. Deterministic per map seed.
+func place_lairs(count := LAIR_COUNT) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = world.map_seed + 7
+	var goal := world.keep.entrance()
+	var placed: Array[Vector2i] = []
+	for attempt in 400:
+		if placed.size() >= count:
+			break
+		var t := Vector2i(rng.randi_range(4, world.width - 5), rng.randi_range(4, world.height - 5))
+		if Vector2(t).distance_to(Vector2(goal)) < LAIR_MIN_KEEP_TILES:
+			continue
+		if placed.any(func(p: Vector2i) -> bool: return Vector2(p).distance_to(Vector2(t)) < LAIR_MIN_APART_TILES):
+			continue
+		if not _open_ground(t) or world.find_path(t, goal).is_empty():
+			continue
+		spawn_lair(t)
+		placed.append(t)
+	if not placed.is_empty():
+		GameState.notify("Scouts found %d goblin lair%s in the wilds. Destroy them to weaken the raids." % [
+			placed.size(), "" if placed.size() == 1 else "s"])
+
+
+func spawn_lair(t: Vector2i, id := "goblin_lair") -> Enemy:
+	var lair := Enemy.new()
+	lair.wild = true
+	lair.setup(world, id, t, t)
+	world.unit_root.add_child(lair)
+	return lair
+
+
+## A 3x3 patch of walkable, unbuilt ground for a lair to sit on.
+func _open_ground(t: Vector2i) -> bool:
+	for dy in range(-1, 2):
+		for dx in range(-1, 2):
+			var c := t + Vector2i(dx, dy)
+			if not world.is_walkable(c) or world.occupancy.has(c) or world.roads.has(c):
+				return false
+	return true
 
 
 func direction_name() -> String:
@@ -114,6 +162,7 @@ func _launch_raid() -> void:
 func _end_raid() -> void:
 	phase = Phase.CALM
 	world.raid_active = false
+	world.call_to_arms = false
 	raids_survived += 1
 	_timer = RAID_INTERVAL
 	for v: Villager in get_tree().get_nodes_in_group("villagers"):

@@ -1,5 +1,10 @@
 [
   {
+    "setup_grant": {
+      "weapons": 2
+    }
+  },
+  {
     "include": "village-setup.json"
   },
   {

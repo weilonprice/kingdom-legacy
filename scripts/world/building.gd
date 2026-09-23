@@ -237,10 +237,11 @@ func is_manned() -> bool:
 	return stationed_count() > 0
 
 
-## Towers: shoot the nearest raider in range while manned.
+## Towers: shoot the nearest raider in range while manned (wall towers have
+## their own archers).
 func _process(delta: float) -> void:
 	_attack_cooldown -= delta
-	if _attack_cooldown > 0.0 or not is_manned():
+	if _attack_cooldown > 0.0 or not (def.get("auto_guard", false) or is_manned()):
 		return
 	var target: Enemy = world.nearest_enemy(center(), attack_range_tiles() * Terrain.TILE_SIZE)
 	if target == null:
@@ -318,9 +319,10 @@ func inspect_text() -> String:
 				world.count_fields(self, WorldMap.FieldStage.TILLED),
 				world.count_fields(self, WorldMap.FieldStage.GROWING),
 				world.count_fields(self, WorldMap.FieldStage.RIPE)])
-		"guard":
-			lines.append("Shoots raiders within %d tiles for %d damage every %.1fs." % [
-				attack_range_tiles(), def.damage, def.attack_cooldown])
+		"guard", "":
+			if def.has("damage"):
+				lines.append("Shoots raiders within %d tiles for %d damage every %.1fs." % [
+					attack_range_tiles(), def.damage, def.attack_cooldown])
 		"study":
 			lines.append("Scholars studying: %d" % stationed_count())
 		"produce":
@@ -376,7 +378,7 @@ func _draw() -> void:
 	var px := Vector2(size * tile)
 	if BuildingDefs.is_fortification(def):
 		_draw_fortification()
-		health.draw_bar(self, Vector2(px.x * 0.5, -7), px.x - 4)
+		health.draw_bar(self, Vector2(px.x * 0.5, -23.0 if def.has("damage") else -7.0), px.x - 4)
 		return
 	var sprite := Art.building(def_id)
 	# Top edge of what's drawn, for the health bar (tall sprites rise above
@@ -446,7 +448,7 @@ func _links() -> Dictionary:
 ## 3/4 view: wall faces are 12px tall, their tops a lighter band.
 func _draw_fortification() -> void:
 	var links := _links()
-	var stone: bool = def_id == "stone_wall"
+	var stone: bool = not def.get("flammable", true)
 	var base: Color = def.color
 	var face := base.darkened(0.25)
 	var top := base.lightened(0.15)
@@ -467,6 +469,15 @@ func _draw_fortification() -> void:
 	if stone:
 		for i in 3:
 			draw_rect(Rect2(Vector2(9 + i * 5, 5), Vector2(3, 3)), top)
+	if def.has("damage"):
+		# Wall tower: the stone tower sprite standing on the wall.
+		var sprite := Art.building("stone_tower")
+		if sprite != null:
+			draw_texture(sprite, Vector2((32 - sprite.get_width()) * 0.5, 32 - sprite.get_height()))
+		else:
+			_wall_block(Rect2(Vector2(6, -6), Vector2(20, 30)), face, top, dark, true)
+			for i in 3:
+				draw_rect(Rect2(Vector2(7 + i * 7, -10), Vector2(4, 4)), top)
 	if def.get("gate", false):
 		# Arched wooden door on the post, iron bands.
 		var door := Rect2(Vector2(10, 12), Vector2(12, 14))

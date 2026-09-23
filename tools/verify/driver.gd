@@ -103,9 +103,16 @@ func _run_step(step: Dictionary) -> String:
 		return _check(step.expect)
 	elif step.has("setup_grant"):
 		# Test-only shortcut: skips waiting for gatherers. Recorded in the report.
+		var short := PackedStringArray()
 		for item: String in step.setup_grant:
+			var before := GameState.count(item)
 			GameState.add_resource(item, int(step.setup_grant[item]))
+			var added := GameState.count(item) - before
+			if added < int(step.setup_grant[item]):
+				short.append("%s %d/%d" % [item, added, step.setup_grant[item]])
 		report.setup_shortcuts.append(step)
+		if not short.is_empty():
+			return "ok (storage full, only added %s)" % ", ".join(short)
 	elif step.has("setup_tier"):
 		# Test-only: advance straight to a tier by name.
 		while main.progression.tier_name() != step.setup_tier and not main.progression.is_max_tier():
@@ -119,6 +126,15 @@ func _run_step(step: Dictionary) -> String:
 		if b == null or not b.ignite():
 			return "FAIL nothing flammable at %s" % str(step.setup_ignite)
 		return "ok (%s burning)" % b.title
+	elif step.has("setup_delay_raids"):
+		# Test-only: pushes the next natural raid this many game seconds out.
+		main.raids._timer = maxf(main.raids._timer, float(step.setup_delay_raids))
+		report.setup_shortcuts.append(step)
+	elif step.has("setup_lair"):
+		# Test-only: puts a goblin lair at a keep-relative tile.
+		var lair: Enemy = main.raids.spawn_lair(world.nearest_walkable(_tile_of(step.setup_lair)))
+		report.setup_shortcuts.append(step)
+		return "ok (lair at %s)" % lair.current_tile()
 	elif step.has("setup_spawn"):
 		# Test-only: {"setup_spawn": {"enemy": "troll", "count": 1, "at": [dx, dy]}}
 		var spec: Dictionary = step.setup_spawn
@@ -180,6 +196,9 @@ func _move_mouse(pos: Vector2) -> void:
 
 func _click(pos: Vector2, button: MouseButton) -> void:
 	await _move_mouse(pos)
+	# Moving off a control whose tooltip is showing closes the tooltip; give
+	# that a few frames so it doesn't swallow the press.
+	await _frames(6)
 	for pressed in [true, false]:
 		var ev := InputEventMouseButton.new()
 		ev.position = pos
@@ -223,9 +242,12 @@ func _click_button(text: String) -> String:
 	# Windowed runs occasionally lose a click while macOS shuffles window
 	# focus. Toggle buttons (category tabs, speeds) show whether it landed.
 	if btn.toggle_mode and not btn.button_pressed and is_instance_valid(btn):
+		var hovered := get_viewport().gui_get_hovered_control()
 		await _click(btn.get_global_rect().get_center(), MOUSE_BUTTON_LEFT)
-		return "ok (clicked '%s' after one retry)" % btn.text
-	return "ok (clicked '%s')" % btn.text
+		return "ok (clicked '%s' after one retry; first click hovered %s)" % [
+			btn.text, hovered.get_path() if hovered != null else "nothing"]
+	var under := get_viewport().gui_get_hovered_control()
+	return "ok (clicked '%s'; cursor over %s)" % [btn.text, under.name if under != null else "nothing"]
 
 
 func _find_button(node: Node, text: String) -> Button:
@@ -307,6 +329,16 @@ func _snapshot() -> Dictionary:
 		"raids_survived": main.raids.raids_survived,
 		"enemies": world.enemies.size(),
 		"enemy_types": _count_enemy_types(),
+		"lairs": world.lairs().size(),
+		"game_over": GameState.game_over,
+		"lair_hp": world.lairs().map(func(l: Enemy) -> int: return int(l.health.hp)),
+		"wild": world.wild.size(),
+		"troop_detail": get_tree().get_nodes_in_group("troops").map(func(t: Troop) -> String:
+			return "%s@%s hp%d ->%s" % [t.unit_id, t.current_tile(), t.health.hp,
+				t.target.def.name if t.target != null and is_instance_valid(t.target) else "-"]),
+		"call_to_arms": world.call_to_arms,
+		"villagers_fighting": get_tree().get_nodes_in_group("villagers").filter(
+			func(v: Villager) -> bool: return v.state == Villager.State.FIGHTING).size(),
 		"burning": world.buildings.filter(func(b: Building) -> bool: return b.burning).size(),
 		"buildings": buildings,
 		"roads": world.roads.size(),
@@ -376,6 +408,10 @@ func _check(expect: Dictionary) -> String:
 		var have := _metric(s, key)
 		if have > float(expect["max"][key]):
 			problems.append("%s %s > %s" % [key, have, expect["max"][key]])
+	if expect.has("call_to_arms") and s.call_to_arms != expect.call_to_arms:
+		problems.append("call_to_arms %s != %s" % [s.call_to_arms, expect.call_to_arms])
+	if expect.has("game_over") and s.game_over != expect.game_over:
+		problems.append("game_over %s != %s" % [s.game_over, expect.game_over])
 	if expect.has("night") and s.night != expect.night:
 		problems.append("night %s != %s" % [s.night, expect.night])
 	for field in ["stored_min", "pile_min"]:
@@ -422,7 +458,8 @@ func _sum_by_building(field: String) -> Dictionary:
 ## Numeric state for min/max: population, roads, happiness, villagers_awake,
 ## or a kingdom resource total.
 func _metric(s: Dictionary, key: String) -> float:
-	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning"]:
+	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning", "lairs",
+			"villagers_fighting"]:
 		return float(s[key])
 	return float(s.resources.get(key, 0))
 

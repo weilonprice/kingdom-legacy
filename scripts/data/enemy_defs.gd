@@ -6,10 +6,33 @@ extends RefCounted
 ##   "raider"  - goes for farms and gatherers first
 ##   "siege"   - goes for walls, gates and towers first
 ##   "support" - follows its war band, healing `heal` HP/s within `heal_radius`
+##   "lair"    - a monster den out in the wilds. Never moves; sends out up to
+##               `guards` of `guard` when troops come within `guard_radius`
+##               tiles. While it stands, raids bring `raid_bonus` extra
+##               goblins; destroying it pays `bounty` gold.
 ## All attack visible villagers and troops within `aggro` tiles. Optional:
 ## `ignite_chance` per hit on a building, `wall_damage` multiplier vs walls.
 
 const DEFS := {
+	"goblin_lair": {
+		"name": "Goblin Lair",
+		"hp": 2500.0,
+		"speed": 0.0,
+		"damage": 0.0,
+		"attack_cooldown": 1.0,
+		"reach": 0.0,
+		"aggro": 0,
+		"behavior": "lair",
+		"large": true,
+		"radius": 24.0,
+		"guard": "goblin_brute",
+		"guards": 3,
+		"guard_radius": 9,
+		"guard_interval": 8.0,
+		"raid_bonus": 3,
+		"bounty": 150,
+		"color": Color(0.30, 0.25, 0.20),
+	},
 	"goblin": {
 		"name": "Goblin",
 		"hp": 30.0,

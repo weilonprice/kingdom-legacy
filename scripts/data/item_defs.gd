@@ -6,6 +6,9 @@ extends RefCounted
 const ITEMS := {
 	"wood": {"name": "Wood", "category": "materials", "color": Color(0.55, 0.36, 0.18)},
 	"stone": {"name": "Stone", "category": "materials", "color": Color(0.75, 0.75, 0.75)},
+	"iron": {"name": "Iron", "category": "materials", "color": Color(0.62, 0.36, 0.28)},
+	"weapons": {"name": "Weapons", "category": "materials", "color": Color(0.80, 0.82, 0.88)},
+	"armor": {"name": "Armor", "category": "materials", "color": Color(0.45, 0.50, 0.62)},
 	"wheat": {"name": "Wheat", "category": "food", "color": Color(0.93, 0.80, 0.35)},
 	"flour": {"name": "Flour", "category": "food", "color": Color(0.97, 0.95, 0.88)},
 	"bread": {"name": "Bread", "category": "food", "color": Color(0.80, 0.52, 0.25), "edible": true},

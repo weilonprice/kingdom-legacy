@@ -1,10 +1,11 @@
 class_name RaidIndicator
 extends Control
 ## Draws an arrow at the screen edge pointing toward incoming or active raiders
-## when they're off-screen.
+## when they're off-screen, and small dark markers toward known goblin lairs.
 
 const MARGIN := 48.0
 const COLOR := Color(0.95, 0.25, 0.15)
+const LAIR_COLOR := Color(0.25, 0.18, 0.12, 0.85)
 
 var world: WorldMap
 var raids: RaidDirector
@@ -25,10 +26,16 @@ func _process(_delta: float) -> void:
 
 
 func _draw() -> void:
+	for lair in world.lairs():
+		_draw_arrow(lair.position, LAIR_COLOR, 0.6, "☠")
 	var target: Variant = _target_world_pos()
-	if target == null:
-		return
-	var screen_pos: Vector2 = world.get_viewport().get_canvas_transform() * (target as Vector2)
+	if target != null:
+		_draw_arrow(target as Vector2, COLOR, 1.0, "!")
+
+
+## An arrow at the screen edge toward `world_pos`, if that's off-screen.
+func _draw_arrow(world_pos: Vector2, color: Color, scale: float, mark: String) -> void:
+	var screen_pos: Vector2 = world.get_viewport().get_canvas_transform() * world_pos
 	var view := get_viewport_rect()
 	if view.size.x <= MARGIN * 3.0 or view.size.y <= MARGIN * 3.0:
 		return
@@ -40,10 +47,13 @@ func _draw() -> void:
 	var half := center - Vector2(MARGIN, MARGIN)
 	var reach := minf(half.x / maxf(absf(dir.x), 0.001), half.y / maxf(absf(dir.y), 0.001))
 	var tip := center + dir * reach
-	var side := dir.orthogonal() * 12.0
-	draw_colored_polygon(PackedVector2Array([tip, tip - dir * 24.0 + side, tip - dir * 24.0 - side]), COLOR)
-	draw_circle(tip - dir * 36.0, 9.0, COLOR)
-	draw_string(ThemeDB.fallback_font, tip - dir * 36.0 + Vector2(-4, 5), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)
+	var side := dir.orthogonal() * 12.0 * scale
+	var back := tip - dir * 24.0 * scale
+	draw_colored_polygon(PackedVector2Array([tip, back + side, back - side]), color)
+	var badge := tip - dir * 36.0 * scale
+	draw_circle(badge, 9.0 * scale + 1.0, color)
+	draw_string(ThemeDB.fallback_font, badge + Vector2(-5, 5) * scale, mark, HORIZONTAL_ALIGNMENT_LEFT, -1,
+		int(14 * scale) + 2, Color.WHITE)
 
 
 ## Spawn point during the warning; the raiders' average position during a raid.

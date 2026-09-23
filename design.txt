@@ -53,8 +53,9 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   - Resource tiles deplete (forests -> grass). Planned: forest regrowth,
     forester building to replant.
   - Start area is guaranteed clear with forest and stone nearby.
-  - Raid spawn points sit at the map edges (planned: monster lairs/caves
-    placed in the wilds that can be assaulted to reduce raid pressure).
+  - Raid spawn points sit at the map edges. Two goblin lairs are placed in
+    the wilds (30+ tiles from the Keep); each adds 3 goblins to every raid
+    until the player's troops destroy it (+150 gold bounty).
 
 
 6. CITIZENS (AGENT SIMULATION)
@@ -96,10 +97,11 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     Fish         Fisher's Hut (coast) -> Fish                       [BUILT]
     Meat         Hunter's Lodge -> Game -> Butcher -> Meat
     Planks       Wood -> Sawmill -> Planks
-    Tools        Iron Mine -> Ore -> Smelter -> Iron -> Blacksmith -> Tools
-    Weapons      Iron -> Weaponsmith -> Swords / Spears
+    Iron         Iron Mine (rocks) -> Iron                          [BUILT]
+    Weapons      Iron -> Smithy -> Weapons                          [BUILT]
+    Armor        Iron -> Armory -> Armor                            [BUILT]
+    Tools        Iron -> Blacksmith -> Tools
     Bows         Wood -> Fletcher -> Bows / Arrows
-    Armor        Iron -> Armorer -> Armor
     Cloth        Sheep Farm -> Wool -> Weaver -> Cloth
     Bricks       Clay Pit -> Clay -> Kiln -> Bricks
     Gold         Market / Taxes on houses; Gold Mine -> Mint
@@ -158,21 +160,33 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
              6 stone/segment, 800 HP, fireproof), Gate (Hamlet; lets
              villagers and troops through, can sit on a road). Walls are
              dragged like roads and join up with their neighbours.
-    Planned: towers on walls, Moat, Spike trap.
+             Wall Tower (Town; 30 stone + 10 wood, 700 HP, range 7): joins
+             walls and shoots on its own, no guard needed.
+    Planned: Moat, Spike trap.
 
   Troops (trained at the Barracks, Village tier; each uses up a villager):
-    Built:   Militia (10 gold), Spearman (25 gold + 10 wood; 2.5x damage vs
-             large enemies), Archer (Town; 25 gold + 15 wood; range 5).
-             Upkeep 1-2 gold/min; troops eat; unpaid troops desert.
-    Planned: Swordsman, Knight (City), weapon/armor supply chains (M7),
-             militia call-up from workers during a raid.
+    Built:   Militia (10 gold), Spearman (25 gold + 1 weapons; 2.5x damage
+             vs large enemies), Archer (Town; 20 gold + 10 wood + 1 weapons;
+             range 5), Knight (City; 60 gold + 1 weapons + 1 armor; 180 HP,
+             1.5x vs large). Upkeep 1-4 gold/min; troops eat; unpaid troops
+             desert.
+    Planned: Swordsman, cavalry.
 
   Behavior:
     - AUTO: squads hold their rally flag and attack raiders within 8 tiles
       of it or within 12 tiles of the Keep.
     - MANUAL: select a squad, right-click to move or attack; G releases it
       back to AUTO guarding where it stands.
-  Villagers hide at home when raiders come within 10 tiles.
+  Villagers hide at home when raiders come within 10 tiles. Call to Arms
+  (button under the raid banner, or C) makes them fight nearby raiders with
+  pitchforks instead (40 HP while armed, 6 damage a second) until the raid
+  ends or they stand down; below 40% HP they break off and hide. Work stops
+  while they fight.
+  - Lairs (2500 HP): order a squad to attack a lair (right-click it). The
+    lair sends out a goblin brute every 8s (3 alive at most) while troops
+    are within 9 tiles; troops fight
+    the guards first, then the den. Dark arrows at the screen edge point to
+    lairs off-screen.
   Troops heal near their barracks; dead troops are lost citizens.
 
 
@@ -226,7 +240,7 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     raid countdown, day/night clock, speed buttons. Labels truncate with
     their full text in a tooltip.
   - Bottom bar: Road and Demolish tools, category tabs (Housing, Resources,
-    Food, Storage, Defense, Civic) and the buildings in the current tab;
+    Industry, Food, Storage, Defense, Civic) and the buildings in the current tab;
     locked ones show a lock and their requirement.
   - Building panel (click a building): status, workers and what each is
     doing, residents, needs, stored goods, workplace pile, recipe; training
@@ -313,15 +327,15 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   [DONE]  M5b Per-building storage, haulers, day/night
   [DONE]  M6  PixelLab art pass
   [DONE]  M7a Walls, gates, fire, orcs, wolf riders, trolls
-  [NEXT]  M7b War economy: weapon chains, knights, lairs, towers on walls
-          M8  Win condition, final raid, save/load, balance pass
+  [DONE]  M7b War economy: weapon chains, knights, lairs, towers on walls,
+              Call to Arms
+  [NEXT]  M8  Win condition, final raid, save/load, balance pass
 
 
 16. OPEN QUESTIONS
 --------------------------------------------------------------------------------
   - Seasons / winter (food and firewood pressure)?
   - Should roads have tiers (dirt -> cobblestone) with speed bonuses?
-  - Can the player attack monster lairs, or is defense purely reactive?
   - Trade with traveling merchants / neighboring kingdoms?
   - Hero / lord character that the player controls directly?
   - Campaign of handmade scenarios later, or procedural only?

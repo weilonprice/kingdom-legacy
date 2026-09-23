@@ -33,6 +33,7 @@ func _ready() -> void:
 	raids = RaidDirector.new()
 	raids.setup(world)
 	add_child(raids)
+	raids.place_lairs()
 
 	day_night = DayNight.new()
 	day_night.world = world

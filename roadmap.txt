@@ -254,13 +254,17 @@ M7 — WAR EXPANDED                                       Goal: real sieges
   [x] (S) Enemies bash through walls when walls block every route
           (deferred from M2)
 
-  M7b — war economy (next)
-  [ ] (M) Towers on walls (archer slots)
-  [ ] (S) Weapon/armor supply chains feed troop training (iron -> smithy)
-  [ ] (S) Knights (City tier)
-  [ ] (M) Monster lairs on map: optional assault targets that reduce raids
-  [ ] (S) Militia call-up: workers take up arms during a raid (deferred
-          from M3)
+  M7b — war economy (done)
+  [x] (M) Wall Tower (Town): joins walls, shoots on its own (no guard)
+  [x] (S) Iron Mine (Village, digs rocks) -> Smithy (weapons, Village) and
+          Armory (armor, Town). Spearmen and archers need weapons; knights
+          need weapons + armor
+  [x] (S) Knights (City tier): 180 HP, 1.5x vs large raiders
+  [x] (M) Goblin lairs: 2 per map in the wilds, +3 goblins per raid each;
+          troops assault them (guards come out), +150 gold bounty. Dark
+          edge arrows point to them -> raid_director.gd, enemy.gd
+  [x] (S) Call to Arms (C / raid banner button): villagers fight nearby
+          raiders with pitchforks instead of hiding (deferred from M3)
 
   Done when: late-game raids require walls, mixed troops and a war economy.
 
@@ -302,6 +306,6 @@ BACKLOG / MAYBE LATER
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. M7b: iron -> smithy weapon/armor chains feeding troop training
-  2. M7b: towers on walls, knights, militia call-up
-  3. M7b: monster lairs
+  1. M8: win condition (final siege) and defeat screens
+  2. M8: save/load
+  3. M8: balance pass across tiers, raids and the war economy
