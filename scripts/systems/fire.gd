@@ -1,15 +1,19 @@
 class_name FireSystem
 extends Node
 ## Burning buildings lose HP, can spread fire to neighbours, and are put out
-## by a working Well whose coverage reaches them. Without one they burn down.
+## by a working Well whose coverage reaches them, or more slowly by the
+## building's own residents or workers with buckets. Empty buildings with no
+## Well nearby burn down.
 
 const TICK := 0.5
 ## Fraction of max HP lost per second while burning.
-const BURN_RATE := 0.03
+const BURN_RATE := 0.02
 ## Chance per second that a burning building ignites each flammable neighbour.
-const SPREAD_CHANCE := 0.05
+const SPREAD_CHANCE := 0.02
 ## Seconds a Well needs to put a fire out.
 const WELL_PUT_OUT_TIME := 8.0
+## Seconds the building's own people need without a Well.
+const BUCKET_PUT_OUT_TIME := 15.0
 
 var world: WorldMap
 
@@ -31,8 +35,10 @@ func _process(delta: float) -> void:
 func _burn(b: Building) -> void:
 	if not is_instance_valid(b) or not b.burning:
 		return
-	if _has_water(b):
-		b.extinguish_progress += TICK / WELL_PUT_OUT_TIME
+	var put_out_time := WELL_PUT_OUT_TIME if _has_water(b) else (
+		BUCKET_PUT_OUT_TIME if not (b.residents.is_empty() and b.workers.is_empty()) else 0.0)
+	if put_out_time > 0.0:
+		b.extinguish_progress += TICK / put_out_time
 		if b.extinguish_progress >= 1.0:
 			b.extinguish()
 			GameState.notify("Villagers put out the fire at the %s" % b.title)

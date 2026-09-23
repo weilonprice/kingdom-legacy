@@ -343,8 +343,9 @@ M12 — AUTOPLAYER (tool done; balance changes next)
           reasons -> tools/autoplay/ (see its README for first findings)
   [x] (S) probe.tscn: one workplace's real output and time use
   [x] (S) GameState.stats: produced / spent / used totals
-  [ ] (M) Balance changes from the findings (storage, fire, raid curve,
-          food), then re-run the bot to confirm
+  [x] (M) Balance round 1 (M13): storage room, slower fire + bucket
+          brigades, later/rarer orc fires; fixed repair cancelling fires
+  [ ] (M) Balance round 2: food chain throughput, raid size vs population
 
   Later
   [ ] Economy tuning from playtests (costs, yields, tier requirements)

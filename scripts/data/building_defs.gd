@@ -27,7 +27,7 @@ const DEFS := {
 		"color": Color(0.48, 0.42, 0.55),
 		"housing": 4,
 		"accepts": ["materials", "food"],
-		"capacity": 200,
+		"capacity": 300,
 		"hp": 800.0,
 		"flammable": false,
 	},
@@ -327,12 +327,12 @@ const DEFS := {
 	},
 	"stockpile": {
 		"name": "Stockpile",
-		"desc": "Stores 150 materials (wood, stone, iron, weapons, armor).",
+		"desc": "Stores 250 materials (wood, stone, iron, weapons, armor).",
 		"size": Vector2i(2, 2),
 		"cost": {"wood": 15},
 		"color": Color(0.64, 0.56, 0.36),
 		"accepts": ["materials"],
-		"capacity": 150,
+		"capacity": 250,
 	},
 	"warehouse": {
 		"name": "Warehouse",

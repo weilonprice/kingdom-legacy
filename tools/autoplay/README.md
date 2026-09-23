@@ -51,3 +51,29 @@ All three towns lost between minutes 26 and 39:
 - Storage: materials share one capacity, so wood surpluses (300+ idle) fill
   it and block stone; a probed woodcutter spent about half its time on
   "Storage full" and produced 14 wood/min instead of about 25-30.
+
+## Round 1 of balance changes (M13) and what changed
+
+Changes: Keep storage 200 → 300 (and more per tier), Stockpile 150 → 250;
+fire burns 2%/s (was 3%) and spreads 2%/s (was 5%), and a building's own
+people put fires out in 15 s without a Well; orcs from the 3rd raid with a
+10% ignite chance (was 2nd raid, 25%). The re-run also exposed a bug:
+between raids buildings repair 2%/s, which fully cancelled the new burn
+rate, so fires outside raids never burned out. Burning buildings no longer
+repair.
+
+Same seeds, 90 minutes (the bot still loses every game):
+
+| | before | after |
+|---|---|---|
+| survived until (min) | 26-39 | 41-53 |
+| reached Town | 0 of 3 | 2 of 3 (min 16 and 33) |
+| peak population | 25-30 | 36 / 150 / 114 |
+| fires per game | 25-57 | 11-29 |
+| villagers killed by raiders | 30-48 | 10-26 |
+| left starving | 0-87 | 28-216 |
+
+The killer now is food. Towns grow to 100-150 people, raids (which scale
+with population, 40 raiders by minute 27) stop work for long stretches, and
+the farm chain is choked: 14 farms grew 228 wheat/min but only ~20 flour/min
+came out of 3-4 mills with a single carter.

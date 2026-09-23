@@ -101,6 +101,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 7. ECONOMY & SUPPLY CHAINS
 --------------------------------------------------------------------------------
   Raw resources:  Wood, Stone, Wheat, Fish, Game, Iron ore, Clay, Wool, Gold ore
+  Storage (M13):  Keep holds 300 materials + 300 food at Hamlet (450 / 550 /
+                  650 / 800 at later tiers), Stockpile 250 materials.
   Storage:        Keep (starts, + gold treasury), Stockpile (materials),
                   Granary (food), Warehouse (both, Town); Carter's Yard haulers
 
@@ -234,10 +236,12 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 
   Enemy goals (varies by type): loot storage, burn buildings, kill villagers,
   reach the Keep. Raiders smash through walls and gates when those are the
-  cheapest way in. Orcs can set wooden buildings on fire: fire eats 3% of HP
-  a second, spreads to flammable neighbours, and a Well covering the
-  building puts it out after 8 seconds.
-  Raid mix (M7): orcs from the 2nd raid, a shaman per 3 orcs, wolf riders
+  cheapest way in. Orcs (10% per hit) can set wooden buildings on fire:
+  fire eats 2% of HP a second and spreads to flammable neighbours (2% a
+  second each). A Well covering the building puts it out after 8 seconds;
+  without one, the building's own residents or workers manage it in 15.
+  Burning buildings don't repair between raids.
+  Raid mix (M13): orcs from the 3rd raid, a shaman per 3 orcs, wolf riders
   from Town tier, trolls from the 5th raid or City tier.
 
 

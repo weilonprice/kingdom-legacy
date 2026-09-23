@@ -80,9 +80,9 @@ func composition() -> Dictionary:
 	var brutes := 0
 	if raids_survived >= 1:
 		brutes = 1 + floori((raids_survived - 1) / 2.0) + tier
-	# Orcs from the 3rd raid (sooner at higher tiers), a shaman per 3 orcs,
+	# Orcs from the 3rd raid (more at higher tiers), a shaman per 3 orcs,
 	# wolf riders from Town, trolls once the kingdom is well established.
-	var orcs := maxi(0, raids_survived - 1) + (tier if raids_survived >= 1 else 0)
+	var orcs := maxi(0, raids_survived - 2) + (tier if raids_survived >= 2 else 0)
 	var shamans := floori(orcs / 3.0)
 	var wolves := (2 + floori(raids_survived / 3.0)) if tier >= 2 else 0
 	var trolls := (1 + maxi(0, floori((raids_survived - 5) / 3.0))) if raids_survived >= 5 or tier >= 3 else 0
@@ -253,5 +253,6 @@ func _pick_spawn_tile() -> Vector2i:
 
 func _repair(delta: float) -> void:
 	for b in world.buildings:
-		if b.health.is_damaged():
+		# Nobody patches a roof that's still on fire.
+		if b.health.is_damaged() and not b.burning:
 			b.health.heal(b.health.max_hp * REPAIR_RATE * delta)

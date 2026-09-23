@@ -95,7 +95,7 @@ const DEFS := {
 		"reach": 20.0,
 		"aggro": 3,
 		"behavior": "wrecker",
-		"ignite_chance": 0.25,
+		"ignite_chance": 0.1,
 		"radius": 7.0,
 		"color": Color(0.35, 0.45, 0.30),
 	},
