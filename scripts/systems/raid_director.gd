@@ -63,7 +63,14 @@ func composition() -> Dictionary:
 	var brutes := 0
 	if raids_survived >= 1:
 		brutes = 1 + floori((raids_survived - 1) / 2.0) + tier
-	return {"goblin": goblins, "goblin_brute": brutes}
+	# Orcs from the 3rd raid (sooner at higher tiers), a shaman per 3 orcs,
+	# wolf riders from Town, trolls once the kingdom is well established.
+	var orcs := maxi(0, raids_survived - 1) + (tier if raids_survived >= 1 else 0)
+	var shamans := floori(orcs / 3.0)
+	var wolves := (2 + floori(raids_survived / 3.0)) if tier >= 2 else 0
+	var trolls := (1 + floori((raids_survived - 5) / 3.0)) if raids_survived >= 5 or tier >= 3 else 0
+	return {"goblin": goblins, "goblin_brute": brutes, "orc": orcs, "orc_shaman": shamans,
+		"wolf_rider": wolves, "troll": trolls}
 
 
 func direction_name() -> String:

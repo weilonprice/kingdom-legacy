@@ -5,11 +5,12 @@ extends RefCounted
 
 const BUILDINGS := "res://assets/sprites/buildings/%s.png"
 const CHARACTER_ROTATION := "res://assets/sprites/%s/%s.png"
-const CHARACTER_WALK := "res://assets/sprites/%s/walk_%s_%d.png"
 const TILESET_IMAGE := "res://assets/tiles/%s_image.png"
 const TILESET_METADATA := "res://assets/tiles/%s_metadata.json"
 const DIRECTIONS := ["south", "east", "north", "west"]
 const WALK_FPS := 8.0
+const FIRE_FRAME := "res://assets/sprites/fire/fire_%d.png"
+const FIRE_FPS := 10.0
 
 static var _textures := {}
 static var _walk_frames := {}
@@ -60,19 +61,28 @@ static func draw_character(canvas: CanvasItem, character: String, direction: Str
 	return at.y + size.y * 0.2
 
 
-static func walk_frames(character: String, direction: String) -> Array:
-	var key := character + "/" + direction
-	if not _walk_frames.has(key):
+## Current frame of the looping fire animation, or null without art.
+static func fire_frame(time: float) -> Texture2D:
+	var frames := frames_matching(FIRE_FRAME)
+	if frames.is_empty():
+		return null
+	return frames[int(time * FIRE_FPS) % frames.size()]
+
+
+## All textures matching a "%d" path pattern, from 0 until one is missing.
+static func frames_matching(pattern: String) -> Array:
+	if not _walk_frames.has(pattern):
 		var frames := []
 		var i := 0
-		while true:
-			var t := texture(CHARACTER_WALK % [character, direction, i])
-			if t == null:
-				break
-			frames.append(t)
+		while texture(pattern % i) != null:
+			frames.append(texture(pattern % i))
 			i += 1
-		_walk_frames[key] = frames
-	return _walk_frames[key]
+		_walk_frames[pattern] = frames
+	return _walk_frames[pattern]
+
+
+static func walk_frames(character: String, direction: String) -> Array:
+	return frames_matching("res://assets/sprites/%s/walk_%s_" % [character, direction] + "%d.png")
 
 
 ## A PixelLab Wang tileset: {"texture": Texture2D, "tiles": {corner_key: Vector2i}}

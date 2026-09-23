@@ -27,7 +27,7 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 | `{"key": "R"}`, `{"key": "CTRL+1"}` | Presses and releases a key (Godot key names: `Escape`, `F9`, `Space`) |
 | `{"click_tile": [dx, dy]}` / `"alias"` | Left-click on a map tile |
 | `{"right_click_tile": [dx, dy]}` | Right-click on a map tile |
-| `{"drag_tile": [[dx, dy], [dx, dy]]}` | Left-drag between two tiles (roads) |
+| `{"drag_tile": [[dx, dy], [dx, dy]]}` | Left-drag between two tiles (roads, walls) |
 | `{"find_site": {"building": id, "as": alias, "entrance_on_road": true, "near": [dx, dy]}}` | Finds a valid spot and names the tile to click. Read-only |
 | `{"wait": s}` / `{"wait_game": s}` | Wait real / game seconds |
 | `{"wait_until": {...expect...}, "timeout": s}` | Poll until the condition holds |
@@ -36,16 +36,20 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 | `{"state": "name"}` | Save `name.state.json` (resources, buildings, tier, raid, squads, visible text, messages) |
 | `{"include": "file.json"}` | Run another scenario's steps inline |
 | `{"setup_grant": {"wood": 100}}` | TEST-ONLY shortcut: adds resources. Logged in `report.setup_shortcuts` |
+| `{"setup_tier": "Town"}` | TEST-ONLY: jumps straight to a tier. Logged |
+| `{"setup_ignite": [dx, dy]}` | TEST-ONLY: sets the building on that tile alight. Logged |
+| `{"setup_spawn": {"enemy": "troll", "count": 1, "at": [dx, dy]}}` | TEST-ONLY: spawns raiders there outside a raid. Logged |
 
 `expect` keys: `buildings` (exact counts), `tier`, `raid_phase`
-(`CALM`/`WARNING`/`ACTIVE`), `build_mode` (`NONE`/`BUILD`/`ROAD`/`DEMOLISH`),
+(`CALM`/`WARNING`/`ACTIVE`), `build_mode` (`NONE`/`BUILD`/`ROAD`/`WALL`/`DEMOLISH`),
+`buildings_min` / `buildings_max` (counts per building id),
 `selected_building` (title), `text` (any visible HUD label/button contains it),
 `text_absent` (no visible HUD label/button contains it),
 `message` (any notification so far contains it), `min` / `max` (`population`,
 `roads`, `happiness`, or any resource), `tax_rate` (`None`..`Harsh`),
 `house_level_min` (`{"level": 2, "count": 1}`), `night` (bool),
 `stored_min` / `pile_min` (`{"stockpile": {"wood": 1}}`: goods stored in /
-waiting at buildings of that type), `min`/`max` also take `villagers_awake`,
+waiting at buildings of that type), `min`/`max` also take `villagers_awake`, `enemies`, `burning`,
 `squad_troops_min`, `squad_mode` (`AUTO`/`MANUAL`),
 `research_done` (research id), `button_on_screen` (a visible button whose
 label contains the text lies fully inside the window).

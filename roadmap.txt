@@ -91,7 +91,7 @@ M2 — FIRST RAID                                        [DONE]
   [x] (M) Enemy agent: path to target (storage / nearest building / Keep),
           attack in melee, retarget on block -> scripts/agents/enemy.gd
   [ ] (S) Pathfinding for enemies: treat buildings as attackable obstacles
-          (path through, stop and bash)  -> DEFERRED to M7 (only matters
+          (path through, stop and bash)  -> done in M7a for walls (only matters
           once walls can block every route)
 
   Content
@@ -233,17 +233,32 @@ M6 — ART PASS (PIXELLAB)                                [DONE]
 ================================================================================
 M7 — WAR EXPANDED                                       Goal: real sieges
 ================================================================================
-  [ ] (M) Walls (palisade, stone) with wall drag tool, auto-connecting
-  [ ] (M) Gates: villagers/troops pass, enemies must break
+  M7a — walls, fire and new monsters (done)
+  [x] (M) Walls (palisade: Hamlet, stone: Town) with a wall drag tool that
+          pays per segment; segments auto-connect to neighbours
+          -> scripts/controllers/build_controller.gd, building.gd
+  [x] (M) Gates (Hamlet; may sit on roads): villagers/troops pass, enemies
+          must break them
+  [x] (M) Two nav grids: civilians treat walls as solid and gates as open;
+          raiders treat walls/gates as passable-but-costly (siege_cost) and
+          stop to smash one when it blocks their next step
+          -> scripts/world/world_map.gd
+  [x] (M) Fire: raiders can set buildings alight; fire burns 3%/s of HP,
+          spreads to flammable neighbours, and a covering Well puts it out
+          after 8s. Stone buildings don't burn -> scripts/systems/fire.gd
+  [x] (M) Orc Warrior (wrecker, sets fires), Orc Shaman (heals nearby
+          raiders), Wolf Rider (fast, raids farms and gatherers)
+  [x] (M) Troll: slow, 650 HP, siege-breaker with 2.5x damage to walls
+  [x] (S) Raid mix: orcs from the 2nd raid, shamans per 3 orcs, wolves from
+          Town, trolls from raid 5 or City
+  [x] (S) Enemies bash through walls when walls block every route
+          (deferred from M2)
+
+  M7b — war economy (next)
   [ ] (M) Towers on walls (archer slots)
-  [ ] (M) Fire: burning buildings spread, wells/villagers extinguish
-  [ ] (M) Orcs (warrior, shaman), Wolf riders (target outlying farms)
-  [ ] (M) Troll: slow, siege-breaker, smashes walls
   [ ] (S) Weapon/armor supply chains feed troop training (iron -> smithy)
   [ ] (S) Knights (City tier)
   [ ] (M) Monster lairs on map: optional assault targets that reduce raids
-  [ ] (S) Enemies bash through buildings when walls block every route
-          (deferred from M2)
   [ ] (S) Militia call-up: workers take up arms during a raid (deferred
           from M3)
 
@@ -287,6 +302,6 @@ BACKLOG / MAYBE LATER
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. M7: walls and gates (wall drag tool, gates enemies must break)
-  2. M7: fire; orcs, wolf riders and trolls
-  3. M7: weapon/armor chains feeding troop training
+  1. M7b: iron -> smithy weapon/armor chains feeding troop training
+  2. M7b: towers on walls, knights, militia call-up
+  3. M7b: monster lairs

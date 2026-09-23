@@ -1,12 +1,19 @@
 class_name Enemy
 extends Node2D
 ## A raider. Re-plans every THINK_INTERVAL: attack a nearby visible villager,
-## otherwise go for its primary target (storage for thieves, any building for
-## wreckers). Thieves flee off the map with their loot once they've stolen.
+## otherwise go for its primary target by `behavior`:
+##   thief   - nearest storage with goods; steals and flees off the map
+##   wrecker - nearest building
+##   raider  - farms and gatherers first (outlying economy)
+##   siege   - walls, gates and towers first
+##   support - follows the war band and heals it; never targets buildings
+## Raiders path on the enemy grid, where walls and gates are passable but
+## costly; when the next step is a wall or gate they stop and smash it.
 
 enum State { ADVANCE, ATTACK, FLEE }
 
 const THINK_INTERVAL := 0.5
+const HEAL_INTERVAL := 1.0
 
 var world: WorldMap
 var enemy_id := ""
@@ -22,6 +29,7 @@ var path: Array[Vector2i] = []
 var _goal_tile := WorldMap.INVALID_TILE
 var _think_timer := 0.0
 var _attack_timer := 0.0
+var _heal_timer := 0.0
 var _jitter := Vector2.ZERO
 var _facing := "south"
 var _anim_time := 0.0
@@ -60,10 +68,21 @@ func _process(delta: float) -> void:
 	if _think_timer <= 0.0:
 		_think_timer = THINK_INTERVAL
 		_think()
+	if def.behavior == "support":
+		_heal_timer -= delta
+		if _heal_timer <= 0.0:
+			_heal_timer = HEAL_INTERVAL
+			_heal_allies()
 	if state == State.ATTACK:
 		_try_attack()
 	elif not path.is_empty():
-		_step(delta)
+		var wall := world.fortification_at(path[0])
+		if wall != null and state != State.FLEE:
+			# The route runs through a wall or gate: break it down first.
+			target = wall
+			state = State.ATTACK
+		else:
+			_step(delta)
 	elif state == State.FLEE:
 		queue_free()  # Reached the map edge (or it's unreachable): escaped.
 
@@ -84,7 +103,7 @@ func _path_to(t: Vector2i) -> void:
 	if t == _goal_tile and not path.is_empty():
 		return
 	_goal_tile = t
-	var p: Array[Vector2i] = world.find_path(current_tile(), t)
+	var p: Array[Vector2i] = world.find_enemy_path(current_tile(), t)
 	if not p.is_empty():
 		p.remove_at(0)
 	path = p
@@ -98,6 +117,10 @@ func _think() -> void:
 		return
 	if not _target_valid():
 		target = null
+	# Keep smashing a wall or gate we're standing at.
+	if target is Building and BuildingDefs.is_fortification(target.def) and _in_reach(target):
+		state = State.ATTACK
+		return
 	var victim := _nearest_victim()
 	if victim != null:
 		target = victim
@@ -114,19 +137,59 @@ func _think() -> void:
 		_path_to(_target_tile(target))
 
 
-func _pick_primary_target() -> Building:
+func _pick_primary_target() -> Node2D:
+	if def.behavior == "support":
+		return _nearest_ally()
 	var best: Building = null
 	var best_dist := INF
 	for b in world.buildings:
-		if b.health.is_dead():
+		if b.health.is_dead() or not _wants(b):
 			continue
-		if def.behavior == "thief" and (not b.def.has("accepts") or b.inventory.is_empty()):
-			continue
-		var d := position.distance_squared_to(b.position + Vector2(b.size * Terrain.TILE_SIZE) * 0.5)
+		var d := position.distance_squared_to(b.center())
 		if d < best_dist:
 			best_dist = d
 			best = b
+	if best == null and def.behavior in ["raider", "siege"]:
+		# Nothing of their favourite kind left: fall back to anything.
+		for b in world.buildings:
+			var d := position.distance_squared_to(b.center())
+			if not b.health.is_dead() and d < best_dist:
+				best_dist = d
+				best = b
 	return best
+
+
+func _wants(b: Building) -> bool:
+	match def.behavior:
+		"thief":
+			return b.def.has("accepts") and not b.inventory.is_empty()
+		"raider":
+			return b.def.get("work", "") in ["farm", "gather"]
+		"siege":
+			return BuildingDefs.is_fortification(b.def) or b.def.has("damage")
+	# Wreckers ignore walls unless they block the way (handled while moving).
+	return not BuildingDefs.is_fortification(b.def)
+
+
+## Support raiders tag along with the nearest fighting ally.
+func _nearest_ally() -> Enemy:
+	var best: Enemy = null
+	var best_dist := INF
+	for e in world.enemies:
+		if e == self or e.def.behavior == "support" or e.health.is_dead():
+			continue
+		var d := position.distance_squared_to(e.position)
+		if d < best_dist:
+			best_dist = d
+			best = e
+	return best
+
+
+func _heal_allies() -> void:
+	var radius: float = def.heal_radius * Terrain.TILE_SIZE
+	for e in world.enemies:
+		if e != self and not e.health.is_dead() and e.position.distance_to(position) <= radius:
+			e.health.heal(def.heal)
 
 
 ## Nearest villager or troop out in the open within aggro range.
@@ -147,18 +210,20 @@ func _nearest_victim() -> Node2D:
 func _target_valid() -> bool:
 	if not is_instance_valid(target) or target.health.is_dead():
 		return false
-	return target is Building or target.is_targetable()
+	return target is Building or target is Enemy or target.is_targetable()
 
 
 func _target_tile(t: Node2D) -> Vector2i:
 	if t is Building:
-		return t.entrance()
+		return t.origin if BuildingDefs.is_fortification(t.def) else t.entrance()
 	return world.world_to_tile(t.position)
 
 
 ## Buildings are in reach from any tile touching the footprint (tile-based so
 ## path jitter can't leave us stranded just out of range).
 func _in_reach(t: Node2D) -> bool:
+	if t is Enemy:
+		return position.distance_to(t.position) <= Terrain.TILE_SIZE * 1.5
 	if t is Building:
 		var tile := current_tile()
 		var footprint := Rect2i(t.origin, t.size).grow(1)
@@ -174,10 +239,17 @@ func _try_attack() -> void:
 	if _attack_timer > 0.0:
 		return
 	_attack_timer = def.attack_cooldown
-	if def.behavior == "thief" and target is Building:
+	if target is Enemy:
+		return  # support raiders just keep close to their ally
+	if def.behavior == "thief" and target is Building and not BuildingDefs.is_fortification(target.def):
 		_steal()
-	else:
-		target.health.take_damage(def.damage)
+		return
+	var damage: float = def.damage
+	if target is Building and BuildingDefs.is_fortification(target.def):
+		damage *= def.get("wall_damage", 1.0)
+	target.health.take_damage(damage)
+	if target is Building and randf() < def.get("ignite_chance", 0.0):
+		target.ignite()
 
 
 ## Grabs up to `loot` of whatever this storehouse holds most of, then runs.

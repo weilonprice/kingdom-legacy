@@ -45,6 +45,7 @@ tools/verify/run.sh`, `Gotchas`.
 - [Needs and happiness](./needs-and-happiness.md): home needs, service coverage, house levels, tax rate, overlays. Scenario `needs-happiness.json`.
 - [Storage and hauling](./storage-and-hauling.md): workplace piles, per-building storage, Carter's Yard haulers. Scenario `hauling.json`.
 - [Day and night](./day-night.md): clock, night tint, villagers sleeping and waking. Scenario `day-night.json`.
+- [Walls, fire and siege](./walls-fire-siege.md): wall drag tool, gates, fire spreading, orcs/shamans/wolf riders/trolls breaching walls. Scenario `walls-fire-siege.json`.
 - [Tiers and research](./tiers-and-research.md): locked content, tier panel, reaching Village, Scholar's Hall research. Scenario `tiers-research.json`.
 
 Not yet mapped: food chain (farm, mill, bakery, fisher), demolish, storage
