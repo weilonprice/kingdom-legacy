@@ -12,6 +12,7 @@ enum Mode { NONE, BUILD, ROAD, WALL, DEMOLISH }
 const HOTKEYS := {KEY_R: "road", KEY_X: "demolish"}
 const COLOR_OK := Color(0.3, 1.0, 0.4, 0.45)
 const COLOR_BAD := Color(1.0, 0.25, 0.2, 0.45)
+const COLOR_BRIDGE := Color(0.35, 0.7, 1.0, 0.5)
 
 var world: WorldMap
 var progression: Progression
@@ -73,7 +74,8 @@ func mode_text() -> String:
 			var def := BuildingDefs.get_def(build_id)
 			return "Placing %s (%s) — right-click to cancel" % [def.name, BuildingDefs.cost_text(def.cost)]
 		Mode.ROAD:
-			return "Road — drag to lay a path, right-click to cancel"
+			return "Road — drag to lay a path (across water it builds a bridge: %s per tile), right-click to cancel" % \
+				BuildingDefs.cost_text(WorldMap.BRIDGE_COST)
 		Mode.WALL:
 			var wdef := BuildingDefs.get_def(build_id)
 			return "%s — drag to build (%s per segment), right-click to cancel" % [
@@ -136,6 +138,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				_dragging = false
 				if mode == Mode.ROAD:
 					world.place_roads(tiles)
+					_emit_if(world.road_problem)
 				else:
 					_build_wall(tiles)
 		Mode.DEMOLISH:
@@ -220,8 +223,16 @@ func _draw() -> void:
 			draw_rect(Rect2(Vector2(e * tile), Vector2(tile, tile)), Color(1, 0.9, 0.3, 0.45))
 			_draw_area(def, e)
 		Mode.ROAD:
-			for t in _drag_tiles():
+			var path := _drag_tiles()
+			var bridge := {}
+			for span: Array in world.bridge_spans(path).valid:
+				var ok := GameState.can_afford(WorldMap.bridge_cost(span.size()))
+				for t: Vector2i in span:
+					bridge[t] = ok
+			for t in path:
 				var color := COLOR_OK if world.can_place_road(t) or world.is_road(t) else COLOR_BAD
+				if bridge.has(t):
+					color = COLOR_BRIDGE if bridge[t] else COLOR_BAD
 				draw_rect(Rect2(Vector2(t * tile), Vector2(tile, tile)), color)
 		Mode.WALL:
 			for t in _drag_tiles():

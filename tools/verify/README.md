@@ -29,6 +29,8 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 | `{"right_click_tile": [dx, dy]}` | Right-click on a map tile |
 | `{"drag_tile": [[dx, dy], [dx, dy]]}` | Left-drag between two tiles (roads, walls) |
 | `{"find_site": {"building": id, "as": alias, "entrance_on_road": true, "near": [dx, dy]}}` | Finds a valid spot and names the tile to click. Read-only |
+| `{"find_crossing": {"as": a, "as_end": b, "near": [dx, dy], "min": 1, "max": 5}}` | Finds a straight water crossing of min..max tiles; names the two banks and the first water tile (`<as>_water`). Read-only |
+| `{"pan_to": [dx, dy]}` / `"alias"` | TEST-ONLY: centres the camera on a tile (for off-screen places). Logged |
 | `{"wait": s}` / `{"wait_game": s}` | Wait real / game seconds |
 | `{"wait_until": {...expect...}, "timeout": s}` | Poll until the condition holds |
 | `{"expect": {...}}` | Assert on observable state (below); failure marks the run FAIL |
@@ -56,7 +58,8 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 `house_level_min` (`{"level": 2, "count": 1}`), `night` (bool),
 `stored_min` / `pile_min` (`{"stockpile": {"wood": 1}}`: goods stored in /
 waiting at buildings of that type), `min`/`max` also take `villagers_awake`, `enemies`, `burning`, `lairs`,
-`villagers_fighting`, `boss_hp` (dragon HP %, -1 if none), `season` (exact), `call_to_arms`
+`villagers_fighting`, `boss_hp` (dragon HP %, -1 if none), `season` (exact), `bridges` (count, in
+`min`/`max`), `bridges_walkable` (bool), `call_to_arms`
 (bool), `game_over` (bool), `hint` (current tutorial hint contains the text),
 `squad_troops_min`, `squad_mode` (`AUTO`/`MANUAL`),
 `research_done` (research id), `button_on_screen` (a visible button whose

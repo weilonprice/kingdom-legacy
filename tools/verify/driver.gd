@@ -128,6 +128,13 @@ func _run_step(step: Dictionary) -> String:
 		await _drag(_screen_of(step.drag_tile[0]), _screen_of(step.drag_tile[1]))
 	elif step.has("find_site"):
 		return _find_site(step.find_site)
+	elif step.has("find_crossing"):
+		return _find_crossing(step.find_crossing)
+	elif step.has("pan_to"):
+		# Test-only: centres the camera on a tile (a player would scroll there).
+		main.camera.position = world.tile_center(_tile_of(step.pan_to))
+		report.setup_shortcuts.append(step)
+		await _frames(3)
 	elif step.has("screenshot"):
 		return await _screenshot(step.screenshot)
 	elif step.has("state"):
@@ -347,6 +354,38 @@ func _find_site(spec: Dictionary) -> String:
 	return "FAIL no site for %s" % id
 
 
+## Finds a straight north-south or east-west water crossing near a tile:
+## land, then `min`..`max` water tiles, then land. Names the land tile on
+## each bank, and the first water tile as "<as>_water". Read-only.
+## {"as": "south_bank", "as_end": "north_bank", "near": [0, -20], "min": 1, "max": 5}
+func _find_crossing(spec: Dictionary) -> String:
+	var near := _tile_of(spec.get("near", [0, 0]))
+	var lo := int(spec.get("min", 1))
+	var hi := int(spec.get("max", 5))
+	for r in 30:
+		for dy in range(-r, r + 1):
+			for dx in range(-r, r + 1):
+				if maxi(absi(dx), absi(dy)) != r:
+					continue
+				var start := near + Vector2i(dx, dy)
+				if not world.is_in_bounds(start) or world.get_terrain(start) == Terrain.WATER \
+						or world.occupancy.has(start):
+					continue
+				for dir in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+					var n := 0
+					var t: Vector2i = start + dir
+					while world.is_in_bounds(t) and world.get_terrain(t) == Terrain.WATER and n <= hi:
+						n += 1
+						t += dir
+					if n >= lo and n <= hi and world.is_in_bounds(t) and not world.occupancy.has(t):
+						var base := world.keep.entrance()
+						aliases[spec["as"]] = start
+						aliases[spec["as_end"]] = t
+						aliases[spec["as"] + "_water"] = start + dir
+						return "ok (%d water tiles from keep%+d,%+d)" % [n, start.x - base.x, start.y - base.y]
+	return "FAIL no crossing of %d-%d water tiles" % [lo, hi]
+
+
 func _screenshot(name: String) -> String:
 	if DisplayServer.get_name() == "headless":
 		return "skipped (headless has no renderer)"
@@ -389,6 +428,8 @@ func _snapshot() -> Dictionary:
 		"final_siege": main.raids.final_siege,
 		"boss_hp": _boss_hp(),
 		"fields": world.fields.size(),
+		"bridges": world.roads.keys().filter(func(t: Vector2i) -> bool: return world.is_bridge(t)).size(),
+		"bridges_walkable": world.roads.keys().all(func(t: Vector2i) -> bool: return world.is_walkable(t)),
 		"season": main.seasons.current(),
 		"warm": main.seasons.warm,
 		"art_season": Art.season,
@@ -482,6 +523,8 @@ func _check(expect: Dictionary) -> String:
 		problems.append("call_to_arms %s != %s" % [s.call_to_arms, expect.call_to_arms])
 	if expect.has("hint") and not expect.hint in s.hint:
 		problems.append("hint '%s' doesn't contain '%s'" % [s.hint, expect.hint])
+	if expect.has("bridges_walkable") and s.bridges_walkable != expect.bridges_walkable:
+		problems.append("bridges_walkable %s != %s" % [s.bridges_walkable, expect.bridges_walkable])
 	if expect.has("game_over") and s.game_over != expect.game_over:
 		problems.append("game_over %s != %s" % [s.game_over, expect.game_over])
 	if expect.has("night") and s.night != expect.night:
@@ -551,7 +594,7 @@ func _sum_by_building(field: String) -> Dictionary:
 ## or a kingdom resource total.
 func _metric(s: Dictionary, key: String) -> float:
 	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning", "lairs",
-			"villagers_fighting", "boss_hp"]:
+			"villagers_fighting", "boss_hp", "bridges"]:
 		return float(s[key])
 	return float(s.resources.get(key, 0))
 

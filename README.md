@@ -51,6 +51,9 @@ the next raid hits. Made with Godot 4.
 - **Seasons.** The year turns from autumn to winter, spring and summer, and
   the whole map changes with it: golden leaves, then snow on every roof. In
   winter the fields freeze and every home burns firewood.
+- **Rivers and bridges.** A river winds past every town, with a couple of
+  shallow fords. Drag a road across it to build a bridge, then guard the
+  crossing: raiders use bridges too.
 - **Procedural maps.** Every game is a new 128×128 map. Pass a seed to replay
   one.
 
@@ -109,7 +112,7 @@ godot --path kingdom-legacy res://scenes/main.tscn -- --seed=12345
 |---|---|
 | Pan / zoom | WASD or arrow keys, middle-mouse drag / mouse wheel |
 | Build | Category tabs at the bottom (**Tab** cycles), **1–9** picks a building |
-| Road / Demolish | **R** (drag to lay) / **X** |
+| Road / Demolish | **R** (drag to lay; across water it builds a bridge) / **X** |
 | Inspect a building | Left-click |
 | Cancel / deselect | Right-click / **Esc** |
 | Select a squad | Click a troop, drag a box, or **Ctrl+1–9** |
@@ -200,6 +203,7 @@ after its scenarios pass.
 | M8a | Main menu, tutorial hints, the Dragon's final siege, victory ✅ |
 | M8b | Save/load, map sizes, balance and performance passes, export presets ✅ |
 | M9 | Art direction: autumn/winter/summer art, trees, props, castle walls, seasons ✅ |
+| M10 | Rivers, fords and bridges ✅ |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 

@@ -28,6 +28,16 @@ static func texture(path: String) -> Texture2D:
 	return _textures[path]
 
 
+## `pattern` % name, preferring a <season>/ subfolder version when there is
+## one (e.g. snowy bridge planks in winter).
+static func seasonal(pattern: String, name: String) -> Texture2D:
+	if season != "":
+		var tex := texture(pattern % (season + "/" + name))
+		if tex != null:
+			return tex
+	return texture(pattern % name)
+
+
 ## Seasonal variants (e.g. snow on the roofs) live in buildings/<season>/.
 static func building(def_id: String) -> Texture2D:
 	if season != "":

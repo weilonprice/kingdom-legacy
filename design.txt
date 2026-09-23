@@ -54,7 +54,16 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 --------------------------------------------------------------------------------
   - Procedurally generated each game (128x128 tiles, seed shown for sharing).
   - Terrain: Water, Sand, Grass, Forest, Stone. Planned: Hills, Iron/Gold ore,
-    Fertile soil, Rivers, Swamp.
+    Fertile soil, Swamp.
+  - Rivers (M10): one per map (two on Large), 2 tiles wide, winding from
+    edge to edge and passing 14-26 tiles from the start (never through it).
+    Each has 2 sandy fords (walkable) where both banks are dry, so rivers
+    slow raiders down but never wall anyone off.
+  - Bridges (M10): dragging the Road tool across water builds a bridge over
+    each crossing of at most 5 tiles with land at both ends, for 6 wood + 2
+    stone per tile, all or nothing per span. Everyone can use bridges,
+    raiders too, so they're chokepoints; a Gate can stand on one.
+    Demolishing a bridge tile refunds half.
   - Resource tiles deplete (forests -> grass). Planned: forest regrowth,
     forester building to replant.
   - Start area is guaranteed clear with forest and stone nearby.
@@ -386,6 +395,7 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   [DONE]  M9  Art direction: seasonal art (autumn, winter, summer), trees,
               boulders, props, stone walls, growing castle, crop variety;
               seasons cycle with winter firewood and frozen fields
+  [DONE]  M10 Rivers with fords; bridges built with the Road tool
 
 
 16. OPEN QUESTIONS
