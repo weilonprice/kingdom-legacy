@@ -63,6 +63,7 @@ func set_season(i: int, announce: bool) -> void:
 	_apply_art()
 	if announce:
 		GameState.notify(ANNOUNCE[current()])
+		Sound.play("chime")
 	season_changed.emit(current())
 
 

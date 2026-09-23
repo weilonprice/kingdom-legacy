@@ -47,7 +47,8 @@ rock on seed 12345), a Warehouse near `[5,-8]` so goods have room.
   a `goblin_brute` at `[4,-9]`; `wait_until` `max.enemies` 0.
 - **Knights.** `setup_grant` weapons 3 / armor 2 (armory shortcut); barracks →
   `Knight` ×2 + `Spearman`; `wait_until` `squad_troops_min` 3.
-- **Lair.** `setup_lair` `[0,-12]`; `CTRL+1`; `right_click_tile` `[0,-12]`;
+- **Lair.** `setup_research` tempered_steel (2 knights + a spearman alone
+  lose to a 2500 HP lair about half the time); `setup_lair` `[0,-12]`; `CTRL+1`; `right_click_tile` `[0,-12]`;
   `expect` `squad_mode` `MANUAL`; `wait_until` message `Goblin Lair is destroyed`.
 - **Proof.** `tools/verify/run.sh tools/verify/scenarios/war-economy.json`
   exits 0; windowed runs save `00-call-to-arms` … `04-lair-destroyed`.

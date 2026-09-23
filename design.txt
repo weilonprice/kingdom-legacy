@@ -293,6 +293,19 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   - Planned: minimap, settings (volume once there's sound).
 
 
+  AUDIO (M11): every sound is synthesized at startup (scripts/autoload/
+  synth.gd, sfxr-style oscillators + noise + envelopes); no audio files.
+  Effects: chop, pick, build, road, demolish, crash, click, coins, horn,
+  arrow, hit, fire, death, dragon roar and breath, season chime, tier
+  fanfare, victory, defeat. Ambience: birds by day, crickets at night, wind
+  in winter. Sounds fade with distance from the camera. Buses Master / SFX /
+  Ambience with sliders on the title screen and in the game menu, saved to
+  user://settings.cfg. Music: not yet (would come from CC0 packs).
+  MINIMAP (M11): bottom-right, terrain in the season's colours, roads,
+  bridges, buildings, walls, lairs, raiders and troops, the camera's view
+  frame; click or drag to look around; M hides it.
+
+
 13. ART DIRECTION
 --------------------------------------------------------------------------------
   - 32x32 top-down pixel art, warm medieval palette, readable when zoomed out.
@@ -396,6 +409,7 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
               boulders, props, stone walls, growing castle, crop variety;
               seasons cycle with winter firewood and frozen fields
   [DONE]  M10 Rivers with fords; bridges built with the Road tool
+  [DONE]  M11 Sound (synthesized effects + ambience, volume sliders), minimap
 
 
 16. OPEN QUESTIONS

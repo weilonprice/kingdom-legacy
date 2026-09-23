@@ -54,6 +54,9 @@ the next raid hits. Made with Godot 4.
 - **Rivers and bridges.** A river winds past every town, with a couple of
   shallow fords. Drag a road across it to build a bridge, then guard the
   crossing: raiders use bridges too.
+- **Sound.** Axes, pickaxes, hammers, a raid horn, arrows, a dragon's roar,
+  birdsong by day and crickets at night, all synthesized in code. Volume
+  sliders are on the title screen and in the ☰ menu.
 - **Procedural maps.** Every game is a new 128×128 map. Pass a seed to replay
   one.
 
@@ -119,6 +122,7 @@ godot --path kingdom-legacy res://scenes/main.tscn -- --seed=12345
 | Order a squad | Right-click the ground (move) or a raider (attack) |
 | Squad back to guarding | **G** |
 | Tier progress | **T** |
+| Minimap on/off (click it to look around) | **M** |
 | Map overlays (happiness, services, roads) | **O** |
 | Tax rate | Click the Keep |
 | Pause / speed | **Space** / top-bar buttons |
@@ -204,6 +208,7 @@ after its scenarios pass.
 | M8b | Save/load, map sizes, balance and performance passes, export presets ✅ |
 | M9 | Art direction: autumn/winter/summer art, trees, props, castle walls, seasons ✅ |
 | M10 | Rivers, fords and bridges ✅ |
+| M11 | Sound effects, ambience, volume settings, minimap ✅ |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 

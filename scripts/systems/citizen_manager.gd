@@ -167,6 +167,7 @@ func remove_villager(v: Villager) -> void:
 
 
 func _on_villager_died(v: Villager) -> void:
+	Sound.play("death", v.position)
 	GameState.notify("%s was killed by raiders!" % v.villager_name)
 	remove_villager(v)
 	_publish_stats()

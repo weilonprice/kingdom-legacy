@@ -485,6 +485,7 @@ func place_building(id: String, origin: Vector2i) -> Building:
 	_redraw_fortifications_around(b)
 	recompute_capacity()
 	renderer.nature.decorate_building(b)
+	Sound.play("build", b.center())
 	building_placed.emit(b)
 	return b
 
@@ -522,6 +523,7 @@ func destroy_building(b: Building) -> void:
 		keep_destroyed.emit()
 		return
 	GameState.notify("%s was destroyed!" % b.def.name)
+	Sound.play("crash", b.center())
 	remove_building(b)
 
 
@@ -565,6 +567,8 @@ func nearest_enemy(pos: Vector2, radius: float, include_flying := true) -> Enemy
 
 ## Demolishes whatever is on tile `t`. Returns a message to show, or "".
 func demolish_at(t: Vector2i) -> String:
+	if occupancy.has(t) or roads.has(t):
+		Sound.play("demolish", tile_center(t))
 	if occupancy.has(t):
 		var b: Building = occupancy[t]
 		if b == keep:
@@ -750,6 +754,7 @@ func place_roads(tiles: Array[Vector2i]) -> int:
 		placed += 1
 	if placed > 0:
 		_refresh_road_access()
+		Sound.play("road", tile_center(tiles[tiles.size() - 1]))
 	return placed
 
 

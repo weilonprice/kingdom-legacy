@@ -76,6 +76,7 @@ var _dest: Building
 var _supply_target: Building
 var _danger_timer := 0.0
 var _foe: Enemy
+var _sound_timer := 0.0
 var _strike_timer := 0.0
 var _facing := "south"
 var _moving := false
@@ -192,6 +193,7 @@ func _process(delta: float) -> void:
 			if timer <= 0.0:
 				_think()
 		State.WORKING:
+			_work_sound(delta)
 			timer -= delta
 			if timer <= 0.0:
 				_finish_work()
@@ -481,12 +483,26 @@ func _fight(delta: float) -> void:
 		if _strike_timer <= 0.0:
 			_strike_timer = MILITIA_COOLDOWN
 			_foe.health.take_damage(MILITIA_DAMAGE * GameState.mod("troop_damage"))
+			Sound.play("hit", position)
 	elif dist < Terrain.TILE_SIZE * 1.5:
 		# Close enough to step straight at it.
 		position = position.move_toward(_foe.position, SPEED * delta)
 		queue_redraw()
 	elif not _walk_to(_foe.current_tile()):
 		_foe = null
+
+
+## The rhythm of work: chopping, picking, hammering.
+func _work_sound(delta: float) -> void:
+	_sound_timer -= delta
+	if _sound_timer > 0.0 or job == null:
+		return
+	_sound_timer = randf_range(0.7, 1.0)
+	var res: String = job.def.get("resource", "")
+	if res == "wood":
+		Sound.play("chop", position)
+	elif res in ["stone", "iron"] or job.def_id in ["smithy", "armory"]:
+		Sound.play("pick", position)
 
 
 func _wounded() -> bool:

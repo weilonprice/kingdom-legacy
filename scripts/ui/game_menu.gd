@@ -29,6 +29,7 @@ func _ready() -> void:
 	_add(col, "Main Menu", func() -> void:
 		GameState.reset()
 		get_tree().change_scene_to_file("res://scenes/menu.tscn"))
+	col.add_child(Sound.volume_controls())
 	_info = Label.new()
 	_info.add_theme_color_override("font_color", UiTheme.TEXT_MUTED)
 	_info.add_theme_font_size_override("font_size", 13)

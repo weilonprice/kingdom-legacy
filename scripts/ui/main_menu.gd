@@ -112,6 +112,8 @@ func _ready() -> void:
 	_hints.focus_mode = Control.FOCUS_NONE
 	form.add_child(_hints)
 
+	form.add_child(Sound.volume_controls())
+
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	buttons.add_theme_constant_override("separation", 12)
@@ -137,11 +139,13 @@ func _ready() -> void:
 	quit.pressed.connect(func() -> void: get_tree().quit())
 	buttons.add_child(quit)
 
+	Sound.ambience_mode = ""
 	var goal := Label.new()
 	goal.text = "Goal: reach the Kingdom tier, then survive the Dragon's siege."
 	goal.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	goal.add_theme_color_override("font_color", UiTheme.TEXT_MUTED)
 	col.add_child(goal)
+	Sound.wire_buttons(self)
 
 
 func _label(text: String) -> Label:

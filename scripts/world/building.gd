@@ -162,6 +162,7 @@ func ignite() -> bool:
 	burning = true
 	extinguish_progress = 0.0
 	GameState.notify("The %s is on fire!" % title)
+	Sound.play("fire", center())
 	queue_redraw()
 	return true
 

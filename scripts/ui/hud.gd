@@ -29,6 +29,7 @@ var _banner: Label
 var _arms_button: Button
 var _hints: HintPanel
 var _menu: GameMenu
+var _minimap: Minimap
 var _game_over: GameOverPanel
 var _squad_panel: SquadPanel
 var _tier_button: Button
@@ -104,6 +105,12 @@ func _ready() -> void:
 	_arms_button.visible = false
 	add_child(_arms_button)
 	_arms_button.pressed.connect(_toggle_call_to_arms)
+	_minimap = Minimap.new()
+	_minimap.setup(world, get_parent().camera)
+	add_child(_minimap)
+	# Under every other panel, so e.g. the building panel's buttons win clicks.
+	move_child(_minimap, 0)
+
 	_menu = GameMenu.new()
 	add_child(_menu)
 	_game_over = GameOverPanel.new()
@@ -123,6 +130,7 @@ func _ready() -> void:
 	for child in get_children():
 		if child is Control:
 			child.theme = UiTheme.get_theme()
+	Sound.wire_buttons(self)
 	_refresh_resources()
 	_refresh_population()
 	_refresh_speed()
@@ -142,6 +150,7 @@ func _process(delta: float) -> void:
 	_msg_label.position = Vector2((vp.x - _msg_label.size.x) * 0.5, vp.y - 130)
 	_panel.position = Vector2(vp.x - _panel.size.x - 10, 50)
 	_menu.position = (vp - _menu.size) * 0.5
+	_minimap.position = Vector2(vp.x - _minimap.size.x - 8, vp.y - _minimap.size.y - 96)
 	_hints.suppressed = _tier_panel.visible
 	_update_raid_ui(vp)
 	var season: Seasons = get_parent().seasons
@@ -161,6 +170,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		GameState.notify(overlay.cycle())
 	elif event.keycode == KEY_T:
 		_tier_panel.toggle()
+	elif event.keycode == KEY_M:
+		_minimap.visible = not _minimap.visible
 	elif event.keycode == KEY_F9:
 		raids.call_raid_now()
 	elif event.keycode == KEY_F5:
@@ -261,6 +272,7 @@ func _show_category(index: int) -> void:
 		var btn := _button(_item_row, label, tip)
 		btn.modulate = Color(1, 1, 1, 0.5) if locked != "" else Color.WHITE
 		btn.pressed.connect(build.select.bind(items[i]))
+	Sound.wire_buttons(_item_row)
 
 
 func _button(parent: Control, text: String, tip: String) -> Button:

@@ -26,6 +26,7 @@ var _autosave_timer := AUTOSAVE_INTERVAL
 
 func _ready() -> void:
 	randomize()
+	Sound.enabled = false  # no noise while the map is built or a save applied
 	var save: Dictionary = GameState.pending_load
 	GameState.pending_load = {}
 	GameState.reset()
@@ -114,10 +115,15 @@ func _ready() -> void:
 
 	if not save.is_empty():
 		SaveGame.apply(self, save)
+	Sound.enabled = true
+	if not save.is_empty():
 		GameState.notify("Game loaded (saved %s)." % str(save.saved_at).replace("T", " "))
 
 
 func _process(delta: float) -> void:
+	Sound.listener = camera.position
+	Sound.ambience_mode = "" if GameState.game_over else (
+		"winter" if seasons.is_winter() and not world.is_night else ("night" if world.is_night else "day"))
 	_autosave_timer -= delta
 	if _autosave_timer <= 0.0:
 		_autosave_timer = AUTOSAVE_INTERVAL
@@ -162,6 +168,7 @@ func _on_defeat(title: String) -> void:
 	if GameState.game_over:
 		return
 	GameState.end_game()
+	Sound.play("defeat")
 	hud.show_defeat(title, "Raids survived: %d\nMap seed: %d" % [raids.raids_survived, world.map_seed])
 
 
@@ -169,6 +176,7 @@ func _on_victory() -> void:
 	if GameState.game_over:
 		return
 	GameState.end_game()
+	Sound.play("victory")
 	hud.show_victory("Victory! The Dragon is slain.",
 		"Your Kingdom stands. Raids survived: %d\nPopulation: %d\nMap seed: %d" % [
 			raids.raids_survived, GameState.population, world.map_seed])
