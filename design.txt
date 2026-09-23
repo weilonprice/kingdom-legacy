@@ -37,10 +37,15 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 4. WIN / LOSE
 --------------------------------------------------------------------------------
   Goal-based. Default scenario goals (tunable per map):
-    - WIN:  Reach the Kingdom tier AND survive the final great raid
-            (e.g. a troll warlord / dragon siege).
+    - WIN:  Reach the Kingdom tier AND survive the final great raid.
+            [implemented M8a] Reaching Kingdom wakes the Dragon: the next
+            raid comes 3 minutes later, is 1.5x the usual size and is led by
+            the Dragon. Killing it and clearing the raid shows the victory
+            screen.
     - LOSE: The Keep is destroyed, OR population falls to zero.
-            [both implemented: game-over screen with a New Game button]
+            [implemented: end screen with New Game and Main Menu]
+  Difficulty (main menu): Easy (raids 70%, first raid at 10 min, extra
+  supplies), Normal, Hard (raids 135%, first raid at 5 min).
   Future: scenario-specific goals (survive N raids, reach X population,
   build a Cathedral, etc.).
 
@@ -205,7 +210,12 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     Orc Shaman      Heals nearby raiders                     [BUILT]
     Troll           Very slow, huge HP, smashes walls        [BUILT]
     Wolf Riders     Fast flankers, target outlying farms     [BUILT]
-    Dragon          Boss; flies over walls, burns buildings  (planned, M8)
+    Dragon          Final boss (3000 HP) [BUILT]: flies straight over walls
+                    to the nearest building and breathes fire (45 damage in
+                    ~2 tiles, sets buildings alight). Only towers and archers
+                    hit it in the air; it lands for 9s every 24s so melee
+                    troops can strike. At 50% HP it summons 4 brutes and 3
+                    orcs; below 25% it enrages (faster, breathes more often).
 
   Enemy goals (varies by type): loot storage, burn buildings, kill villagers,
   reach the Keep. Raiders smash through walls and gates when those are the
@@ -246,8 +256,12 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     doing, residents, needs, stored goods, workplace pile, recipe; training
     at the Barracks, research at the Scholar's Hall, tax rate on the Keep.
   - Squad panel, tier panel (T), raid banner and edge arrow, overlays (O),
-    hover info, notifications, game-over screen.
-  - Planned: minimap, main menu, settings, tutorial hints (M8).
+    hover info, notifications, end screen (defeat or victory).
+  - Main menu (M8a): map seed, difficulty, tutorial hints on/off.
+  - Tutorial hints (M8a): 11 step-by-step goals, top-left, each ticks off
+    when done (lay a road, house, woodcutter, food, tower, Village, troops,
+    Town, City, Kingdom, the Dragon); ✕ hides them.
+  - Planned: minimap, settings, save/load (M8b).
 
 
 13. ART DIRECTION
@@ -329,7 +343,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   [DONE]  M7a Walls, gates, fire, orcs, wolf riders, trolls
   [DONE]  M7b War economy: weapon chains, knights, lairs, towers on walls,
               Call to Arms
-  [NEXT]  M8  Win condition, final raid, save/load, balance pass
+  [DONE]  M8a Main menu, tutorial hints, final siege and Dragon, victory
+  [NEXT]  M8b Save/load, balance pass, performance, export builds
 
 
 16. OPEN QUESTIONS

@@ -272,11 +272,23 @@ M7 — WAR EXPANDED                                       Goal: real sieges
 ================================================================================
 M8 — COMPLETE GAME LOOP                                   Goal: shippable demo
 ================================================================================
-  [ ] (M) Win condition: reach Kingdom tier, survive final raid (dragon)
-  [ ] (L) Dragon boss: flies over walls, burns buildings, multi-phase
+  M8a — endgame and onboarding (done)
+  [x] (M) Win condition: reaching Kingdom wakes the Dragon; its final siege
+          (1.5x raid) comes 3 min later; kill it and clear the raid to win
+          -> raid_director.gd, main.gd (victory screen)
+  [x] (L) Dragon boss: flies over walls, fire breath ignites buildings, only
+          arrows reach it in the air, lands every 24s, summons at 50%,
+          enrages at 25% -> enemy.gd
+  [x] (M) Main menu: seed, difficulty (Easy/Normal/Hard), hints toggle;
+          end screen has New Game and Main Menu -> scripts/ui/main_menu.gd
+  [x] (M) Tutorial hints: 11 goals from first road to the Dragon
+          -> scripts/ui/hint_panel.gd
+  [x] (S) Harness: game scene pausable under the driver (pause and game
+          over really stop it now); menu_check.tscn smoke test
+
+  M8b — ship it (next)
   [ ] (L) Save / load (world grid, buildings, agents, raid timer, research)
-  [ ] (M) Main menu, new game (seed input, map size, difficulty), settings
-  [ ] (M) Tutorial / first-time hints
+  [ ] (S) Settings (volume when sound exists, UI scale), map size option
   [ ] (M) Balance pass: costs, yields, raid curve, tier requirements
   [ ] (M) Performance pass: 300+ agents (path caching, staggered AI ticks,
           flow fields for raids)
@@ -306,6 +318,6 @@ BACKLOG / MAYBE LATER
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. M8: win condition (final siege) and defeat screens
-  2. M8: save/load
-  3. M8: balance pass across tiers, raids and the war economy
+  1. M8b: save/load
+  2. M8b: balance pass across tiers, raids, the war economy and the Dragon
+  3. M8b: performance pass and export builds

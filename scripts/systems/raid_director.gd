@@ -7,6 +7,7 @@ extends Node
 signal warning_started(spawn_tile: Vector2i)
 signal raid_started(count: int)
 signal raid_ended(raids_survived: int)
+signal final_siege_won
 
 enum Phase { CALM, WARNING, ACTIVE }
 
@@ -28,10 +29,18 @@ var raids_survived := 0
 var spawn_tile := WorldMap.INVALID_TILE
 
 var _timer := FIRST_RAID_TIME
+## Final siege: armed when the realm reaches Kingdom; the next raid is led
+## by the Dragon and winning it wins the game.
+var final_siege := false
+var dragon_spawned := false
+var dragon_slain := false
+
+const FINAL_SIEGE_DELAY := 180.0
 
 
 func setup(p_world: WorldMap) -> void:
 	world = p_world
+	_timer = GameState.DIFFICULTIES[GameState.difficulty].first_raid
 
 
 func _process(delta: float) -> void:
@@ -74,9 +83,26 @@ func composition() -> Dictionary:
 	var orcs := maxi(0, raids_survived - 1) + (tier if raids_survived >= 1 else 0)
 	var shamans := floori(orcs / 3.0)
 	var wolves := (2 + floori(raids_survived / 3.0)) if tier >= 2 else 0
-	var trolls := (1 + floori((raids_survived - 5) / 3.0)) if raids_survived >= 5 or tier >= 3 else 0
-	return {"goblin": goblins, "goblin_brute": brutes, "orc": orcs, "orc_shaman": shamans,
+	var trolls := (1 + maxi(0, floori((raids_survived - 5) / 3.0))) if raids_survived >= 5 or tier >= 3 else 0
+	var mix := {"goblin": goblins, "goblin_brute": brutes, "orc": orcs, "orc_shaman": shamans,
 		"wolf_rider": wolves, "troll": trolls}
+	var scale: float = GameState.DIFFICULTIES[GameState.difficulty].raid_size
+	if final_siege:
+		scale *= 1.5
+	for id: String in mix:
+		mix[id] = ceili(mix[id] * scale) if mix[id] > 0 else 0
+	return mix
+
+
+## Called when the realm becomes a Kingdom: the next raid, after a longer
+## warning, is the Dragon's final siege.
+func begin_final_siege() -> void:
+	if final_siege:
+		return
+	final_siege = true
+	if phase == Phase.CALM:
+		_timer = FINAL_SIEGE_DELAY
+	GameState.notify("The Dragon has woken! It will lay siege to your Kingdom. Survive it to win.")
 
 
 ## Puts goblin lairs out in the wilds: reachable, far from the Keep and from
@@ -132,6 +158,12 @@ func direction_name() -> String:
 
 func _begin_warning() -> void:
 	spawn_tile = _pick_spawn_tile()
+	if final_siege and spawn_tile != WorldMap.INVALID_TILE:
+		phase = Phase.WARNING
+		_timer = WARNING_TIME
+		GameState.notify("The Dragon approaches from the %s! Final siege in %ds" % [direction_name(), WARNING_TIME])
+		warning_started.emit(spawn_tile)
+		return
 	if spawn_tile == WorldMap.INVALID_TILE:
 		_timer = 60.0  # No reachable edge right now; try again later.
 		return
@@ -153,9 +185,17 @@ func _launch_raid() -> void:
 			enemy.setup(world, id, tile, spawn_tile)
 			world.unit_root.add_child(enemy)
 			count += 1
+	if final_siege and not dragon_spawned:
+		dragon_spawned = true
+		var dragon := Enemy.new()
+		dragon.setup(world, "dragon", spawn_tile, spawn_tile)
+		dragon.health.died.connect(func() -> void: dragon_slain = true)
+		world.unit_root.add_child(dragon)
+		count += 1
 	phase = Phase.ACTIVE
 	world.raid_active = true
-	GameState.notify("The goblins attack! Villagers are taking shelter.")
+	GameState.notify("The Dragon and its horde attack!" if final_siege
+		else "The goblins attack! Villagers are taking shelter.")
 	raid_started.emit(count)
 
 
@@ -167,6 +207,9 @@ func _end_raid() -> void:
 	_timer = RAID_INTERVAL
 	for v: Villager in get_tree().get_nodes_in_group("villagers"):
 		v.health.heal(v.health.max_hp)
+	if dragon_slain:
+		final_siege_won.emit()
+		return
 	GameState.notify("The raid is over! Raids survived: %d" % raids_survived)
 	raid_ended.emit(raids_survived)
 

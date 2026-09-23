@@ -27,6 +27,7 @@ var _raid_label: Label
 var _clock_label: Label
 var _banner: Label
 var _arms_button: Button
+var _hints: HintPanel
 var _game_over: GameOverPanel
 var _squad_panel: SquadPanel
 var _tier_button: Button
@@ -81,6 +82,11 @@ func _ready() -> void:
 		_refresh_tier())
 	_refresh_tier()
 
+	_hints = HintPanel.new()
+	_hints.setup(world, military, progression)
+	add_child(_hints)
+	_hints.position = Vector2(10, 76)
+
 	_squad_panel = SquadPanel.new()
 	_squad_panel.setup(units)
 	add_child(_squad_panel)
@@ -132,6 +138,7 @@ func _process(delta: float) -> void:
 	var vp := get_viewport().get_visible_rect().size
 	_msg_label.position = Vector2((vp.x - _msg_label.size.x) * 0.5, vp.y - 130)
 	_panel.position = Vector2(vp.x - _panel.size.x - 10, 50)
+	_hints.suppressed = _tier_panel.visible
 	_update_raid_ui(vp)
 	_set_bar(_clock_label, day_night.label(), "%s — %d:%02d until %s" % [
 		day_night.label(), floori(day_night.time_to_change() / 60.0), floori(day_night.time_to_change()) % 60,
@@ -299,6 +306,10 @@ func _refresh_tier() -> void:
 
 func show_defeat(title: String, body: String) -> void:
 	_game_over.show_defeat(title, body)
+
+
+func show_victory(title: String, body: String) -> void:
+	_game_over.show_victory(title, body)
 
 
 func _toggle_call_to_arms() -> void:

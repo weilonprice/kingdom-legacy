@@ -42,6 +42,14 @@ func _refresh() -> void:
 	var lines := PackedStringArray(["Settlement: %s" % progression.tier_name(), ""])
 	if progression.is_max_tier():
 		lines.append("Your realm has reached its highest rank.")
+		lines.append("")
+		lines.append("Final goal: survive the Dragon's siege.")
+		var raids := progression.raids
+		if raids.phase == RaidDirector.Phase.CALM:
+			var t := raids.time_until_raid()
+			lines.append("The Dragon arrives in %d:%02d." % [floori(t / 60.0), floori(t) % 60])
+		else:
+			lines.append("The siege is under way!")
 	else:
 		var next := progression.tier + 1
 		lines.append("Next: %s" % progression.tier_name(next))

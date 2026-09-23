@@ -443,11 +443,11 @@ func lairs() -> Array[Enemy]:
 	return found
 
 
-func nearest_enemy(pos: Vector2, radius: float) -> Enemy:
+func nearest_enemy(pos: Vector2, radius: float, include_flying := true) -> Enemy:
 	var best: Enemy = null
 	var best_dist := radius * radius
 	for e in hostiles():
-		if e.health.is_dead() or e.is_lair():
+		if e.health.is_dead() or e.is_lair() or (e.is_flying() and not include_flying):
 			continue
 		var d := pos.distance_squared_to(e.position)
 		if d <= best_dist:
