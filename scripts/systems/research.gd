@@ -64,6 +64,14 @@ func _process(delta: float) -> void:
 		_complete(queue.pop_front())
 
 
+## Marks saved research done and re-applies its effects, quietly.
+func restore_completed(id: String) -> void:
+	completed.append(id)
+	for effect: Dictionary in ResearchDefs.get_def(id).effects:
+		GameState.apply_effect(effect)
+	changed.emit()
+
+
 func _complete(id: String) -> void:
 	progress = 0.0
 	completed.append(id)

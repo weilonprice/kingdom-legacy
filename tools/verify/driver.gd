@@ -13,6 +13,8 @@ var out_dir := ""
 var report := {"steps": [], "failures": [], "messages": [], "setup_shortcuts": []}
 ## Named tiles (keep-relative) produced by find_site.
 var aliases := {}
+## Snapshots saved by `state` steps, for expect_same_as.
+var snapshots := {}
 
 
 func _ready() -> void:
@@ -35,14 +37,11 @@ func _ready() -> void:
 	# Hints would cover top-left tiles that scenarios click; scenarios that
 	# test them turn them on with setup_hints.
 	GameState.hints_enabled = false
-	main = load("res://scenes/main.tscn").instantiate()
-	# The driver itself must keep running while the game is paused, but the
-	# game must not inherit that, or pause and game over wouldn't stop it.
-	main.process_mode = Node.PROCESS_MODE_PAUSABLE
-	add_child(main)
-	await get_tree().process_frame
-	await get_tree().process_frame
-	world = main.world
+	# Never touch the player's own saves.
+	GameState.save_dir = "user://verify-saves"
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://verify-saves/savegame.json"))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://verify-saves/autosave.json"))
+	await _start_game()
 	# Let the window finish resizing/raising and the HUD lay out before the
 	# first click, or early clicks can land on stale button positions.
 	await get_tree().create_timer(1.0, true, false, true).timeout
@@ -52,7 +51,7 @@ func _ready() -> void:
 	await _click(_screen_of([0, -8]), MOUSE_BUTTON_LEFT)
 	main.build.select_building(null)
 	GameState.notified.connect(func(m: String) -> void: report.messages.append(m))
-	main.build.message.connect(func(m: String) -> void: report.messages.append(m))
+	main.build.message.connect(_record_message)
 	report["seed"] = world.map_seed
 	report["display"] = DisplayServer.get_name()
 	print("VERIFY READY seed=%d display=%s" % [world.map_seed, DisplayServer.get_name()])
@@ -68,6 +67,34 @@ func _ready() -> void:
 	var ok: bool = report.failures.is_empty()
 	print("VERIFY DONE %s failures=%d out=%s" % ["PASS" if ok else "FAIL", report.failures.size(), out_dir])
 	get_tree().quit(0 if ok else 1)
+
+
+## Instantiates the game scene under the driver (again, after a load).
+func _start_game() -> void:
+	main = load("res://scenes/main.tscn").instantiate()
+	# The driver itself must keep running while the game is paused, but the
+	# game must not inherit that, or pause and game over wouldn't stop it.
+	main.process_mode = Node.PROCESS_MODE_PAUSABLE
+	# Loading a save normally changes scene, which would free the driver.
+	main.reloader = _reload_game
+	add_child(main)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	world = main.world
+
+
+func _reload_game() -> void:
+	# Called from inside the old game's input handling: swap on the next frame.
+	await get_tree().process_frame
+	var old := main
+	remove_child(old)
+	old.queue_free()
+	await _start_game()
+	main.build.message.connect(_record_message)
+
+
+func _record_message(m: String) -> void:
+	report.messages.append(m)
 
 
 func _parse_args() -> Dictionary:
@@ -104,7 +131,10 @@ func _run_step(step: Dictionary) -> String:
 	elif step.has("screenshot"):
 		return await _screenshot(step.screenshot)
 	elif step.has("state"):
-		_write_json("%s.state.json" % step.state, _snapshot())
+		snapshots[step.state] = _snapshot()
+		_write_json("%s.state.json" % step.state, snapshots[step.state])
+	elif step.has("expect_same_as"):
+		return _same_as(step.expect_same_as)
 	elif step.has("expect"):
 		return _check(step.expect)
 	elif step.has("setup_grant"):
@@ -348,6 +378,8 @@ func _snapshot() -> Dictionary:
 		"hint": main.hud._hints.current_hint() if GameState.hints_enabled else "",
 		"final_siege": main.raids.final_siege,
 		"boss_hp": _boss_hp(),
+		"fields": world.fields.size(),
+		"employed": GameState.employed,
 		"lair_hp": world.lairs().map(func(l: Enemy) -> int: return int(l.health.hp)),
 		"wild": world.wild.size(),
 		"troop_detail": get_tree().get_nodes_in_group("troops").map(func(t: Troop) -> String:
@@ -467,6 +499,26 @@ func _check(expect: Dictionary) -> String:
 			problems.append("button '%s' is %s" % [expect.button_on_screen, "missing" if btn == null else "off-screen at %s" % btn.get_global_rect()])
 	if expect.has("research_done") and not expect.research_done in s.research_done:
 		problems.append("research %s not done" % expect.research_done)
+	return "ok" if problems.is_empty() else "FAIL " + "; ".join(problems)
+
+
+## {"state": "before", "keys": ["buildings", "tier"], "close": {"wood": 5}}:
+## those snapshot fields equal the named earlier snapshot; `close` resources
+## may differ by up to the given amount (work goes on for a few frames).
+func _same_as(spec: Dictionary) -> String:
+	if not snapshots.has(spec.state):
+		return "FAIL no snapshot named %s" % spec.state
+	var then: Dictionary = snapshots[spec.state]
+	var now := _snapshot()
+	var problems := []
+	for key: String in spec.get("keys", []):
+		if JSON.stringify(now[key]) != JSON.stringify(then[key]):
+			problems.append("%s now %s, was %s" % [key, JSON.stringify(now[key]), JSON.stringify(then[key])])
+	for item: String in spec.get("close", {}):
+		var a: int = now.resources.get(item, 0)
+		var b: int = then.resources.get(item, 0)
+		if absi(a - b) > int(spec.close[item]):
+			problems.append("%s now %d, was %d" % [item, a, b])
 	return "ok" if problems.is_empty() else "FAIL " + "; ".join(problems)
 
 

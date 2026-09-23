@@ -199,8 +199,14 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 --------------------------------------------------------------------------------
   Raids (implemented M2): first at ~7 min, then every 5 min, with a 30s
   warning naming the direction and an arrow to off-screen raiders.
-  Strength: 2 + pop/6 + raids survived + 2 per tier goblins; brutes from
-  the 2nd raid on (+1 per tier).
+  Strength (M8b balance): goblins = 2 + pop/8 + raids survived + tier, plus
+  each lair's bonus ramping +1 per raid survived (max +3); brutes from the
+  2nd raid on (+1 per tier); orcs, shamans, wolves and trolls as in M7.
+  Resulting curve (tier, raids, pop -> raiders / total HP):
+    Hamlet 0/8 -> 3 / 90       Village 2/20 -> 15 / 810
+    Town 4/40 -> 32 / 1990     City 9/100 -> 61 / 5240
+    Kingdom 12/140 -> 80 / 7160; final siege ~103 + the Dragon
+  (Before M8b the first raid was 9 goblins, 6 of them from the lairs.)
 
   Enemy types:
     Goblin          Fast, weak, steals from a storehouse and flees  [BUILT]
@@ -261,7 +267,14 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   - Tutorial hints (M8a): 11 step-by-step goals, top-left, each ticks off
     when done (lay a road, house, woodcutter, food, tower, Village, troops,
     Town, City, Kingdom, the Dragon); ✕ hides them.
-  - Planned: minimap, settings, save/load (M8b).
+  - Save/load (M8b): F5/F8 or the ☰ game menu (pauses; Resume, Save,
+    Load, Main Menu); autosave after each raid and every 5 minutes; title
+    screen Continue loads the newest save. A save is the map seed plus
+    everything changed since (terrain, roads, buildings with stock, fields,
+    villagers, squads, research, tier, raid clock, lairs, day/time). Saving
+    is refused while raiders are coming.
+  - Map size (M8b): Small 96, Normal 128, Large 160 tiles.
+  - Planned: minimap, settings (volume once there's sound).
 
 
 13. ART DIRECTION
@@ -344,7 +357,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   [DONE]  M7b War economy: weapon chains, knights, lairs, towers on walls,
               Call to Arms
   [DONE]  M8a Main menu, tutorial hints, final siege and Dragon, victory
-  [NEXT]  M8b Save/load, balance pass, performance, export builds
+  [DONE]  M8b Save/load, map sizes, balance and performance passes, export
+              presets
 
 
 16. OPEN QUESTIONS

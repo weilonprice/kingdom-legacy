@@ -426,8 +426,16 @@ func destroy_building(b: Building) -> void:
 	remove_building(b)
 
 
+## Any raider (not lairs, but their guards) within `radius`. Villagers call
+## this constantly during raids, so it stops at the first hit and allocates
+## nothing.
 func enemy_within(pos: Vector2, radius: float) -> bool:
-	return nearest_enemy(pos, radius) != null
+	var r2 := radius * radius
+	for list: Array[Enemy] in [enemies, wild]:
+		for e in list:
+			if pos.distance_squared_to(e.position) <= r2 and not e.is_lair() and not e.health.is_dead():
+				return true
+	return false
 
 
 ## Raiders plus lairs and their guards.
@@ -446,11 +454,11 @@ func lairs() -> Array[Enemy]:
 func nearest_enemy(pos: Vector2, radius: float, include_flying := true) -> Enemy:
 	var best: Enemy = null
 	var best_dist := radius * radius
-	for e in hostiles():
-		if e.health.is_dead() or e.is_lair() or (e.is_flying() and not include_flying):
-			continue
-		var d := pos.distance_squared_to(e.position)
-		if d <= best_dist:
+	for list: Array[Enemy] in [enemies, wild]:
+		for e in list:
+			var d := pos.distance_squared_to(e.position)
+			if d > best_dist or e.health.is_dead() or e.is_lair() or (e.is_flying() and not include_flying):
+				continue
 			best_dist = d
 			best = e
 	return best
@@ -563,6 +571,47 @@ func can_place_road(t: Vector2i) -> bool:
 
 
 ## Places roads on every valid tile, clearing trees and rocks. Returns count placed.
+# --- Loading a save (see SaveGame) ----------------------------------------------
+
+## Replaces every road with `tiles`.
+func restore_roads(tiles: Array) -> void:
+	var old := roads.keys()
+	roads.clear()
+	for t: Vector2i in tiles:
+		roads[t] = true
+	for t: Vector2i in old + tiles:
+		renderer.refresh_tile(t)
+		_update_nav(t)
+	_refresh_road_access()
+
+
+## Overwrites the whole terrain grid, then redraws and rebuilds navigation.
+func restore_terrain(p_terrain: PackedByteArray, p_resource_left: PackedInt32Array) -> void:
+	if p_terrain.size() != width * height or p_resource_left.size() != width * height:
+		push_error("save terrain has the wrong size")
+		return
+	terrain = p_terrain
+	resource_left = p_resource_left
+	renderer.rebuild()
+	for y in height:
+		for x in width:
+			_update_nav(Vector2i(x, y))
+
+
+## Replaces farm fields with saved ones: [{t, farm, stage, timer}].
+func restore_fields(saved: Array) -> void:
+	for b in buildings:
+		b.fields.clear()
+	fields.clear()
+	for f: Dictionary in saved:
+		var farm: Building = f.farm
+		if farm == null:
+			continue
+		fields[f.t] = {"farm": farm, "stage": f.stage, "timer": f.timer}
+		farm.fields.append(f.t)
+		renderer.refresh_tile(f.t)
+
+
 func place_roads(tiles: Array[Vector2i]) -> int:
 	var placed := 0
 	for t in tiles:

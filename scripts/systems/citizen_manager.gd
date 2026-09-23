@@ -142,6 +142,22 @@ func draft_villager(near: Vector2i) -> bool:
 	return true
 
 
+## Recreates a saved villager (see SaveGame).
+func restore_villager(home: Building, job: Building, name: String, hp: float, missed: int) -> void:
+	var v := Villager.new()
+	v.setup(world, home)
+	v.villager_name = name
+	v.died.connect(_on_villager_died)
+	world.unit_root.add_child(v)
+	home.residents.append(v)
+	villagers.append(v)
+	v.health.hp = minf(hp, v.health.max_hp)
+	v.set_missed_meals(missed)
+	if job != null:
+		v.set_job(job)
+	_publish_stats()
+
+
 func remove_villager(v: Villager) -> void:
 	v.lose_job()
 	if is_instance_valid(v.home):

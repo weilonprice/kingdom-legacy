@@ -1,0 +1,251 @@
+[
+ {
+  "include": "village-setup.json"
+ },
+ {
+  "setup_research": [
+   "sharp_tools"
+  ]
+ },
+ {
+  "click_button": "Resources"
+ },
+ {
+  "find_site": {
+   "building": "woodcutter",
+   "as": "wc",
+   "entrance_on_road": true
+  }
+ },
+ {
+  "click_button": "Woodcutter"
+ },
+ {
+  "click_tile": "wc"
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "key": "R"
+ },
+ {
+  "drag_tile": [
+   [
+    -9,
+    -6
+   ],
+   [
+    9,
+    -6
+   ]
+  ]
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "setup_grant": {
+   "gold": 100
+  }
+ },
+ {
+  "click_button": "Food"
+ },
+ {
+  "find_site": {
+   "building": "farm",
+   "as": "farm",
+   "entrance_on_road": true,
+   "near": [
+    -8,
+    1
+   ]
+  }
+ },
+ {
+  "click_button": "] Farm"
+ },
+ {
+  "click_tile": "farm"
+ },
+ {
+  "click_button": "Defense"
+ },
+ {
+  "find_site": {
+   "building": "barracks",
+   "as": "barracks",
+   "entrance_on_road": true,
+   "near": [
+    -5,
+    -8
+   ]
+  }
+ },
+ {
+  "click_button": "Barracks"
+ },
+ {
+  "click_tile": "barracks"
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "click_tile": "barracks"
+ },
+ {
+  "click_button": "Militia"
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "click_button": "4x"
+ },
+ {
+  "wait": 20
+ },
+ {
+  "click_button": "Pause"
+ },
+ {
+  "state": "before"
+ },
+ {
+  "key": "F5"
+ },
+ {
+  "expect": {
+   "message": "Game saved."
+  }
+ },
+ {
+  "click_button": "1x"
+ },
+ {
+  "click_button": "Housing"
+ },
+ {
+  "find_site": {
+   "building": "house",
+   "as": "extra",
+   "entrance_on_road": true,
+   "near": [
+    5,
+    -8
+   ]
+  }
+ },
+ {
+  "click_button": "] House"
+ },
+ {
+  "click_tile": "extra"
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "expect": {
+   "buildings": {
+    "house": 4
+   }
+  }
+ },
+ {
+  "key": "F8"
+ },
+ {
+  "wait": 2
+ },
+ {
+  "click_button": "Pause"
+ },
+ {
+  "expect": {
+   "message": "Game loaded",
+   "buildings": {
+    "house": 3
+   }
+  }
+ },
+ {
+  "expect_same_as": {
+   "state": "before",
+   "keys": [
+    "buildings",
+    "tier",
+    "research_done",
+    "roads",
+    "population",
+    "raids_survived",
+    "lairs",
+    "house_levels",
+    "fields",
+    "squads",
+    "employed"
+   ],
+   "close": {
+    "wood": 8,
+    "stone": 8,
+    "gold": 5,
+    "bread": 5
+   }
+  }
+ },
+ {
+  "screenshot": "00-after-load"
+ },
+ {
+  "click_button": "1x"
+ },
+ {
+  "click_button": "\u2630"
+ },
+ {
+  "expect": {
+   "text": "Paused"
+  }
+ },
+ {
+  "screenshot": "01-game-menu"
+ },
+ {
+  "click_button": "Save Game"
+ },
+ {
+  "expect": {
+   "message": "Game saved."
+  }
+ },
+ {
+  "click_button": "Resume"
+ },
+ {
+  "expect": {
+   "text_absent": "Paused"
+  }
+ },
+ {
+  "key": "F9"
+ },
+ {
+  "wait_until": {
+   "raid_phase": "WARNING"
+  },
+  "timeout": 10
+ },
+ {
+  "key": "F5"
+ },
+ {
+  "expect": {
+   "message": "Not saved: Can't save while raiders are coming."
+  }
+ },
+ {
+  "state": "end"
+ }
+]

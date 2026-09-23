@@ -124,6 +124,13 @@ func _advance() -> void:
 		raids.begin_final_siege()
 
 
+## Sets the tier from a save (no announcement, no final-siege trigger).
+func restore_tier(value: int) -> void:
+	tier = value
+	_apply_keep_upgrade()
+	tier_changed.emit(tier)
+
+
 func _apply_keep_upgrade() -> void:
 	if world.keep == null:
 		return

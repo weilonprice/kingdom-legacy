@@ -28,6 +28,7 @@ var _clock_label: Label
 var _banner: Label
 var _arms_button: Button
 var _hints: HintPanel
+var _menu: GameMenu
 var _game_over: GameOverPanel
 var _squad_panel: SquadPanel
 var _tier_button: Button
@@ -103,6 +104,8 @@ func _ready() -> void:
 	_arms_button.visible = false
 	add_child(_arms_button)
 	_arms_button.pressed.connect(_toggle_call_to_arms)
+	_menu = GameMenu.new()
+	add_child(_menu)
 	_game_over = GameOverPanel.new()
 	add_child(_game_over)
 
@@ -138,6 +141,7 @@ func _process(delta: float) -> void:
 	var vp := get_viewport().get_visible_rect().size
 	_msg_label.position = Vector2((vp.x - _msg_label.size.x) * 0.5, vp.y - 130)
 	_panel.position = Vector2(vp.x - _panel.size.x - 10, 50)
+	_menu.position = (vp - _menu.size) * 0.5
 	_hints.suppressed = _tier_panel.visible
 	_update_raid_ui(vp)
 	_set_bar(_clock_label, day_night.label(), "%s — %d:%02d until %s" % [
@@ -157,6 +161,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_tier_panel.toggle()
 	elif event.keycode == KEY_F9:
 		raids.call_raid_now()
+	elif event.keycode == KEY_F5:
+		_menu.on_save.call()
+	elif event.keycode == KEY_F8:
+		_menu.on_load.call(SaveGame.SLOT)
 	elif event.keycode == KEY_C and raids.phase == RaidDirector.Phase.ACTIVE:
 		_toggle_call_to_arms()
 	elif event.keycode == KEY_TAB:
@@ -181,6 +189,8 @@ func _build_top_bar() -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	bar.add_child(row)
+	var menu_button := _button(row, "☰", "Game menu: save, load, main menu")
+	menu_button.pressed.connect(func() -> void: _menu.toggle())
 	_tier_button = _button(row, "", "Settlement tier — click (or T) for what the next tier needs")
 	_tier_button.pressed.connect(func() -> void: _tier_panel.toggle())
 	# Info labels share the leftover width and truncate, so the speed buttons
@@ -306,6 +316,12 @@ func _refresh_tier() -> void:
 
 func show_defeat(title: String, body: String) -> void:
 	_game_over.show_defeat(title, body)
+
+
+## Hooks the game menu's Save and Load buttons up to the game.
+func set_save_actions(on_save: Callable, on_load: Callable) -> void:
+	_menu.on_save = on_save
+	_menu.on_load = on_load
 
 
 func show_victory(title: String, body: String) -> void:

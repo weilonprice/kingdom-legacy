@@ -352,11 +352,10 @@ func _nearest_victim() -> Node2D:
 	var best: Node2D = null
 	var best_dist: float = pow(def.aggro * Terrain.TILE_SIZE, 2)
 	for group in ["troops", "villagers"]:
-		for v in get_tree().get_nodes_in_group(group):
-			if not v.is_targetable():
-				continue
+		for v: Node2D in get_tree().get_nodes_in_group(group):
+			# Distance first: it's cheap, and most are far away.
 			var d := position.distance_squared_to(v.position)
-			if d < best_dist:
+			if d < best_dist and v.is_targetable():
 				best_dist = d
 				best = v
 	return best

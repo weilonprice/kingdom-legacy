@@ -8,10 +8,10 @@ the next raid hits. Made with Godot 4.
 
 ![A village by a lake: the castle Keep, thatched cottages, a barracks, villagers on the dirt road, and a selected squad marching south](docs/screenshots/village-overview.png)
 
-> **Status: playable, start to finish.** Milestones M0–M8a are done: economy,
+> **Status: playable, start to finish.** Milestones M0–M8 are done: economy,
 > raids, troops, tiers, research, needs, day/night, pixel art, walls, fire,
-> the war economy, a main menu, tutorial hints, and the Dragon's final siege
-> to win. Save/load and a balance pass (M8b) are next. See the [roadmap](roadmap.txt).
+> the war economy, a main menu, tutorial hints, the Dragon's final siege,
+> and save/load. See the [roadmap](roadmap.txt).
 
 ## Features
 
@@ -72,7 +72,8 @@ git clone https://github.com/weilonprice/kingdom-legacy.git
 1. Open the Godot Project Manager, click **Import**, and select
    `kingdom-legacy/project.godot`.
 2. Press **F5** to play. The title screen takes an optional map seed, a
-   difficulty and whether to show tutorial hints.
+   difficulty, a map size and whether to show tutorial hints, and offers
+   **Continue** once you have a save.
 
 To skip the menu and replay a specific map, run the game scene from a
 terminal with a seed:
@@ -114,6 +115,7 @@ godot --path kingdom-legacy res://scenes/main.tscn -- --seed=12345
 | Tax rate | Click the Keep |
 | Pause / speed | **Space** / top-bar buttons |
 | Call to Arms during a raid | **C** or the button under the raid banner |
+| Save / load | **F5** / **F8**, or the **☰** menu (also autosaves after every raid) |
 | Call a raid now (testing) | **F9** |
 
 ## Project layout
@@ -151,12 +153,29 @@ tools/verify/cleanup.sh                                  # stops leftover instan
 ```
 
 There are scenarios for building, raids, squads, tiers and research, needs,
-hauling, day/night, walls/fire/sieges, the war economy, the final siege and
-tutorial hints, plus a title-screen check
-(`godot --headless --path . res://tools/verify/menu_check.tscn`). Add `--headless` to run without a window. Evidence goes
+hauling, day/night, walls/fire/sieges, the war economy, the final siege,
+tutorial hints and save/load, plus a title-screen check and a benchmark:
+
+```bash
+godot --headless --path . res://tools/verify/menu_check.tscn
+godot --headless --path . res://tools/verify/bench.tscn -- --villagers=300 --enemies=120
+```
+
+Add `--headless` to `run.sh` to run without a window. Evidence goes
 to `.verify-evidence/`. The scenario format is in
 [`tools/verify/README.md`](tools/verify/README.md), and the agent guide and
 feature map are in `.claude/skills/verify-kingdom-legacy/`.
+
+### Building a release
+
+`export_presets.cfg` has macOS (universal .zip) and Windows (.exe) presets.
+Install Godot's export templates once (Editor → Manage Export Templates →
+Download), then:
+
+```bash
+godot --headless --path . --export-release "macOS" builds/macos/KingdomLegacy.zip
+godot --headless --path . --export-release "Windows Desktop" builds/windows/KingdomLegacy.exe
+```
 
 ### Workflow
 
@@ -174,7 +193,7 @@ after its scenarios pass.
 | M7a | Walls, gates, fire, orcs, wolf riders and trolls ✅ |
 | M7b | Iron, smithy and armory, knights, goblin lairs, wall towers, Call to Arms ✅ |
 | M8a | Main menu, tutorial hints, the Dragon's final siege, victory ✅ |
-| M8b | Save/load, balance pass, performance, export builds |
+| M8b | Save/load, map sizes, balance and performance passes, export presets ✅ |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 

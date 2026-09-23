@@ -9,6 +9,7 @@ const BACKDROP := ["house", "woodcutter", "keep", "mill", "stone_tower"]
 var _seed: LineEdit
 var _difficulty: Array[Button] = []
 var _hints: CheckBox
+var _sizes: Array[Button] = []
 
 
 func _ready() -> void:
@@ -88,6 +89,23 @@ func _ready() -> void:
 		diff_row.add_child(btn)
 		_difficulty.append(btn)
 
+	var size_row := HBoxContainer.new()
+	size_row.add_theme_constant_override("separation", 8)
+	form.add_child(size_row)
+	size_row.add_child(_label("Map size"))
+	var size_group := ButtonGroup.new()
+	for i in GameState.MAP_SIZES.size():
+		var sbtn := Button.new()
+		var tiles: int = GameState.MAP_SIZES[i].tiles
+		sbtn.text = GameState.MAP_SIZES[i].name
+		sbtn.tooltip_text = "%d × %d tiles" % [tiles, tiles]
+		sbtn.toggle_mode = true
+		sbtn.button_group = size_group
+		sbtn.button_pressed = i == GameState.map_size
+		sbtn.focus_mode = Control.FOCUS_NONE
+		size_row.add_child(sbtn)
+		_sizes.append(sbtn)
+
 	_hints = CheckBox.new()
 	_hints.text = "Tutorial hints"
 	_hints.button_pressed = GameState.hints_enabled
@@ -98,6 +116,14 @@ func _ready() -> void:
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	buttons.add_theme_constant_override("separation", 12)
 	form.add_child(buttons)
+	if SaveGame.latest_slot() != "":
+		var cont := Button.new()
+		cont.text = "Continue"
+		cont.tooltip_text = "Load your most recent save"
+		cont.custom_minimum_size = Vector2(140, 40)
+		cont.focus_mode = Control.FOCUS_NONE
+		cont.pressed.connect(_continue)
+		buttons.add_child(cont)
 	var play := Button.new()
 	play.text = "New Game"
 	play.custom_minimum_size = Vector2(160, 40)
@@ -132,12 +158,24 @@ func _difficulty_tip(i: int) -> String:
 		", extra starting supplies" if not d.bonus.is_empty() else ""]
 
 
+func _continue() -> void:
+	var data := SaveGame.read(SaveGame.latest_slot())
+	if data.is_empty():
+		return
+	GameState.reset()
+	GameState.pending_load = data
+	get_tree().change_scene_to_file(GAME_SCENE)
+
+
 func _start() -> void:
 	var text := _seed.text.strip_edges()
 	GameState.new_game_seed = int(text) if text.is_valid_int() else (hash(text) if text != "" else 0)
 	for i in _difficulty.size():
 		if _difficulty[i].button_pressed:
 			GameState.difficulty = i
+	for i in _sizes.size():
+		if _sizes[i].button_pressed:
+			GameState.map_size = i
 	GameState.hints_enabled = _hints.button_pressed
 	GameState.reset()
 	get_tree().change_scene_to_file(GAME_SCENE)
