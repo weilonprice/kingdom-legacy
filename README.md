@@ -8,10 +8,10 @@ the next raid hits. Made with Godot 4.
 
 ![A village by a lake: the castle Keep, thatched cottages, a barracks, villagers on the dirt road, and a selected squad marching south](docs/screenshots/village-overview.png)
 
-> **Status: playable prototype.** Milestones M0–M7 are done: economy,
-> raids, troops, tiers, research, needs, day/night, the pixel-art pass,
-> walls, fire, orcs and trolls, and the war economy. The win condition and
-> save/load (M8) are next. See the [roadmap](roadmap.txt).
+> **Status: playable, start to finish.** Milestones M0–M8a are done: economy,
+> raids, troops, tiers, research, needs, day/night, pixel art, walls, fire,
+> the war economy, a main menu, tutorial hints, and the Dragon's final siege
+> to win. Save/load and a balance pass (M8b) are next. See the [roadmap](roadmap.txt).
 
 ## Features
 
@@ -71,12 +71,14 @@ git clone https://github.com/weilonprice/kingdom-legacy.git
 
 1. Open the Godot Project Manager, click **Import**, and select
    `kingdom-legacy/project.godot`.
-2. Press **F5** to play.
+2. Press **F5** to play. The title screen takes an optional map seed, a
+   difficulty and whether to show tutorial hints.
 
-To replay a specific map, run it from a terminal with a seed:
+To skip the menu and replay a specific map, run the game scene from a
+terminal with a seed:
 
 ```bash
-godot --path kingdom-legacy -- --seed=12345
+godot --path kingdom-legacy res://scenes/main.tscn -- --seed=12345
 ```
 
 ### Your first few minutes
@@ -91,6 +93,9 @@ godot --path kingdom-legacy -- --seed=12345
    what the next tier needs.
 5. The first raid comes at about 7 minutes. Put a couple of **Guard Towers**
    near your storage, and later a **Barracks**.
+6. To win, grow to **Kingdom**. That wakes the **Dragon**, whose siege
+   comes three minutes later. Only towers and archers can hit it in the air;
+   it lands every so often, and that's when your knights can strike.
 
 ## Controls
 
@@ -146,7 +151,9 @@ tools/verify/cleanup.sh                                  # stops leftover instan
 ```
 
 There are scenarios for building, raids, squads, tiers and research, needs,
-hauling, day/night, walls/fire/sieges, and the war economy. Add `--headless` to run without a window. Evidence goes
+hauling, day/night, walls/fire/sieges, the war economy, the final siege and
+tutorial hints, plus a title-screen check
+(`godot --headless --path . res://tools/verify/menu_check.tscn`). Add `--headless` to run without a window. Evidence goes
 to `.verify-evidence/`. The scenario format is in
 [`tools/verify/README.md`](tools/verify/README.md), and the agent guide and
 feature map are in `.claude/skills/verify-kingdom-legacy/`.
@@ -166,7 +173,8 @@ after its scenarios pass.
 | M6 | Pixel-art pass: terrain, buildings, animated characters, HUD theme ✅ |
 | M7a | Walls, gates, fire, orcs, wolf riders and trolls ✅ |
 | M7b | Iron, smithy and armory, knights, goblin lairs, wall towers, Call to Arms ✅ |
-| M8 | Win condition, dragon siege, save/load, menus, balance, export |
+| M8a | Main menu, tutorial hints, the Dragon's final siege, victory ✅ |
+| M8b | Save/load, balance pass, performance, export builds |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 

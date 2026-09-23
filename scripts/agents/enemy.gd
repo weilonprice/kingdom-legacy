@@ -8,6 +8,8 @@ extends Node2D
 ##   siege   - walls, gates and towers first
 ##   support - follows the war band and heals it; never targets buildings
 ##   lair    - a den in the wilds: never moves, sends guards at nearby troops
+##   dragon  - the final boss: flies over everything, breathes fire, lands
+##             now and then (see EnemyDefs)
 ## Lairs and their guards are "wild": they live in world.wild instead of
 ## world.enemies, so they don't count as raiders. Guards keep to `guard_post`
 ## unless a troop or villager comes within aggro range.
@@ -33,6 +35,15 @@ var wild := false
 var guard_post := WorldMap.INVALID_TILE
 ## Lairs: the guards they have sent out.
 var guards: Array[Enemy] = []
+## Dragon state.
+var _airborne := true
+var _phase_timer := 0.0
+var _summoned := false
+var _enraged := false
+var _altitude := 36.0
+var _heading := Vector2.DOWN
+var _breath_time := 0.0
+var _breath_at := Vector2.ZERO
 
 var _goal_tile := WorldMap.INVALID_TILE
 var _think_timer := 0.0
@@ -68,6 +79,16 @@ func is_lair() -> bool:
 	return def.behavior == "lair"
 
 
+## Where arrows should fly: the dragon's body rides above its shadow.
+func aim_point() -> Vector2:
+	return position + Vector2(0, -_altitude) if def.behavior == "dragon" else position
+
+
+## Airborne raiders can only be hit by arrows (towers, archers).
+func is_flying() -> bool:
+	return def.get("flying", false) and _airborne
+
+
 func current_tile() -> Vector2i:
 	return world.world_to_tile(position)
 
@@ -77,6 +98,9 @@ func _process(delta: float) -> void:
 	queue_redraw()
 	_attack_timer -= delta
 	_think_timer -= delta
+	if def.behavior == "dragon":
+		_dragon_process(delta)
+		return
 	if _think_timer <= 0.0:
 		_think_timer = THINK_INTERVAL
 		_think()
@@ -231,6 +255,91 @@ func _lair_think() -> void:
 	guards.append(g)
 
 
+# --- Dragon -----------------------------------------------------------------
+
+func _dragon_process(delta: float) -> void:
+	if _phase_timer == 0.0:
+		_phase_timer = def.land_every
+		z_index = 20
+	_phase_timer -= delta
+	_breath_time = maxf(_breath_time - delta, 0.0)
+	_altitude = move_toward(_altitude, 36.0 if _airborne else 4.0, 40.0 * delta)
+	if _phase_timer <= 0.0:
+		_airborne = not _airborne
+		_phase_timer = def.land_every if _airborne else def.land_for
+		GameState.notify("The Dragon takes to the air again." if _airborne
+			else "The Dragon lands to rest. Strike it now!")
+	var ratio := health.hp / health.max_hp
+	if not _summoned and ratio <= def.summon_at:
+		_summoned = true
+		_summon()
+	if not _enraged and ratio <= def.enrage_at:
+		_enraged = true
+		GameState.notify("The Dragon is enraged!")
+	if not _airborne:
+		return
+	if _think_timer <= 0.0:
+		_think_timer = 1.0
+		target = _dragon_target()
+	if not _target_valid():
+		target = _dragon_target()
+		if target == null:
+			return
+	var goal: Vector2 = target.center()
+	var to_goal := goal - position
+	if to_goal.length() > 6.0:
+		_heading = to_goal.normalized()
+		var speed: float = def.speed * (1.3 if _enraged else 1.0)
+		position += to_goal.limit_length(speed * delta)
+	if to_goal.length() <= Terrain.TILE_SIZE * 2.0 and _attack_timer <= 0.0:
+		_attack_timer = def.attack_cooldown * (0.6 if _enraged else 1.0)
+		_breathe(goal)
+
+
+## The nearest standing building that isn't a wall; the Keep if none.
+func _dragon_target() -> Building:
+	var best: Building = null
+	var best_dist := INF
+	for b in world.buildings:
+		if b.health.is_dead() or BuildingDefs.is_fortification(b.def):
+			continue
+		var d := position.distance_squared_to(b.center())
+		if d < best_dist:
+			best_dist = d
+			best = b
+	return best if best != null else world.keep
+
+
+func _breathe(at: Vector2) -> void:
+	_breath_at = at
+	_breath_time = 0.5
+	var radius: float = def.breath_radius * Terrain.TILE_SIZE
+	for b in world.buildings.duplicate():
+		if b.health.is_dead():
+			continue
+		var r := Rect2(b.position, Vector2(b.size * Terrain.TILE_SIZE)).grow(radius)
+		if r.has_point(at):
+			b.health.take_damage(def.damage)
+			if randf() < def.ignite_chance:
+				b.ignite()
+	for group in ["troops", "villagers"]:
+		for v in get_tree().get_nodes_in_group(group):
+			if v.is_targetable() and v.position.distance_to(at) <= radius:
+				v.health.take_damage(def.damage * 0.5)
+
+
+func _summon() -> void:
+	GameState.notify("The Dragon roars, and its horde answers!")
+	for id: String in def.summon:
+		for i in int(def.summon[id]):
+			var tile := world.nearest_walkable(current_tile() + Vector2i(randi_range(-2, 2), randi_range(-2, 2)))
+			if tile == WorldMap.INVALID_TILE:
+				continue
+			var e := Enemy.new()
+			e.setup(world, id, tile, exit_tile)
+			world.unit_root.add_child(e)
+
+
 func _heal_allies() -> void:
 	var radius: float = def.heal_radius * Terrain.TILE_SIZE
 	for e in world.enemies:
@@ -321,6 +430,8 @@ func _flee() -> void:
 
 
 func _on_died() -> void:
+	if def.behavior == "dragon":
+		GameState.notify("The Dragon is slain!")
 	if is_lair():
 		GameState.add_resource("gold", def.bounty)
 		GameState.notify("The %s is destroyed! +%d gold. Raids will be smaller." % [def.name, def.bounty])
@@ -330,7 +441,39 @@ func _on_died() -> void:
 	queue_free()
 
 
+const DRAGON_ART := "res://assets/sprites/dragon/dragon.png"
+
+
+func _draw_dragon() -> void:
+	# Shadow on the ground; the body rides above it, turned to its heading.
+	var shadow := 1.0 - _altitude / 90.0
+	draw_set_transform(Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
+	draw_circle(Vector2.ZERO, 34.0 * shadow, Color(0, 0, 0, 0.28))
+	var flap := 1.0 + (0.05 * sin(_anim_time * 6.0) if _airborne else 0.0)
+	draw_set_transform(Vector2(0, -_altitude), _heading.angle() + PI * 0.5, Vector2(flap, 1.0))
+	var tex := Art.texture(DRAGON_ART)
+	if tex != null:
+		draw_texture(tex, -Vector2(tex.get_size()) * 0.5)
+	else:
+		var c: Color = def.color
+		draw_colored_polygon(PackedVector2Array([Vector2(0, -30), Vector2(40, 10), Vector2(0, 0), Vector2(-40, 10)]), c)
+		draw_circle(Vector2(0, -26), 8, c.darkened(0.3))
+		draw_line(Vector2(0, 0), Vector2(0, 36), c, 6.0)
+	draw_set_transform(Vector2.ZERO)
+	if _breath_time > 0.0:
+		var to := _breath_at - position
+		var from := Vector2(0, -_altitude) + _heading * 40.0
+		var a := _breath_time / 0.5
+		draw_line(from, to, Color(1.0, 0.55, 0.1, a), 10.0)
+		draw_line(from, to, Color(1.0, 0.9, 0.4, a), 4.0)
+		draw_circle(to, def.breath_radius * Terrain.TILE_SIZE * 0.6, Color(1.0, 0.45, 0.1, a * 0.5))
+	health.draw_bar(self, Vector2(0, -_altitude - 72), 96)
+
+
 func _draw() -> void:
+	if def.behavior == "dragon":
+		_draw_dragon()
+		return
 	var r: float = def.radius
 	if state == State.ATTACK and is_instance_valid(target):
 		_facing = Art.facing(target.position - position, _facing)

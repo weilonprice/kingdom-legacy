@@ -469,8 +469,8 @@ func _fight(delta: float) -> void:
 		_seek_shelter()
 		note = "Wounded, fleeing to shelter"
 		return
-	if _foe == null or not is_instance_valid(_foe) or _foe.health.is_dead():
-		_foe = world.nearest_enemy(position, SAFE_TILES * Terrain.TILE_SIZE)
+	if _foe == null or not is_instance_valid(_foe) or _foe.health.is_dead() or _foe.is_flying():
+		_foe = world.nearest_enemy(position, SAFE_TILES * Terrain.TILE_SIZE, false)
 		if _foe == null:
 			_set_armed(false)
 			_wait("Back to work", randf_range(0.2, 1.5))

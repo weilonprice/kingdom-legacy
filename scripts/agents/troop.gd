@@ -102,6 +102,8 @@ func _choose_target() -> Enemy:
 		if e.is_lair() or not squad.is_threat(e, world):
 			continue
 		var d := position.distance_squared_to(e.position)
+		if e.is_flying() and not is_ranged():
+			d *= 9.0  # can't reach it in the air: prefer anything on the ground
 		if d < best_dist:
 			best_dist = d
 			best = e
@@ -110,6 +112,8 @@ func _choose_target() -> Enemy:
 
 
 func _in_range(e: Enemy) -> bool:
+	if e.is_flying() and not is_ranged():
+		return false
 	var extra: float = e.def.radius if e.is_lair() else 0.0
 	return position.distance_to(e.position) <= attack_distance() + extra
 

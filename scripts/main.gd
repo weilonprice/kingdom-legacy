@@ -86,13 +86,17 @@ func _ready() -> void:
 
 	world.keep_destroyed.connect(_on_defeat.bind("The Keep has fallen!"))
 	citizens.all_villagers_lost.connect(_on_defeat.bind("Your people have abandoned the kingdom."))
+	raids.final_siege_won.connect(_on_victory)
 
 
-## `godot --path . -- --seed=123` replays a specific map; otherwise random.
+## `godot --path . -- --seed=123` replays a specific map; otherwise the seed
+## typed in the main menu, or random.
 func _seed_from_args() -> int:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--seed="):
 			return int(arg.get_slice("=", 1))
+	if GameState.new_game_seed != 0:
+		return GameState.new_game_seed
 	return randi()
 
 
@@ -101,3 +105,12 @@ func _on_defeat(title: String) -> void:
 		return
 	GameState.end_game()
 	hud.show_defeat(title, "Raids survived: %d\nMap seed: %d" % [raids.raids_survived, world.map_seed])
+
+
+func _on_victory() -> void:
+	if GameState.game_over:
+		return
+	GameState.end_game()
+	hud.show_victory("Victory! The Dragon is slain.",
+		"Your Kingdom stands. Raids survived: %d\nPopulation: %d\nMap seed: %d" % [
+			raids.raids_survived, GameState.population, world.map_seed])

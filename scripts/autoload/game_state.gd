@@ -11,6 +11,13 @@ signal happiness_changed
 
 const SPEEDS := [0.0, 1.0, 2.0, 4.0]
 const START_RESOURCES := {"wood": 120, "stone": 20, "gold": 50, "bread": 40}
+## Difficulty presets picked in the main menu. `raid_size` scales raid
+## headcounts, `first_raid` is seconds until the first raid.
+const DIFFICULTIES := [
+	{"name": "Easy", "raid_size": 0.7, "first_raid": 600.0, "bonus": {"wood": 60, "stone": 20, "gold": 50}},
+	{"name": "Normal", "raid_size": 1.0, "first_raid": 420.0, "bonus": {}},
+	{"name": "Hard", "raid_size": 1.35, "first_raid": 300.0, "bonus": {}},
+]
 
 ## Kingdom totals of everything in storage (cache of `stock`).
 var resources := {}
@@ -22,6 +29,11 @@ var employed := 0
 var jobs := 0
 var speed := 1
 var game_over := false
+## New-game settings chosen in the main menu; they survive scene changes.
+## seed 0 = random.
+var new_game_seed := 0
+var difficulty := 1
+var hints_enabled := true
 ## Research bonuses: key -> value. Multipliers default to 1.0, additive
 ## bonuses to 0 (see ResearchDefs).
 var modifiers := {}
@@ -108,8 +120,12 @@ func apply_effect(effect: Dictionary) -> void:
 func attach_stock(p_stock: Stock) -> void:
 	stock = p_stock
 	stock.changed.connect(_recount)
-	for item: String in START_RESOURCES:
-		stock.store_at(stock.world.keep, item, START_RESOURCES[item], true)
+	var start := START_RESOURCES.duplicate()
+	var bonus: Dictionary = DIFFICULTIES[difficulty].bonus
+	for item: String in bonus:
+		start[item] = start.get(item, 0) + bonus[item]
+	for item: String in start:
+		stock.store_at(stock.world.keep, item, start[item], true)
 	_recount()
 
 

@@ -14,12 +14,17 @@ func setup(from: Vector2, p_target: Node2D, p_damage: float) -> void:
 	position = from
 	target = p_target
 	damage = p_damage
-	_last_target_pos = target.position
+	_last_target_pos = _aim()
+	z_index = 21  # above the flying dragon
+
+
+func _aim() -> Vector2:
+	return target.aim_point() if target.has_method("aim_point") else target.position
 
 
 func _process(delta: float) -> void:
 	if is_instance_valid(target):
-		_last_target_pos = target.position
+		_last_target_pos = _aim()
 	var to_target := _last_target_pos - position
 	var step := SPEED * delta
 	if to_target.length() <= step:

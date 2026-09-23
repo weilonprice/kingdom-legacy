@@ -32,7 +32,13 @@ func _ready() -> void:
 		# starves the game of frames. Keep the verify window in front.
 		get_window().always_on_top = true
 		DisplayServer.window_move_to_foreground()
+	# Hints would cover top-left tiles that scenarios click; scenarios that
+	# test them turn them on with setup_hints.
+	GameState.hints_enabled = false
 	main = load("res://scenes/main.tscn").instantiate()
+	# The driver itself must keep running while the game is paused, but the
+	# game must not inherit that, or pause and game over wouldn't stop it.
+	main.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(main)
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -126,6 +132,14 @@ func _run_step(step: Dictionary) -> String:
 		if b == null or not b.ignite():
 			return "FAIL nothing flammable at %s" % str(step.setup_ignite)
 		return "ok (%s burning)" % b.title
+	elif step.has("setup_research"):
+		# Test-only: completes research topics instantly.
+		for id: String in step.setup_research:
+			main.research._complete(id)
+		report.setup_shortcuts.append(step)
+	elif step.has("setup_hints"):
+		GameState.hints_enabled = bool(step.setup_hints)
+		report.setup_shortcuts.append(step)
 	elif step.has("setup_delay_raids"):
 		# Test-only: pushes the next natural raid this many game seconds out.
 		main.raids._timer = maxf(main.raids._timer, float(step.setup_delay_raids))
@@ -331,6 +345,9 @@ func _snapshot() -> Dictionary:
 		"enemy_types": _count_enemy_types(),
 		"lairs": world.lairs().size(),
 		"game_over": GameState.game_over,
+		"hint": main.hud._hints.current_hint() if GameState.hints_enabled else "",
+		"final_siege": main.raids.final_siege,
+		"boss_hp": _boss_hp(),
 		"lair_hp": world.lairs().map(func(l: Enemy) -> int: return int(l.health.hp)),
 		"wild": world.wild.size(),
 		"troop_detail": get_tree().get_nodes_in_group("troops").map(func(t: Troop) -> String:
@@ -357,6 +374,14 @@ func _snapshot() -> Dictionary:
 		"visible_text": _visible_text(main.hud),
 		"messages": report.messages.duplicate(),
 	}
+
+
+## The dragon's HP as a percentage, or -1 when none is on the map.
+func _boss_hp() -> int:
+	for e in world.enemies:
+		if e.def.behavior == "dragon":
+			return roundi(e.health.hp / e.health.max_hp * 100.0)
+	return -1
 
 
 func _count_enemy_types() -> Dictionary:
@@ -410,6 +435,8 @@ func _check(expect: Dictionary) -> String:
 			problems.append("%s %s > %s" % [key, have, expect["max"][key]])
 	if expect.has("call_to_arms") and s.call_to_arms != expect.call_to_arms:
 		problems.append("call_to_arms %s != %s" % [s.call_to_arms, expect.call_to_arms])
+	if expect.has("hint") and not expect.hint in s.hint:
+		problems.append("hint '%s' doesn't contain '%s'" % [s.hint, expect.hint])
 	if expect.has("game_over") and s.game_over != expect.game_over:
 		problems.append("game_over %s != %s" % [s.game_over, expect.game_over])
 	if expect.has("night") and s.night != expect.night:
@@ -459,7 +486,7 @@ func _sum_by_building(field: String) -> Dictionary:
 ## or a kingdom resource total.
 func _metric(s: Dictionary, key: String) -> float:
 	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning", "lairs",
-			"villagers_fighting"]:
+			"villagers_fighting", "boss_hp"]:
 		return float(s[key])
 	return float(s.resources.get(key, 0))
 
