@@ -33,7 +33,14 @@ var game_over := false
 ## seed 0 = random.
 var new_game_seed := 0
 var difficulty := 1
+## Map edge length in tiles (main menu: Small / Normal / Large).
+const MAP_SIZES := [{"name": "Small", "tiles": 96}, {"name": "Normal", "tiles": 128}, {"name": "Large", "tiles": 160}]
+var map_size := 1
 var hints_enabled := true
+## Where saves go (tests point this elsewhere so they never touch real saves).
+var save_dir := "user://saves"
+## A save to apply when the game scene starts (set by Load / Continue).
+var pending_load := {}
 ## Research bonuses: key -> value. Multipliers default to 1.0, additive
 ## bonuses to 0 (see ResearchDefs).
 var modifiers := {}

@@ -286,13 +286,23 @@ M8 — COMPLETE GAME LOOP                                   Goal: shippable demo
   [x] (S) Harness: game scene pausable under the driver (pause and game
           over really stop it now); menu_check.tscn smoke test
 
-  M8b — ship it (next)
-  [ ] (L) Save / load (world grid, buildings, agents, raid timer, research)
-  [ ] (S) Settings (volume when sound exists, UI scale), map size option
-  [ ] (M) Balance pass: costs, yields, raid curve, tier requirements
-  [ ] (M) Performance pass: 300+ agents (path caching, staggered AI ticks,
-          flow fields for raids)
-  [ ] (S) Export builds (macOS, Windows)
+  M8b — ship it (done)
+  [x] (L) Save / load: F5/F8, ☰ game menu, autosave, title Continue
+          -> scripts/systems/save_game.gd
+  [x] (S) Map size option (Small/Normal/Large). Volume/UI-scale settings
+          wait for sound
+  [x] (M) Balance pass: first raid 9 -> 3 goblins (lairs ramp in), slower
+          goblin growth; curve documented in design.txt
+  [x] (M) Performance pass: benchmark (tools/verify/bench.tscn); 300
+          villagers + 120 raiders at 4x: p95 frame 25 -> 11 ms (allocation-
+          free enemy scans, distance-first victim checks)
+  [~] (S) Export builds: presets for macOS (universal) and Windows ready;
+          needs Godot's export templates installed to produce builds
+
+  Later (post-M8)
+  [ ] Sound and music, then volume settings
+  [ ] Economy tuning from playtests (costs, yields, tier requirements)
+  [ ] Minimap
 
   Done when: a new player can start, learn, grow to Kingdom, and win or lose.
 

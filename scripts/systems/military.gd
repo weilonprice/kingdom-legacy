@@ -119,6 +119,28 @@ func _spawn_troop(barracks: Building, unit_id: String) -> void:
 	squads_changed.emit()
 
 
+## Recreates a saved squad and its troops (see SaveGame).
+func restore_squad(barracks: Building, id: int, manual: bool, rally: Vector2i, order: Vector2i,
+		saved_troops: Array, queue: Array) -> void:
+	var squad := squad_for(barracks)
+	squad.id = id
+	_next_squad_id = maxi(_next_squad_id, id + 1)
+	squad.rally_tile = rally
+	squad.order_tile = order
+	squad.mode = Squad.Mode.MANUAL if manual else Squad.Mode.AUTO
+	for t: Dictionary in saved_troops:
+		var troop := Troop.new()
+		troop.setup(world, t.unit, squad, barracks.entrance())
+		troop.slot = squad.troops.size()
+		troop.health.hp = minf(float(t.hp), troop.health.max_hp)
+		troop.died.connect(_on_troop_died)
+		squad.troops.append(troop)
+		world.unit_root.add_child(troop)
+	if not queue.is_empty():
+		training[barracks] = {"queue": queue.duplicate(), "timer": UnitDefs.get_def(queue[0]).train_time}
+	squads_changed.emit()
+
+
 func _feed_and_pay() -> void:
 	var all := troops()
 	if all.is_empty():

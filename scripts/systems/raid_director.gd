@@ -72,9 +72,11 @@ func call_raid_now() -> void:
 ## Which enemies the next raid brings.
 func composition() -> Dictionary:
 	var tier := progression.tier if progression != null else 0
-	var goblins := 2 + floori(GameState.population / 6.0) + raids_survived + tier * 2
+	var goblins := 2 + floori(GameState.population / 8.0) + raids_survived + tier
+	# Lairs ramp up: +1 goblin each per raid survived, up to their full bonus,
+	# so the first raid isn't doubled for a brand-new town.
 	for lair in world.lairs():
-		goblins += int(lair.def.raid_bonus)
+		goblins += mini(int(lair.def.raid_bonus), raids_survived)
 	var brutes := 0
 	if raids_survived >= 1:
 		brutes = 1 + floori((raids_survived - 1) / 2.0) + tier
@@ -103,6 +105,18 @@ func begin_final_siege() -> void:
 	if phase == Phase.CALM:
 		_timer = FINAL_SIEGE_DELAY
 	GameState.notify("The Dragon has woken! It will lay siege to your Kingdom. Survive it to win.")
+
+
+## Raid clock, record and lairs from a save (see SaveGame).
+func restore(timer: float, survived: int, p_final_siege: bool, saved_lairs: Array) -> void:
+	_timer = timer
+	raids_survived = survived
+	final_siege = p_final_siege
+	for lair in world.lairs():
+		lair.queue_free()
+	for l: Dictionary in saved_lairs:
+		var lair := spawn_lair(l.t, l.id)
+		lair.health.hp = minf(l.hp, lair.health.max_hp)
 
 
 ## Puts goblin lairs out in the wilds: reachable, far from the Keep and from

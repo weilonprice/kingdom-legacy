@@ -15,15 +15,28 @@ var fire: FireSystem
 var build: BuildController
 var camera: CameraController
 var hud: HUD
+## How a load swaps in the saved game. The verify driver replaces this, since
+## changing scenes would free it.
+var reloader := func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn")
+
+const AUTOSAVE_INTERVAL := 300.0
+var _autosave_timer := AUTOSAVE_INTERVAL
 
 
 func _ready() -> void:
 	randomize()
+	var save: Dictionary = GameState.pending_load
+	GameState.pending_load = {}
 	GameState.reset()
+	if not save.is_empty():
+		GameState.difficulty = int(save.difficulty)
 
 	world = WorldMap.new()
+	world.width = int(save.get("size", GameState.MAP_SIZES[GameState.map_size].tiles)) if not save.is_empty() \
+		else GameState.MAP_SIZES[GameState.map_size].tiles
+	world.height = world.width
 	add_child(world)
-	world.generate(_seed_from_args())
+	world.generate(int(save.seed) if not save.is_empty() else _seed_from_args())
 	print("Map seed: %d" % world.map_seed)
 
 	citizens = CitizenManager.new()
@@ -87,6 +100,42 @@ func _ready() -> void:
 	world.keep_destroyed.connect(_on_defeat.bind("The Keep has fallen!"))
 	citizens.all_villagers_lost.connect(_on_defeat.bind("Your people have abandoned the kingdom."))
 	raids.final_siege_won.connect(_on_victory)
+	raids.raid_ended.connect(func(_n: int) -> void: autosave())
+	hud.set_save_actions(save_game, load_game)
+
+	if not save.is_empty():
+		SaveGame.apply(self, save)
+		GameState.notify("Game loaded (saved %s)." % str(save.saved_at).replace("T", " "))
+
+
+func _process(delta: float) -> void:
+	_autosave_timer -= delta
+	if _autosave_timer <= 0.0:
+		_autosave_timer = AUTOSAVE_INTERVAL
+		autosave()
+
+
+## Manual save (F5 or the game menu).
+func save_game() -> void:
+	var err := SaveGame.save(self, SaveGame.SLOT)
+	GameState.notify("Game saved." if err == "" else "Not saved: " + err)
+
+
+## Quiet save between raids; silently skipped during one.
+func autosave() -> void:
+	if SaveGame.save(self, SaveGame.AUTO) == "":
+		print("Autosaved")
+
+
+## Load a slot (F8 / game menu / title screen Continue).
+func load_game(slot: String) -> void:
+	var data := SaveGame.read(slot)
+	if data.is_empty():
+		GameState.notify("No saved game to load.")
+		return
+	GameState.pending_load = data
+	GameState.reset()
+	reloader.call()
 
 
 ## `godot --path . -- --seed=123` replays a specific map; otherwise the seed

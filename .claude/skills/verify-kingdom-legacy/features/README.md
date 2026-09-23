@@ -49,6 +49,7 @@ tools/verify/run.sh`, `Gotchas`.
 - [War economy](./war-economy.md): iron mine, smithy, wall tower, knights, goblin lairs, Call to Arms. Scenario `war-economy.json`.
 - [Final siege and victory](./final-siege.md): Kingdom tier wakes the Dragon, its phases, the victory screen. Scenario `final-siege.json`.
 - [Menu and tutorial hints](./menu-and-hints.md): title screen (seed, difficulty, hints), end-screen Main Menu, the goal panel. `menu_check.tscn` + scenario `tutorial-hints.json`.
+- [Save and load](./save-load.md): F5/F8, the ☰ game menu, autosave, refusal during raids. Scenario `save-load.json`.
 - [Tiers and research](./tiers-and-research.md): locked content, tier panel, reaching Village, Scholar's Hall research. Scenario `tiers-research.json`.
 
 Not yet mapped: food chain (farm, mill, bakery, fisher), demolish, storage
