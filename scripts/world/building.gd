@@ -332,34 +332,49 @@ func inspect_text() -> String:
 func _draw() -> void:
 	var tile := Terrain.TILE_SIZE
 	var px := Vector2(size * tile)
+	var sprite := Art.building(def_id)
+	# Top edge of what's drawn, for the health bar (tall sprites rise above
+	# their footprint).
+	var top := 0.0
+	if sprite != null:
+		# Bottom-aligned and centred on the footprint.
+		var at := Vector2((px.x - sprite.get_width()) * 0.5, px.y - sprite.get_height())
+		draw_texture(sprite, at)
+		top = minf(at.y, 0.0)
+	else:
+		_draw_placeholder(px)
+
+	if def.has("level_bonus"):
+		# One pip per house level, bottom-left.
+		for i in level:
+			draw_circle(Vector2(8 + i * 8, px.y - 6), 3, Color(1, 0.85, 0.3))
+			draw_arc(Vector2(8 + i * 8, px.y - 6), 3, 0, TAU, 8, Color(0.3, 0.2, 0.05), 1.0)
+
+	health.draw_bar(self, Vector2(px.x * 0.5, top - 7), minf(px.x - 4, 40))
+
+	if not has_road:
+		var font := ThemeDB.fallback_font
+		var c := Vector2(px.x - 9, maxf(top, 0.0) + 9)
+		draw_circle(c, 7, Color(0.85, 0.15, 0.1))
+		draw_string(font, c + Vector2(-2, 5), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)
+
+
+## Coloured block with a door and name, for buildings without a sprite yet.
+func _draw_placeholder(px: Vector2) -> void:
+	var tile := Terrain.TILE_SIZE
 	var base: Color = def.color
 	draw_rect(Rect2(Vector2(4, 4), px - Vector2(4, 4)), Color(0, 0, 0, 0.3))
 	draw_rect(Rect2(Vector2(2, 2), px - Vector2(4, 4)), base)
 	if size.x > 1:
 		draw_rect(Rect2(Vector2(6, 6), px - Vector2(12, 20)), base.darkened(0.25))
 	draw_rect(Rect2(Vector2(2, 2), px - Vector2(4, 4)), base.darkened(0.55), false, 2.0)
-
 	var door_x := (int(size.x * 0.5) + 0.5) * tile
 	draw_rect(Rect2(Vector2(door_x - 5, px.y - 12), Vector2(10, 10)), Color(0.25, 0.15, 0.08))
-
-	var font := ThemeDB.fallback_font
 	if size.x > 1:
-		draw_string(font, Vector2(6, 18), title, HORIZONTAL_ALIGNMENT_LEFT, px.x - 10, 11, Color(1, 1, 1, 0.95))
-
+		draw_string(ThemeDB.fallback_font, Vector2(6, 18), title, HORIZONTAL_ALIGNMENT_LEFT, px.x - 10, 11,
+			Color(1, 1, 1, 0.95))
 	if def.has("damage"):
 		# Crenellations so towers read differently from houses.
 		for i in 3:
 			draw_rect(Rect2(Vector2(3 + i * 10, 0), Vector2(6, 5)), base.darkened(0.4))
 		draw_circle(px * 0.5, 6, base.darkened(0.3))
-
-	if def.has("level_bonus"):
-		# One pip per house level, bottom-left.
-		for i in level:
-			draw_circle(Vector2(8 + i * 8, px.y - 8), 3, Color(1, 0.85, 0.3))
-
-	health.draw_bar(self, Vector2(px.x * 0.5, -7), minf(px.x - 4, 40))
-
-	if not has_road:
-		var c := Vector2(px.x - 9, 9)
-		draw_circle(c, 7, Color(0.85, 0.15, 0.1))
-		draw_string(font, c + Vector2(-2, 5), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.WHITE)

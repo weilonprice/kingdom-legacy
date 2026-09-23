@@ -21,6 +21,9 @@ OUT="$ROOT/.verify-evidence/$(date +%Y%m%d-%H%M%S)-$NAME"
 mkdir -p "$OUT"
 cp "$SCENARIO" "$OUT/scenario.json"
 
+# Import any new or changed assets (PNG art) so the game can load them.
+perl -e 'alarm shift; exec @ARGV' 180 "$GODOT" --headless --path "$ROOT" --import > "$OUT/import.log" 2>&1
+
 "$GODOT" --path "$ROOT" $HEADLESS --resolution 1600x900 res://tools/verify/driver.tscn \
   -- --scenario="$SCENARIO" --out="$OUT" --seed="$SEED" > "$OUT/godot.log" 2>&1 &
 PID=$!

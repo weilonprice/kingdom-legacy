@@ -65,6 +65,9 @@ var _dest: Building
 ## Haulers: the producer being supplied.
 var _supply_target: Building
 var _danger_timer := 0.0
+var _facing := "south"
+var _moving := false
+var _anim_time := 0.0
 
 
 func setup(p_world: WorldMap, p_home: Building) -> void:
@@ -151,6 +154,11 @@ func _wait(reason: String, seconds := 2.0) -> void:
 
 
 func _process(delta: float) -> void:
+	_anim_time += delta
+	var was_moving := _moving
+	_moving = not path.is_empty()
+	if _moving or was_moving:
+		queue_redraw()
 	_danger_timer -= delta
 	if _danger_timer <= 0.0:
 		_danger_timer = DANGER_CHECK_INTERVAL
@@ -180,6 +188,7 @@ func _process(delta: float) -> void:
 func _step(delta: float) -> void:
 	var target: Vector2 = world.tile_center(path[0]) + _jitter
 	var to_target := target - position
+	_facing = Art.facing(to_target, _facing)
 	var move := SPEED * GameState.mod("villager_speed") * world.speed_multiplier(current_tile()) * delta
 	if to_target.length() <= move:
 		position = target
@@ -599,19 +608,23 @@ func _finish_work() -> void:
 
 
 func _draw() -> void:
-	var body := COLOR_UNEMPLOYED
-	if job != null:
-		body = (job.def.color as Color).lightened(0.25)
-	draw_circle(Vector2(0, 3), 5.0, body.darkened(0.6))
-	draw_circle(Vector2(0, 3), 4.0, body)
-	draw_circle(Vector2(0, -4), 3.0, COLOR_SKIN)
+	var top := Art.draw_character(self, "villager", _facing, _moving, _anim_time)
+	if is_nan(top):
+		top = -8.0
+		var body := COLOR_UNEMPLOYED
+		if job != null:
+			body = (job.def.color as Color).lightened(0.25)
+		draw_circle(Vector2(0, 3), 5.0, body.darkened(0.6))
+		draw_circle(Vector2(0, 3), 4.0, body)
+		draw_circle(Vector2(0, -4), 3.0, COLOR_SKIN)
 	if carrying != "":
 		var c := ItemDefs.color_of(carrying)
-		draw_rect(Rect2(Vector2(3, -3), Vector2(6, 6)), c)
-		draw_rect(Rect2(Vector2(3, -3), Vector2(6, 6)), c.darkened(0.5), false, 1.0)
+		var box := Rect2(Vector2(4, top + 12), Vector2(7, 7))
+		draw_rect(box, c)
+		draw_rect(box, c.darkened(0.5), false, 1.0)
 	if missed_meals > 0:
-		draw_circle(Vector2(-5, -8), 2.0, Color(0.9, 0.15, 0.1))
-	health.draw_bar(self, Vector2(0, -12), 12)
+		draw_circle(Vector2(-6, top + 2), 2.5, Color(0.9, 0.15, 0.1))
+	health.draw_bar(self, Vector2(0, top - 4), 12)
 
 
 func set_missed_meals(value: int) -> void:

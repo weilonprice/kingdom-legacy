@@ -104,6 +104,9 @@ func _ready() -> void:
 	build.mode_changed.connect(func(text: String) -> void: _mode_label.text = text)
 	build.message.connect(show_message)
 	_show_category(0)
+	for child in get_children():
+		if child is Control:
+			child.theme = UiTheme.get_theme()
 	_refresh_resources()
 	_refresh_population()
 	_refresh_speed()
@@ -160,15 +163,19 @@ func _build_top_bar() -> void:
 	add_child(bar)
 	bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 20)
+	row.add_theme_constant_override("separation", 8)
 	bar.add_child(row)
 	_tier_button = _button(row, "", "Settlement tier — click (or T) for what the next tier needs")
 	_tier_button.pressed.connect(func() -> void: _tier_panel.toggle())
 	# Info labels share the leftover width and truncate, so the speed buttons
 	# on the right always stay on screen however long the numbers get.
+	_bar_icon(row, "wood")
 	_materials_label = _bar_label(row, 1.3)
+	_bar_icon(row, "bread")
 	_food_label = _bar_label(row, 1.8)
+	_bar_icon(row, "gold")
 	_gold_label = _bar_label(row, 1.0)
+	_bar_icon(row, "villager")
 	_pop_label = _bar_label(row, 1.0)
 	_raid_label = _bar_label(row, 0.8)
 	_clock_label = _bar_label(row, 0.6)
@@ -246,6 +253,19 @@ func _bar_label(parent: Control, stretch: float) -> Label:
 	label.mouse_filter = Control.MOUSE_FILTER_PASS  # for the full-text tooltip
 	parent.add_child(label)
 	return label
+
+
+## A small icon before a top-bar label (skipped if the icon art is missing).
+func _bar_icon(parent: Control, name: String) -> void:
+	var tex := UiTheme.icon(name)
+	if tex == null:
+		return
+	var rect := TextureRect.new()
+	rect.texture = tex
+	rect.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	rect.custom_minimum_size = Vector2(24, 24)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(rect)
 
 
 ## Sets a bar label's text, keeping the untruncated version in its tooltip.

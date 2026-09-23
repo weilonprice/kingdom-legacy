@@ -22,6 +22,8 @@ var target: Enemy
 var _goal_tile := WorldMap.INVALID_TILE
 var _think_timer := 0.0
 var _attack_timer := 0.0
+var _facing := "south"
+var _anim_time := 0.0
 
 
 func setup(p_world: WorldMap, id: String, p_squad: Squad, spawn_tile: Vector2i) -> void:
@@ -56,6 +58,8 @@ func attack_distance() -> float:
 
 
 func _process(delta: float) -> void:
+	_anim_time += delta
+	queue_redraw()
 	_attack_timer -= delta
 	_think_timer -= delta
 	if _think_timer <= 0.0:
@@ -137,6 +141,7 @@ func _path_to(t: Vector2i) -> void:
 func _step(delta: float) -> void:
 	var goal: Vector2 = world.tile_center(path[0])
 	var to_goal := goal - position
+	_facing = Art.facing(to_goal, _facing)
 	var move: float = def.speed * world.speed_multiplier(current_tile()) * delta
 	if to_goal.length() <= move:
 		position = goal
@@ -161,9 +166,15 @@ func _heal_near_barracks(delta: float) -> void:
 
 
 func _draw() -> void:
-	var body: Color = def.color
 	if squad.selected:
-		draw_arc(Vector2(0, 4), 8.0, 0, TAU, 20, Color(0.4, 1.0, 0.4), 1.5)
+		draw_arc(Vector2(0, 1), 9.0, 0, TAU, 20, Color(0.4, 1.0, 0.4), 1.5)
+	if target != null and is_instance_valid(target) and path.is_empty():
+		_facing = Art.facing(target.position - position, _facing)
+	var top := Art.draw_character(self, unit_id, _facing, not path.is_empty(), _anim_time)
+	if not is_nan(top):
+		health.draw_bar(self, Vector2(0, top - 4), 14)
+		return
+	var body: Color = def.color
 	draw_circle(Vector2(0, 3), 5.5, body.darkened(0.6))
 	draw_circle(Vector2(0, 3), 4.5, body)
 	draw_circle(Vector2(0, -4), 3.2, Color(0.75, 0.75, 0.78))  # helmet
