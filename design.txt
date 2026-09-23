@@ -232,6 +232,13 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   from Town tier, trolls from the 5th raid or City tier.
 
 
+  SEASONS (M9): the year runs autumn → winter → spring → summer, 3 days
+  each (about 10 minutes), starting in autumn. The map's art changes with
+  the season. Winter: crops stop growing, and each occupied home burns 1
+  wood a minute; homes without firewood are cold (-20 happiness). The
+  clock in the top bar shows the season and days left.
+
+
 11. CONTROLS
 --------------------------------------------------------------------------------
   Pan camera        WASD / Arrow keys / Middle-mouse drag
@@ -290,6 +297,23 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
         outline, 4 directions, 4-frame walk cycles.
       - HUD: PixelLab pixel serif font, dark wood panels with gold trim,
         small resource icons.
+  - M9 ART DIRECTION (target: a warm, busy storybook town; autumn and
+    winter reference images from the user):
+      - Seasonal art sets in assets/tiles/<season>/ and
+        assets/sprites/buildings/<season>/: autumn (warm golden grass with
+        fallen leaves, pale sandy paths), winter (snow, snowed-on roofs for
+        all 26 buildings), summer/spring (lush green). Autumn grass is
+        hue-shifted toward gold after generation.
+      - Forests are individual trees (autumn oak/gold, pine; summer oak;
+        snowy pine, bare snowy oak), rocky ground is scattered boulders,
+        both y-sorted with villagers (scripts/world/nature.gd).
+      - Props: wild ones on open grass (flowers, stumps, mushrooms,
+        pumpkins) and fitting ones beside buildings (crates by storehouses,
+        hay and carts by farms, firewood by woodcutters, stalls by markets).
+      - Stone walls from art pieces with round towers where they turn or
+        end, a gatehouse for gates; the Keep's art grows to a Castle and a
+        Citadel with the tier.
+      - Farms grow wheat, cabbages, pumpkins or tomatoes (per farm).
   - Every art file is optional: if one is missing the game draws the old
     placeholder shape for it.
   - PixelLab budget: Tier 1 subscription (2000 generations per cycle). Real
@@ -359,11 +383,13 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   [DONE]  M8a Main menu, tutorial hints, final siege and Dragon, victory
   [DONE]  M8b Save/load, map sizes, balance and performance passes, export
               presets
+  [DONE]  M9  Art direction: seasonal art (autumn, winter, summer), trees,
+              boulders, props, stone walls, growing castle, crop variety;
+              seasons cycle with winter firewood and frozen fields
 
 
 16. OPEN QUESTIONS
 --------------------------------------------------------------------------------
-  - Seasons / winter (food and firewood pressure)?
   - Should roads have tiers (dirt -> cobblestone) with speed bonuses?
   - Trade with traveling merchants / neighboring kingdoms?
   - Hero / lord character that the player controls directly?

@@ -299,7 +299,22 @@ M8 — COMPLETE GAME LOOP                                   Goal: shippable demo
   [~] (S) Export builds: presets for macOS (universal) and Windows ready;
           needs Godot's export templates installed to produce builds
 
-  Later (post-M8)
+================================================================================
+M9 — ART DIRECTION & SEASONS (done)                 Goal: look like the reference
+================================================================================
+  [x] (M) Seasonal art sets: autumn, winter, summer/spring tilesets;
+          snowy variants of all 26 buildings -> Art.season, assets/*/<season>/
+  [x] (M) Individual trees and boulders instead of forest/rock carpets;
+          wild and building-side props -> scripts/world/nature.gd
+  [x] (M) Stone walls from art pieces with corner towers; gatehouse;
+          Keep art grows to Castle and Citadel
+  [x] (S) Crop variety on farms (wheat, cabbage, pumpkin, tomato)
+  [x] (M) Seasons cycle: 3 days per season; winter freezes fields and burns
+          firewood -> scripts/systems/seasons.gd
+  [ ] (M) Rivers and stone-edged canals (need bridges first)
+  [ ] (S) Wooden palisade art, snowy walls
+
+  Later
   [ ] Sound and music, then volume settings
   [ ] Economy tuning from playtests (costs, yields, tier requirements)
   [ ] Minimap

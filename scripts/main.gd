@@ -12,6 +12,7 @@ var needs: Needs
 var overlay: Overlay
 var day_night: DayNight
 var fire: FireSystem
+var seasons: Seasons
 var build: BuildController
 var camera: CameraController
 var hud: HUD
@@ -31,6 +32,7 @@ func _ready() -> void:
 	if not save.is_empty():
 		GameState.difficulty = int(save.difficulty)
 
+	Art.season = GameState.season
 	world = WorldMap.new()
 	world.width = int(save.get("size", GameState.MAP_SIZES[GameState.map_size].tiles)) if not save.is_empty() \
 		else GameState.MAP_SIZES[GameState.map_size].tiles
@@ -52,12 +54,19 @@ func _ready() -> void:
 	day_night.world = world
 	add_child(day_night)
 
+	seasons = Seasons.new()
+	seasons.world = world
+	add_child(seasons)
+	day_night.day_started.connect(seasons.on_new_day)
+	seasons.season_changed.connect(func(_s: String) -> void: world.growth_paused = seasons.is_winter())
+
 	fire = FireSystem.new()
 	fire.world = world
 	add_child(fire)
 
 	needs = Needs.new()
 	needs.setup(world, citizens)
+	needs.seasons = seasons
 	add_child(needs)
 
 	research = Research.new()

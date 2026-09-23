@@ -13,6 +13,8 @@ const NEEDS := {
 	"religion": {"name": "Religion", "met": 10.0, "unmet": 0.0},
 	"market": {"name": "Market", "met": 10.0, "unmet": 0.0},
 	"tavern": {"name": "Tavern", "met": 10.0, "unmet": 0.0},
+	# Winter only: homes need firewood (see Seasons).
+	"warmth": {"name": "Warmth", "met": 0.0, "unmet": -20.0},
 }
 const ORDER := ["food", "water", "religion", "market", "tavern"]
 const BASE_HAPPINESS := 50.0

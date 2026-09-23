@@ -37,6 +37,8 @@ var difficulty := 1
 const MAP_SIZES := [{"name": "Small", "tiles": 96}, {"name": "Normal", "tiles": 128}, {"name": "Large", "tiles": 160}]
 var map_size := 1
 var hints_enabled := true
+## Which seasonal art set the map uses ("" = the original green one).
+var season := "autumn"
 ## Where saves go (tests point this elsewhere so they never touch real saves).
 var save_dir := "user://saves"
 ## A save to apply when the game scene starts (set by Load / Continue).
@@ -67,6 +69,7 @@ func reset() -> void:
 	employed = 0
 	jobs = 0
 	game_over = false
+	season = "autumn"
 	modifiers = {}
 	tax_rate = NeedDefs.DEFAULT_TAX_RATE
 	happiness = NeedDefs.BASE_HAPPINESS

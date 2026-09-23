@@ -65,7 +65,13 @@ func _ready() -> void:
 	add_child(unit_root)
 
 
+## Winter: crops stop growing (see Seasons).
+var growth_paused := false
+
+
 func _process(delta: float) -> void:
+	if growth_paused:
+		return
 	for t: Vector2i in fields:
 		var field: Dictionary = fields[t]
 		if field.stage == FieldStage.GROWING:
@@ -380,6 +386,7 @@ func place_building(id: String, origin: Vector2i) -> Building:
 	for t in b.footprint():
 		occupancy[t] = b
 		_update_nav(t)
+		renderer.nature.refresh_tile(t)
 	if not BuildingDefs.is_fortification(b.def):
 		entrances[b.entrance()] = b
 	if b.def.has("fields"):
@@ -387,6 +394,7 @@ func place_building(id: String, origin: Vector2i) -> Building:
 	b.refresh_road_access()
 	_redraw_fortifications_around(b)
 	recompute_capacity()
+	renderer.nature.decorate_building(b)
 	building_placed.emit(b)
 	return b
 
@@ -395,6 +403,7 @@ func remove_building(b: Building) -> void:
 	for t in b.footprint():
 		occupancy.erase(t)
 		_update_nav(t)
+		renderer.nature.refresh_tile(t)
 	if entrances.get(b.entrance()) == b:
 		entrances.erase(b.entrance())
 	for t in b.fields:

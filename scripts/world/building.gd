@@ -14,6 +14,8 @@ var fields: Array[Vector2i] = []
 var health: Health
 ## Display name (the Keep is renamed as the settlement grows).
 var title := ""
+## Which sprite to draw (the Keep becomes a castle, then a citadel).
+var art_id := ""
 ## HP and storage before research bonuses; the Keep's grow with the tier.
 var base_hp := 200.0
 var base_capacity := 0
@@ -46,6 +48,7 @@ func setup(p_world: WorldMap, id: String, p_origin: Vector2i) -> void:
 	size = def.size
 	position = Vector2(origin * Terrain.TILE_SIZE)
 	title = def.name
+	art_id = id
 	base_hp = def.get("hp", 200.0)
 	base_capacity = def.get("capacity", 0)
 	health = Health.new(base_hp * GameState.mod("building_hp"))
@@ -380,7 +383,7 @@ func _draw() -> void:
 		_draw_fortification()
 		health.draw_bar(self, Vector2(px.x * 0.5, -23.0 if def.has("damage") else -7.0), px.x - 4)
 		return
-	var sprite := Art.building(def_id)
+	var sprite := Art.building(art_id)
 	# Top edge of what's drawn, for the health bar (tall sprites rise above
 	# their footprint).
 	var top := 0.0
@@ -448,6 +451,11 @@ func _links() -> Dictionary:
 ## 3/4 view: wall faces are 12px tall, their tops a lighter band.
 func _draw_fortification() -> void:
 	var links := _links()
+	if not def.get("flammable", true) or def.get("gate", false):
+		if _draw_stone_art(links):
+			if burning:
+				_draw_fire(Vector2(32, 32))
+			return
 	var stone: bool = not def.get("flammable", true)
 	var base: Color = def.color
 	var face := base.darkened(0.25)
@@ -488,6 +496,41 @@ func _draw_fortification() -> void:
 		draw_rect(Rect2(Vector2(10, 6), Vector2(12, 20)), dark, false, 1.0)
 	if burning:
 		_draw_fire(Vector2(32, 32))
+
+
+const WALL_ART := "res://assets/sprites/walls/%s.png"
+## Where the foot of a wall face sits within the tile.
+const WALL_BASE := 28.0
+
+
+## Stone walls, gates and wall towers from PixelLab pieces: a wall run toward
+## each linked neighbour, and a round tower where the wall turns or ends.
+## False when the art isn't there (the code-drawn wall is used instead).
+func _draw_stone_art(links: Dictionary) -> bool:
+	var h := Art.texture(WALL_ART % "stone_h")
+	var v := Art.texture(WALL_ART % "stone_v")
+	var tower := Art.texture(WALL_ART % "tower")
+	if h == null or v == null or tower == null:
+		return false
+	if def.get("gate", false):
+		var gate := Art.texture(WALL_ART % "gatehouse")
+		if gate != null:
+			draw_texture(gate, Vector2(16 - gate.get_width() * 0.5, WALL_BASE + 6 - gate.get_height()))
+			return true
+	var hh := float(h.get_height())
+	if links.n or links.s:
+		var top := -12.0 if links.n else 8.0
+		var bottom := 20.0 if links.s else WALL_BASE
+		draw_texture_rect(v, Rect2(16 - v.get_width() * 0.5, top, v.get_width(), bottom - top), true)
+	if links.w or links.e:
+		var x0 := 0.0 if links.w else 16.0
+		var x1 := 32.0 if links.e else 16.0
+		draw_texture_rect(h, Rect2(x0, WALL_BASE - hh, x1 - x0, hh), true)
+	var straight: bool = (links.w and links.e and not links.n and not links.s) \
+		or (links.n and links.s and not links.w and not links.e)
+	if not straight or def.has("damage"):
+		draw_texture(tower, Vector2(16 - tower.get_width() * 0.5, WALL_BASE + 6 - tower.get_height()))
+	return true
 
 
 func _wall_block(r: Rect2, face: Color, top: Color, dark: Color, stone: bool) -> void:

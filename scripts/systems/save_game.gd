@@ -116,6 +116,8 @@ static func capture(main: Node) -> Dictionary:
 		"raids": {"timer": main.raids._timer, "survived": main.raids.raids_survived,
 			"final_siege": main.raids.final_siege},
 		"day": main.day_night.day,
+		"season": main.seasons.index,
+		"season_days": main.seasons.days_in,
 		"clock": main.day_night.clock,
 		"tax_rate": GameState.tax_rate,
 		"camera": [cam.x, cam.y],
@@ -183,6 +185,9 @@ static func apply(main: Node, data: Dictionary) -> void:
 	main.raids.restore(float(data.raids.timer), int(data.raids.survived), bool(data.raids.final_siege),
 		data.lairs.map(func(l: Dictionary) -> Dictionary: return {"t": _t(l.t), "id": l.id, "hp": float(l.hp)}))
 
+	main.seasons.set_season(int(data.get("season", 0)), false)
+	main.seasons.days_in = int(data.get("season_days", 0))
+	main.world.growth_paused = main.seasons.is_winter()
 	main.day_night.day = int(data.day)
 	main.day_night.clock = float(data.clock)
 	main.camera.position = Vector2(data.camera[0], data.camera[1])

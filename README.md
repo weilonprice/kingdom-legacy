@@ -6,12 +6,12 @@ Grow a hamlet into a kingdom. Lay roads, build farms, mills and bakeries, keep
 your people fed, housed and happy, then train an army and raise towers before
 the next raid hits. Made with Godot 4.
 
-![A village by a lake: the castle Keep, thatched cottages, a barracks, villagers on the dirt road, and a selected squad marching south](docs/screenshots/village-overview.png)
+![An autumn town by a lake: golden grass, orange and gold trees, a stone curtain wall with round towers and a gatehouse, the Keep, thatched cottages, a farm, and villagers on a sandy road](docs/screenshots/village-overview.png)
 
 > **Status: playable, start to finish.** Milestones M0–M8 are done: economy,
 > raids, troops, tiers, research, needs, day/night, pixel art, walls, fire,
 > the war economy, a main menu, tutorial hints, the Dragon's final siege,
-> and save/load. See the [roadmap](roadmap.txt).
+> save/load, and a seasonal art direction (M9). See the [roadmap](roadmap.txt).
 
 ## Features
 
@@ -48,6 +48,9 @@ the next raid hits. Made with Godot 4.
   Castle and then a Citadel. The raids grow with you.
 - **Day and night.** At dusk the town goes quiet as villagers head home to
   sleep. Guards stay on watch.
+- **Seasons.** The year turns from autumn to winter, spring and summer, and
+  the whole map changes with it: golden leaves, then snow on every roof. In
+  winter the fields freeze and every home burns firewood.
 - **Procedural maps.** Every game is a new 128×128 map. Pass a seed to replay
   one.
 
@@ -55,6 +58,8 @@ the next raid hits. Made with Godot 4.
 
 | | |
 |---|---|
+| ![The same town in winter: snow on the ground and every roof, snowy pines and bare trees](docs/screenshots/winter.png) | ![The same town in summer: green grass and leafy trees](docs/screenshots/summer.png) |
+| **Winter.** Snow on every roof; fields stop growing and homes burn firewood. | **Summer.** The same town a few seasons later. |
 | ![Home panel showing needs met and missing](docs/screenshots/needs-panel.png) | ![A goblin raid with manned guard towers and the raid banner](docs/screenshots/raid.png) |
 | **Needs.** A Chapel turned this home into a Townhouse. A market and a tavern would make it a Manor. | **Raids.** Manned guard towers wait for 2 goblins; the red arrow points at them off-screen. |
 | ![The service-coverage overlay: coverage circles and need dots on each home](docs/screenshots/services-overlay.png) | ![The town at night, everyone asleep](docs/screenshots/night.png) |
@@ -194,6 +199,7 @@ after its scenarios pass.
 | M7b | Iron, smithy and armory, knights, goblin lairs, wall towers, Call to Arms ✅ |
 | M8a | Main menu, tutorial hints, the Dragon's final siege, victory ✅ |
 | M8b | Save/load, map sizes, balance and performance passes, export presets ✅ |
+| M9 | Art direction: autumn/winter/summer art, trees, props, castle walls, seasons ✅ |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 
