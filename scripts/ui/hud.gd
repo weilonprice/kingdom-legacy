@@ -26,6 +26,7 @@ var _pop_label: Label
 var _raid_label: Label
 var _clock_label: Label
 var _banner: Label
+var _arms_button: Button
 var _game_over: GameOverPanel
 var _squad_panel: SquadPanel
 var _tier_button: Button
@@ -90,6 +91,12 @@ func _ready() -> void:
 	_banner = _outlined_label(Vector2.ZERO)
 	_banner.add_theme_font_size_override("font_size", 24)
 	_banner.add_theme_color_override("font_color", Color(1, 0.4, 0.3))
+	_arms_button = Button.new()
+	_arms_button.tooltip_text = "During a raid, villagers near raiders fight them with pitchforks instead of hiding (C)"
+	_arms_button.focus_mode = Control.FOCUS_NONE
+	_arms_button.visible = false
+	add_child(_arms_button)
+	_arms_button.pressed.connect(_toggle_call_to_arms)
 	_game_over = GameOverPanel.new()
 	add_child(_game_over)
 
@@ -143,6 +150,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_tier_panel.toggle()
 	elif event.keycode == KEY_F9:
 		raids.call_raid_now()
+	elif event.keycode == KEY_C and raids.phase == RaidDirector.Phase.ACTIVE:
+		_toggle_call_to_arms()
 	elif event.keycode == KEY_TAB:
 		_show_category((_category + 1) % BuildingDefs.CATEGORIES.size())
 	elif event.keycode in ITEM_HOTKEYS and not event.ctrl_pressed:
@@ -292,6 +301,12 @@ func show_defeat(title: String, body: String) -> void:
 	_game_over.show_defeat(title, body)
 
 
+func _toggle_call_to_arms() -> void:
+	world.call_to_arms = not world.call_to_arms
+	GameState.notify("To arms! Villagers take up pitchforks against the raiders." if world.call_to_arms
+		else "The villagers stand down and go back to work.")
+
+
 func _update_raid_ui(vp: Vector2) -> void:
 	match raids.phase:
 		RaidDirector.Phase.CALM:
@@ -304,11 +319,15 @@ func _update_raid_ui(vp: Vector2) -> void:
 				raids.direction_name(), ceili(raids.time_until_raid())]
 		RaidDirector.Phase.ACTIVE:
 			_set_bar(_raid_label, "Raid!", "Raid in progress")
-			_banner.text = "⚔ Raid! %d goblin%s remaining ⚔" % [
+			_banner.text = "⚔ Raid! %d raider%s remaining ⚔" % [
 				world.enemies.size(), "" if world.enemies.size() == 1 else "s"]
 	_banner.visible = _banner.text != ""
 	_banner.reset_size()
 	_banner.position = Vector2((vp.x - _banner.size.x) * 0.5, 48)
+	_arms_button.visible = raids.phase == RaidDirector.Phase.ACTIVE
+	_arms_button.text = "Stand down (C)" if world.call_to_arms else "⚒ Call to Arms (C)"
+	_arms_button.reset_size()
+	_arms_button.position = Vector2((vp.x - _arms_button.size.x) * 0.5, 48 + _banner.size.y + 4)
 
 
 # --- Refresh ----------------------------------------------------------------

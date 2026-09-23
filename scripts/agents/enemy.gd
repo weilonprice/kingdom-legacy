@@ -7,6 +7,10 @@ extends Node2D
 ##   raider  - farms and gatherers first (outlying economy)
 ##   siege   - walls, gates and towers first
 ##   support - follows the war band and heals it; never targets buildings
+##   lair    - a den in the wilds: never moves, sends guards at nearby troops
+## Lairs and their guards are "wild": they live in world.wild instead of
+## world.enemies, so they don't count as raiders. Guards keep to `guard_post`
+## unless a troop or villager comes within aggro range.
 ## Raiders path on the enemy grid, where walls and gates are passable but
 ## costly; when the next step is a wall or gate they stop and smash it.
 
@@ -25,6 +29,10 @@ var exit_tile := Vector2i.ZERO
 var loot_item := ""
 var loot_amount := 0
 var path: Array[Vector2i] = []
+var wild := false
+var guard_post := WorldMap.INVALID_TILE
+## Lairs: the guards they have sent out.
+var guards: Array[Enemy] = []
 
 var _goal_tile := WorldMap.INVALID_TILE
 var _think_timer := 0.0
@@ -49,11 +57,15 @@ func setup(p_world: WorldMap, id: String, spawn_tile: Vector2i, p_exit_tile: Vec
 
 
 func _enter_tree() -> void:
-	world.enemies.append(self)
+	(world.wild if wild else world.enemies).append(self)
 
 
 func _exit_tree() -> void:
-	world.enemies.erase(self)
+	(world.wild if wild else world.enemies).erase(self)
+
+
+func is_lair() -> bool:
+	return def.behavior == "lair"
 
 
 func current_tile() -> Vector2i:
@@ -112,6 +124,9 @@ func _path_to(t: Vector2i) -> void:
 # --- Decisions --------------------------------------------------------------
 
 func _think() -> void:
+	if is_lair():
+		_lair_think()
+		return
 	if state == State.FLEE:
 		_path_to(exit_tile)
 		return
@@ -124,6 +139,12 @@ func _think() -> void:
 	var victim := _nearest_victim()
 	if victim != null:
 		target = victim
+	elif guard_post != WorldMap.INVALID_TILE:
+		# Lair guards return to the den when nobody is close.
+		target = null
+		state = State.ADVANCE
+		_path_to(guard_post)
+		return
 	elif target == null or not target is Building:
 		target = _pick_primary_target()
 	if target == null:
@@ -183,6 +204,31 @@ func _nearest_ally() -> Enemy:
 			best_dist = d
 			best = e
 	return best
+
+
+## Sends out a guard at a time while troops are near, up to `guards` alive.
+func _lair_think() -> void:
+	guards.assign(guards.filter(func(g: Variant) -> bool: return is_instance_valid(g) and not g.health.is_dead()))
+	_heal_timer -= THINK_INTERVAL
+	if _heal_timer > 0.0 or guards.size() >= int(def.guards):
+		return
+	var radius: float = def.guard_radius * Terrain.TILE_SIZE
+	var threatened := get_tree().get_nodes_in_group("troops").any(
+		func(t: Troop) -> bool: return t.is_targetable() and t.position.distance_to(position) <= radius)
+	if not threatened:
+		return
+	_heal_timer = def.guard_interval
+	var tile := world.nearest_walkable(current_tile() + Vector2i(randi_range(-1, 1), 2))
+	if tile == WorldMap.INVALID_TILE:
+		return
+	var g := Enemy.new()
+	g.wild = true
+	g.guard_post = tile
+	g.setup(world, def.guard, tile, tile)
+	g.def = g.def.duplicate()
+	g.def.aggro = def.guard_radius
+	world.unit_root.add_child(g)
+	guards.append(g)
 
 
 func _heal_allies() -> void:
@@ -275,6 +321,9 @@ func _flee() -> void:
 
 
 func _on_died() -> void:
+	if is_lair():
+		GameState.add_resource("gold", def.bounty)
+		GameState.notify("The %s is destroyed! +%d gold. Raids will be smaller." % [def.name, def.bounty])
 	if loot_amount > 0:
 		GameState.add_resource(loot_item, loot_amount)
 		GameState.notify("Recovered %d %s from a slain goblin" % [loot_amount, loot_item])

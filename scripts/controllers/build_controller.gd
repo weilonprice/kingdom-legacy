@@ -48,7 +48,7 @@ func select(id: String) -> void:
 				message.emit("%s: %s" % [BuildingDefs.get_def(id).name, locked])
 				return
 			build_id = id
-			mode = Mode.WALL if BuildingDefs.get_def(id).get("wall", false) else Mode.BUILD
+			mode = Mode.WALL if BuildingDefs.get_def(id).get("drag", false) else Mode.BUILD
 	_dragging = false
 	mode_changed.emit(mode_text())
 	queue_redraw()

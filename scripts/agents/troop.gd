@@ -86,27 +86,32 @@ func _think() -> void:
 
 func _choose_target() -> Enemy:
 	var anchor_pos := world.tile_center(squad.anchor_tile())
-	if squad.focus != null and is_instance_valid(squad.focus) and not squad.focus.health.is_dead():
-		return squad.focus
+	var focus: Enemy = squad.focus
+	if focus != null and (not is_instance_valid(focus) or focus.health.is_dead()):
+		focus = null
+	if focus != null and not focus.is_lair():
+		return focus
 	# Keep fighting the current target while it's still a threat or within the leash.
-	if target != null and is_instance_valid(target) and not target.health.is_dead() \
+	if target != null and is_instance_valid(target) and not target.health.is_dead() and not target.is_lair() \
 			and (squad.is_threat(target, world)
 				or target.position.distance_to(anchor_pos) <= Squad.LEASH_TILES * Terrain.TILE_SIZE):
 		return target
 	var best: Enemy = null
 	var best_dist := INF
-	for e in world.enemies:
-		if not squad.is_threat(e, world):
+	for e in world.hostiles():
+		if e.is_lair() or not squad.is_threat(e, world):
 			continue
 		var d := position.distance_squared_to(e.position)
 		if d < best_dist:
 			best_dist = d
 			best = e
-	return best
+	# Assaulting a lair: fight off its guards first, then hit the den.
+	return best if best != null else focus
 
 
 func _in_range(e: Enemy) -> bool:
-	return position.distance_to(e.position) <= attack_distance()
+	var extra: float = e.def.radius if e.is_lair() else 0.0
+	return position.distance_to(e.position) <= attack_distance() + extra
 
 
 func _attack() -> void:

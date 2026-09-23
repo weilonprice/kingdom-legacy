@@ -14,7 +14,9 @@ extends RefCounted
 ## Fortifications (`wall` / `gate`) are 1x1, need no entrance or road, and
 ## block villagers (gates let them through). Raiders can walk through them
 ## only by smashing them; `siege_cost` is how hard their pathfinding avoids
-## that. Buildings without `flammable: false` can catch fire.
+## that. `drag` walls are laid with the wall drag tool. Towers with
+## `auto_guard` shoot without a guard inside. Buildings without
+## `flammable: false` can catch fire.
 
 const DEFS := {
 	"keep": {
@@ -142,6 +144,48 @@ const DEFS := {
 		"yield": 3,
 		"work_time": 6.0,
 	},
+	"iron_mine": {
+		"name": "Iron Mine",
+		"desc": "Miners dig iron ore out of nearby rocks.",
+		"size": Vector2i(2, 2),
+		"cost": {"wood": 40, "stone": 20},
+		"color": Color(0.50, 0.36, 0.30),
+		"jobs": 2,
+		"work": "gather",
+		"gather_terrain": Terrain.STONE,
+		"resource": "iron",
+		"radius": 10,
+		"yield": 2,
+		"work_time": 8.0,
+		"hp": 300.0,
+	},
+	"smithy": {
+		"name": "Smithy",
+		"desc": "Forges iron into weapons for spearmen, archers and knights.",
+		"size": Vector2i(2, 2),
+		"cost": {"wood": 40, "stone": 30},
+		"color": Color(0.40, 0.35, 0.35),
+		"jobs": 1,
+		"work": "produce",
+		"input": {"iron": 2},
+		"output": {"weapons": 1},
+		"work_time": 12.0,
+		"hp": 300.0,
+	},
+	"armory": {
+		"name": "Armory",
+		"desc": "Hammers iron into plate armor for knights.",
+		"size": Vector2i(2, 2),
+		"cost": {"wood": 40, "stone": 50},
+		"color": Color(0.45, 0.40, 0.48),
+		"jobs": 1,
+		"work": "produce",
+		"input": {"iron": 3},
+		"output": {"armor": 1},
+		"work_time": 16.0,
+		"hp": 400.0,
+		"flammable": false,
+	},
 	"farm": {
 		"name": "Farm",
 		"desc": "Tills up to 8 fields around it and grows wheat.",
@@ -230,7 +274,7 @@ const DEFS := {
 		"cost": {"wood": 60, "stone": 30},
 		"color": Color(0.55, 0.30, 0.25),
 		"hp": 450.0,
-		"trains": ["militia", "spearman", "archer"],
+		"trains": ["militia", "spearman", "archer", "knight"],
 		"troop_capacity": 6,
 	},
 	"palisade": {
@@ -241,6 +285,7 @@ const DEFS := {
 		"color": Color(0.52, 0.36, 0.20),
 		"hp": 250.0,
 		"wall": true,
+		"drag": true,
 		"siege_cost": 20.0,
 	},
 	"stone_wall": {
@@ -251,8 +296,24 @@ const DEFS := {
 		"color": Color(0.58, 0.58, 0.60),
 		"hp": 800.0,
 		"wall": true,
+		"drag": true,
 		"siege_cost": 45.0,
 		"flammable": false,
+	},
+	"wall_tower": {
+		"name": "Wall Tower",
+		"desc": "A turret that joins your walls. Its own archers shoot raiders in range; no guard needed.",
+		"size": Vector2i(1, 1),
+		"cost": {"wood": 10, "stone": 30},
+		"color": Color(0.52, 0.52, 0.56),
+		"hp": 700.0,
+		"wall": true,
+		"siege_cost": 40.0,
+		"flammable": false,
+		"auto_guard": true,
+		"range": 7,
+		"damage": 8.0,
+		"attack_cooldown": 1.4,
 	},
 	"gate": {
 		"name": "Gate",
@@ -266,7 +327,7 @@ const DEFS := {
 	},
 	"stockpile": {
 		"name": "Stockpile",
-		"desc": "Stores 150 materials (wood, stone).",
+		"desc": "Stores 150 materials (wood, stone, iron, weapons, armor).",
 		"size": Vector2i(2, 2),
 		"cost": {"wood": 15},
 		"color": Color(0.64, 0.56, 0.36),
@@ -297,10 +358,11 @@ const DEFS := {
 ## Build menu tabs. Road and Demolish are always-visible tools.
 const CATEGORIES := [
 	{"name": "Housing", "items": ["house", "stone_house", "well"]},
-	{"name": "Resources", "items": ["woodcutter", "quarry"]},
+	{"name": "Resources", "items": ["woodcutter", "quarry", "iron_mine"]},
+	{"name": "Industry", "items": ["smithy", "armory"]},
 	{"name": "Food", "items": ["farm", "fisher", "mill", "bakery"]},
 	{"name": "Storage", "items": ["stockpile", "granary", "warehouse", "carter"]},
-	{"name": "Defense", "items": ["guard_tower", "stone_tower", "barracks", "palisade", "gate", "stone_wall"]},
+	{"name": "Defense", "items": ["guard_tower", "stone_tower", "barracks", "palisade", "gate", "stone_wall", "wall_tower"]},
 	{"name": "Civic", "items": ["chapel", "market", "tavern", "scholars_hall"]},
 ]
 
