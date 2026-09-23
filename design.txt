@@ -2,7 +2,7 @@
 KINGDOM LEGACY — GAME DESIGN OUTLINE
 ================================================================================
 Engine: Godot 4.7 (GDScript)        Art: 32x32 pixel art (PixelLab)
-View: Top-down 2D                   Status: Playable prototype (M0-M5b)
+View: Top-down 2D                   Status: Playable prototype (M0-M6)
 Last updated: 2026-09-22
 
 
@@ -231,24 +231,21 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 13. ART DIRECTION
 --------------------------------------------------------------------------------
   - 32x32 top-down pixel art, warm medieval palette, readable when zoomed out.
-  - LOCKED STYLE (art test, see docs/style_test.png):
+  - LOCKED STYLE (art test, see docs/style_test.png), implemented in M6:
       - Buildings in 3/4 view (front wall + door visible), black outlines,
-        basic shading, warm thatch/timber tones.
-      - Terrain: muted olive grass, lineless, basic shading; roads autotile
-        (Wang corner tiles) over grass.
-      - Characters ~16x31 px figures on a 48x48 canvas, black outline.
-  - Generated with PixelLab; the game still draws placeholder shapes until
-    the M6 art pass. Approved assets live in assets/.
-  - Asset list (priority order):
-      1. Terrain tileset (grass, forest, water, sand, stone, road)
-         [grass + road DONE]
-      2. Villager (4-direction walk), carrying variants  [villager DONE]
-      3. Keep, House, Woodcutter, Quarry, Stockpile      [house DONE]
-      4. Goblin, brute, guard tower, barracks, troops
-      5. Farm/mill/bakery chain
-  - PixelLab budget: 24 of 40 trial generations left. Real costs: tileset
-    ~3-4, standard character 1, 64x64 Pro Flash image 5, 1-direction object
-    20-40 (avoid). Chain new tilesets from existing base tile IDs.
+        basic shading, warm thatch/timber tones. All 21 buildings were made
+        with PixelLab Pro Flash using the approved cottage as style reference.
+      - Terrain: muted olive grass; sand, water, stone, forest and dirt roads
+        blend into it through Wang corner tilesets (dual-grid rendering).
+      - Characters ~16x31 px figures on a 48x48 canvas (brute 68x68), black
+        outline, 4 directions, 4-frame walk cycles.
+      - HUD: PixelLab pixel serif font, dark wood panels with gold trim,
+        small resource icons.
+  - Every art file is optional: if one is missing the game draws the old
+    placeholder shape for it.
+  - PixelLab budget: Tier 1 subscription (2000 generations per cycle). Real
+    costs: Pro Flash building 5, tileset ~3-4, character 1, walk animation
+    1 per direction, font 25, UI kit 20, small image 1.
 
 
 14. TECHNICAL ARCHITECTURE
@@ -278,9 +275,11 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   scripts/systems/needs.gd             Needs, happiness, house levels, taxes
   scripts/systems/stock.gd             Per-building inventories, sources
   scripts/systems/day_night.gd         Day/night cycle and world tint
+  scripts/art/art.gd                   Art loader, Wang tilesets, characters
+  scripts/world/terrain_renderer.gd    Dual-grid terrain drawing
   scripts/controllers/                 Camera, build tools, unit control
   scripts/ui/                          HUD, building/squad/tier panels,
-                                       overlays, raid arrow, game over
+                                       overlays, raid arrow, game over, theme
   tools/verify/                        Real-input verification harness
   .claude/skills/verify-kingdom-legacy Agent guide + feature map for it
 
@@ -304,8 +303,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   [DONE]  M4  Settlement tiers + first research
   [DONE]  M5  Needs & happiness, taxes/gold
   [DONE]  M5b Per-building storage, haulers, day/night
-  [NEXT]  M6  PixelLab art pass
-          M7  Walls, gates, fire, more enemies (orcs, trolls)
+  [DONE]  M6  PixelLab art pass
+  [NEXT]  M7  Walls, gates, fire, more enemies (orcs, trolls)
           M8  Win condition, final raid, save/load, balance pass
 
 

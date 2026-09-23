@@ -23,6 +23,8 @@ var _goal_tile := WorldMap.INVALID_TILE
 var _think_timer := 0.0
 var _attack_timer := 0.0
 var _jitter := Vector2.ZERO
+var _facing := "south"
+var _anim_time := 0.0
 
 
 func setup(p_world: WorldMap, id: String, spawn_tile: Vector2i, p_exit_tile: Vector2i) -> void:
@@ -51,6 +53,8 @@ func current_tile() -> Vector2i:
 
 
 func _process(delta: float) -> void:
+	_anim_time += delta
+	queue_redraw()
 	_attack_timer -= delta
 	_think_timer -= delta
 	if _think_timer <= 0.0:
@@ -67,6 +71,7 @@ func _process(delta: float) -> void:
 func _step(delta: float) -> void:
 	var goal: Vector2 = world.tile_center(path[0]) + _jitter
 	var to_goal := goal - position
+	_facing = Art.facing(to_goal, _facing)
 	var move: float = def.speed * world.speed_multiplier(current_tile()) * delta
 	if to_goal.length() <= move:
 		position = goal
@@ -206,13 +211,19 @@ func _on_died() -> void:
 
 func _draw() -> void:
 	var r: float = def.radius
-	var body: Color = def.color
-	draw_circle(Vector2(0, 1), r + 1.0, body.darkened(0.6))
-	draw_circle(Vector2(0, 1), r, body)
-	draw_circle(Vector2(-r * 0.35, -r * 0.2), 1.3, Color(0.95, 0.15, 0.1))
-	draw_circle(Vector2(r * 0.35, -r * 0.2), 1.3, Color(0.95, 0.15, 0.1))
+	if state == State.ATTACK and is_instance_valid(target):
+		_facing = Art.facing(target.position - position, _facing)
+	var top := Art.draw_character(self, enemy_id, _facing, not path.is_empty(), _anim_time)
+	if is_nan(top):
+		top = -r
+		var body: Color = def.color
+		draw_circle(Vector2(0, 1), r + 1.0, body.darkened(0.6))
+		draw_circle(Vector2(0, 1), r, body)
+		draw_circle(Vector2(-r * 0.35, -r * 0.2), 1.3, Color(0.95, 0.15, 0.1))
+		draw_circle(Vector2(r * 0.35, -r * 0.2), 1.3, Color(0.95, 0.15, 0.1))
 	if loot_item != "":
 		var c := ItemDefs.color_of(loot_item)
-		draw_rect(Rect2(Vector2(r - 2, -3), Vector2(6, 6)), c)
-		draw_rect(Rect2(Vector2(r - 2, -3), Vector2(6, 6)), c.darkened(0.5), false, 1.0)
-	health.draw_bar(self, Vector2(0, -r - 6), r * 2.5)
+		var box := Rect2(Vector2(r - 2, top + 10), Vector2(7, 7))
+		draw_rect(box, c)
+		draw_rect(box, c.darkened(0.5), false, 1.0)
+	health.draw_bar(self, Vector2(0, top - 4), r * 2.5)

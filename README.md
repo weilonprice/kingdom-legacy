@@ -6,12 +6,11 @@ Grow a hamlet into a kingdom. Lay roads, build farms, mills and bakeries, keep
 your people fed, housed and happy, then train an army and raise towers before
 the next raid hits. Made with Godot 4.
 
-![A village with the service-coverage overlay: a chapel's and a well's coverage circles, need icons on each home](docs/screenshots/village-overview.png)
+![A village by a lake: the castle Keep, thatched cottages, a barracks, villagers on the dirt road, and a selected squad marching south](docs/screenshots/village-overview.png)
 
-> **Status: playable prototype.** Milestones M0–M5b are done: economy,
-> raids, troops, tiers, research, needs and day/night. Buildings and units are
-> still drawn as placeholder shapes; the pixel-art pass (M6) is next. See the
-> [roadmap](roadmap.txt).
+> **Status: playable prototype.** Milestones M0–M6 are done: economy,
+> raids, troops, tiers, research, needs, day/night and the pixel-art pass.
+> Walls, fire, orcs and trolls (M7) are next. See the [roadmap](roadmap.txt).
 
 ## Features
 
@@ -47,8 +46,8 @@ the next raid hits. Made with Godot 4.
 |---|---|
 | ![Home panel showing needs met and missing](docs/screenshots/needs-panel.png) | ![A goblin raid with manned guard towers and the raid banner](docs/screenshots/raid.png) |
 | **Needs.** A Chapel turned this home into a Townhouse. A market and a tavern would make it a Manor. | **Raids.** Manned guard towers wait for 2 goblins; the red arrow points at them off-screen. |
-| ![A selected squad marching to an ordered position](docs/screenshots/squads.png) | ![The town at night, everyone asleep](docs/screenshots/night.png) |
-| **Squads.** A selected squad is sent south; its rally flag and guard radius are shown. | **Night.** The villagers are asleep and the town is empty until morning. |
+| ![The service-coverage overlay: coverage circles and need dots on each home](docs/screenshots/services-overlay.png) | ![The town at night, everyone asleep](docs/screenshots/night.png) |
+| **Overlays.** Press O to see which homes a well and a chapel cover. | **Night.** The villagers are asleep and the town is empty until morning. |
 
 ## Getting started
 
@@ -111,7 +110,8 @@ scripts/
   systems/                Citizens, raids, military, needs, research, tiers, storage, day/night
   controllers/            Camera, build tools, unit control
   ui/                     HUD, panels, overlays
-assets/                   PixelLab art (style locked, not wired in yet)
+assets/                   PixelLab art: buildings, terrain tilesets, characters, UI
+  scripts/art/            Art loader (falls back to placeholder shapes if a file is missing)
 tools/verify/             Real-input verification harness
 design.txt                Game design outline
 roadmap.txt               Milestones M0–M8
@@ -151,7 +151,7 @@ after its scenarios pass.
 | M0–M1 | Map, roads, villagers, gathering, food chain ✅ |
 | M2–M3 | Goblin raids, towers, troops and squads ✅ |
 | M4–M5b | Tiers, research, needs, happiness, taxes, storage, haulers, day/night ✅ |
-| **M6** | **Pixel-art pass: terrain, buildings, animated villagers and goblins** |
+| M6 | Pixel-art pass: terrain, buildings, animated characters, HUD theme ✅ |
 | M7 | Walls, gates, fire, orcs and trolls, weapon supply chains |
 | M8 | Win condition, dragon siege, save/load, menus, balance, export |
 
@@ -160,5 +160,5 @@ Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 ## Credits
 
 - Built with [Godot Engine](https://godotengine.org).
-- Pixel art generated with [PixelLab](https://pixellab.ai). See
-  [the art style test](docs/style_test.png).
+- Pixel art, the pixel font and the UI panels were generated with
+  [PixelLab](https://pixellab.ai). See [the art style test](docs/style_test.png).

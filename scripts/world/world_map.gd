@@ -36,8 +36,7 @@ var is_night := false
 var stock: Stock
 var keep: Building
 
-var terrain_layer: TileMapLayer
-var road_layer: TileMapLayer
+var renderer: TerrainRenderer
 var building_root: Node2D
 var unit_root: Node2D
 var astar := AStarGrid2D.new()
@@ -45,19 +44,17 @@ var astar := AStarGrid2D.new()
 
 func _ready() -> void:
 	GameState.modifiers_changed.connect(recompute_capacity)
-	var tileset := Terrain.build_tileset()
-	terrain_layer = TileMapLayer.new()
-	terrain_layer.tile_set = tileset
-	add_child(terrain_layer)
-	road_layer = TileMapLayer.new()
-	road_layer.tile_set = tileset
-	road_layer.z_index = 1
-	add_child(road_layer)
+	renderer = TerrainRenderer.new()
+	renderer.setup(self)
+	add_child(renderer)
 	building_root = Node2D.new()
 	building_root.z_index = 2
+	# Nearer (lower) buildings draw over tall sprites behind them.
+	building_root.y_sort_enabled = true
 	add_child(building_root)
 	unit_root = Node2D.new()
 	unit_root.z_index = 3
+	unit_root.y_sort_enabled = true
 	add_child(unit_root)
 
 
@@ -91,10 +88,7 @@ func generate(seed_value: int) -> void:
 	_stamp(center + Vector2i(12, -5), 4, Terrain.FOREST)
 	_stamp(center + Vector2i(-12, 6), 3, Terrain.STONE)
 
-	for y in height:
-		for x in width:
-			var t := Vector2i(x, y)
-			terrain_layer.set_cell(t, 0, Vector2i(get_terrain(t), 0))
+	renderer.rebuild()
 
 	astar.region = Rect2i(0, 0, width, height)
 	astar.cell_size = Vector2(T, T)
@@ -164,7 +158,8 @@ func set_terrain(t: Vector2i, type: int) -> void:
 	if type != Terrain.FIELD:
 		fields.erase(t)
 	_set_terrain_raw(t, type)
-	terrain_layer.set_cell(t, 0, Vector2i(type, 0))
+	if not terrain.is_empty():
+		renderer.refresh_tile(t)
 	_update_nav(t)
 
 
@@ -397,7 +392,7 @@ func demolish_at(t: Vector2i) -> String:
 		return ""
 	if roads.has(t):
 		roads.erase(t)
-		road_layer.erase_cell(t)
+		renderer.refresh_tile(t)
 		_update_nav(t)
 		_refresh_road_access()
 	return ""
@@ -438,7 +433,7 @@ func _allocate_fields(farm: Building) -> void:
 
 func _set_field_stage(t: Vector2i, stage: int) -> void:
 	fields[t].stage = stage
-	terrain_layer.set_cell(t, 0, Terrain.FIELD_ATLAS[stage])
+	renderer.refresh_tile(t)
 
 
 ## Nearest unreserved field of `farm` in `stage`, or INVALID_TILE.
@@ -495,7 +490,7 @@ func place_roads(tiles: Array[Vector2i]) -> int:
 		if not Terrain.is_buildable(get_terrain(t)):
 			set_terrain(t, Terrain.GRASS)
 		roads[t] = true
-		road_layer.set_cell(t, 0, Terrain.ROAD_ATLAS)
+		renderer.refresh_tile(t)
 		_update_nav(t)
 		placed += 1
 	if placed > 0:
