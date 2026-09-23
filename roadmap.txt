@@ -206,31 +206,28 @@ M5 — NEEDS, HAPPINESS & GOLD                          [DONE]
 
 
 ================================================================================
-M6 — ART PASS (PIXELLAB)                                Goal: looks like a game
+M6 — ART PASS (PIXELLAB)                                [DONE]
 ================================================================================
-  Style locked by the art test (PR #4, docs/style_test.png).
-  Budget: 24 of 40 trial generations left; prioritize in this order:
-  [~] (M) Terrain tileset: grass, forest, water, sand, stone, road
-          (top-down tileset tool; keep atlas order from terrain.gd)
-          grass <-> dirt road DONE (assets/tiles/grass_dirt_*)
-  [ ] (S) Road autotiling (straight/corner/T/cross) via Godot terrain sets
-  [~] (M) Villager: 4-direction walk, carrying variant
-          static 4-direction sprite DONE (assets/sprites/villager/)
-  [~] (M) Buildings: Keep, House, Woodcutter, Quarry, Stockpile, Farm,
-          Guard Tower, Barracks (sprites replace Building._draw)
-          House DONE (assets/sprites/buildings/house.png)
-  [ ] (M) Goblin + Archer/Militia walk + attack animations
-  [ ] (S) Swap placeholder drawing to Sprite2D / AnimatedSprite2D with
-          fallback to placeholder if texture missing
-  [ ] (S) UI theme: medieval font, panel textures, resource icons
-  [ ] (S) Sound: placeholder SFX (chop, build, horn, combat), ambient
+  Style locked by the art test (PR #4, docs/style_test.png). Buildings use
+  Pro Flash with the approved cottage as the style reference.
+  [x] (M) Terrain: Wang tilesets for grass<->sand, sand<->water, grass<->stone,
+          grass<->forest and grass<->dirt road, drawn with a dual-grid
+          renderer so single-tile roads and shores blend
+          -> scripts/world/terrain_renderer.gd, assets/tiles/
+  [x] (S) Field tiles for the three crop stages
+  [x] (M) Buildings: all 21 (Keep, houses, gatherers, food chain, storage,
+          services, towers, barracks), bottom-aligned, y-sorted
+  [x] (M) Characters with 4-direction walk animations: villager, goblin,
+          goblin brute, militia, spearman, archer
+  [x] (S) Placeholder fallback: any missing art file draws the old shapes
+          -> scripts/art/art.gd
+  [x] (S) UI theme: PixelLab pixel font (with a fallback font for symbols),
+          wooden 9-slice panels, resource icons in the top bar
+          -> scripts/ui/ui_theme.gd, assets/ui/
+  [ ] (S) Sound -> BACKLOG (PixelLab has no audio; needs another source)
+  [ ] (S) Attack / death animations -> BACKLOG
 
-  Buildings now include (M4-M5b): Stone House, Chapel, Market, Tavern,
-  Scholar's Hall, Carter's Yard, Stone Tower, Warehouse, Granary, Mill,
-  Bakery, Fisher's Hut, Well. Prioritize the ones seen most; others can
-  share a palette-matched generic building until budget allows.
-
-  Done when: all M0–M5b content uses real art and a consistent palette.
+  Done when: all M0-M5b content uses real art and a consistent palette.
 
 
 ================================================================================
@@ -281,11 +278,15 @@ BACKLOG / MAYBE LATER
   - Forester (replant trees), forest regrowth
   - Minimap
   - Rubble tiles for destroyed buildings (rebuild at a discount)
+  - Sound: SFX (chop, build, horn, combat) and ambient music
+  - Attack / death / work animations for characters
+  - Rounder forest and rock edges (the "round" tileset style adds a cliff
+    rim; needs a different prompt)
 
 
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. M6: art pass (24 PixelLab generations left): terrain, villager walk,
-     core buildings, goblin
-  2. M7: walls, gates, fire, orcs and trolls
+  1. M7: walls and gates (wall drag tool, gates enemies must break)
+  2. M7: fire; orcs, wolf riders and trolls
+  3. M7: weapon/armor chains feeding troop training
