@@ -52,6 +52,7 @@ tools/verify/run.sh`, `Gotchas`.
 - [Save and load](./save-load.md): F5/F8, the ☰ game menu, autosave, refusal during raids. Scenario `save-load.json`.
 - [Seasons and art](./seasons-and-art.md): the season cycle, winter firewood and frozen fields, seasonal art, trees/props/walls. Scenarios `seasons.json`, `art-showcase.json`.
 - [Rivers and bridges](./rivers-bridges.md): rivers, fords, building/refusing/demolishing bridges. Scenario `rivers-bridges.json`, tool `map_preview.tscn`.
+- [Sound and minimap](./sound-minimap.md): synthesized effects, ambience, volume sliders, the minimap. Scenario `sound-minimap.json`.
 - [Tiers and research](./tiers-and-research.md): locked content, tier panel, reaching Village, Scholar's Hall research. Scenario `tiers-research.json`.
 
 Not yet mapped: food chain (farm, mill, bakery, fisher), demolish, storage

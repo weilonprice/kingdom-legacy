@@ -16,6 +16,7 @@ func setup(from: Vector2, p_target: Node2D, p_damage: float) -> void:
 	damage = p_damage
 	_last_target_pos = _aim()
 	z_index = 21  # above the flying dragon
+	Sound.play("arrow", from)
 
 
 func _aim() -> Vector2:

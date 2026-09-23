@@ -165,6 +165,7 @@ func _feed_and_pay() -> void:
 
 
 func _on_troop_died(troop: Troop) -> void:
+	Sound.play("death", troop.position)
 	GameState.notify("%s fell in battle" % _with_article(troop.def.name))
 	_remove_troop(troop)
 

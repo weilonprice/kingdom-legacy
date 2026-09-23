@@ -176,6 +176,8 @@ func _begin_warning() -> void:
 		phase = Phase.WARNING
 		_timer = WARNING_TIME
 		GameState.notify("The Dragon approaches from the %s! Final siege in %ds" % [direction_name(), WARNING_TIME])
+		Sound.play("horn")
+		Sound.play("roar", null, -4.0)
 		warning_started.emit(spawn_tile)
 		return
 	if spawn_tile == WorldMap.INVALID_TILE:
@@ -183,6 +185,7 @@ func _begin_warning() -> void:
 		return
 	phase = Phase.WARNING
 	_timer = WARNING_TIME
+	Sound.play("horn")
 	GameState.notify("Goblins spotted to the %s! Raid in %ds" % [direction_name(), WARNING_TIME])
 	warning_started.emit(spawn_tile)
 
@@ -225,6 +228,7 @@ func _end_raid() -> void:
 		final_siege_won.emit()
 		return
 	GameState.notify("The raid is over! Raids survived: %d" % raids_survived)
+	Sound.play("chime")
 	raid_ended.emit(raids_survived)
 
 

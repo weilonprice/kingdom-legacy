@@ -147,3 +147,4 @@ func _collect_taxes() -> void:
 	last_tax = tax_per_minute()
 	if last_tax > 0:
 		GameState.add_resource("gold", last_tax)
+		Sound.play("coins", null, -8.0)

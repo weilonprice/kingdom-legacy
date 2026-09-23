@@ -119,6 +119,7 @@ func _advance() -> void:
 	tier += 1
 	_apply_keep_upgrade()
 	GameState.notify("Your settlement has grown into a %s! New buildings unlocked." % tier_name())
+	Sound.play("tier")
 	tier_changed.emit(tier)
 	if is_max_tier():
 		raids.begin_final_siege()

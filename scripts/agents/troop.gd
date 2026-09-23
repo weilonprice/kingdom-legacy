@@ -131,6 +131,7 @@ func _attack() -> void:
 		world.unit_root.add_child(arrow)
 	else:
 		target.health.take_damage(damage)
+		Sound.play("hit", position)
 
 
 func _path_to(t: Vector2i) -> void:

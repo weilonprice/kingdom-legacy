@@ -326,10 +326,18 @@ M10 — RIVERS & BRIDGES (done)
   [x] (S) tools/verify/map_preview.tscn: whole-map image + edge reachability
   [ ] (S) Stone-edged canals (decorative)
 
+================================================================================
+M11 — SOUND & MINIMAP (done)
+================================================================================
+  [x] (M) Synthesized sound effects for work, building, war, fire, the
+          Dragon, coins, seasons, tiers, victory/defeat -> autoload Sound
+  [x] (S) Ambience: birds / crickets / winter wind; distance fade
+  [x] (S) Volume sliders (title + game menu), saved settings
+  [x] (M) Minimap with units, lairs and the view frame; click to move
+  [ ] (M) Music (CC0 packs, needs a download OK) or procedural tunes
+
   Later
-  [ ] Sound and music, then volume settings
   [ ] Economy tuning from playtests (costs, yields, tier requirements)
-  [ ] Minimap
 
   Done when: a new player can start, learn, grow to Kingdom, and win or lose.
 

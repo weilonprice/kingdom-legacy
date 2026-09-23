@@ -60,6 +60,7 @@
   {"expect": {"message": "A knight joined"}},
   {"click_button": "1x"},
   {"key": "Escape"},
+  {"setup_research": ["tempered_steel"]},
   {"setup_lair": [0, -12]},
   {"key": "CTRL+1"},
   {"expect": {"text": "Squad 1"}},

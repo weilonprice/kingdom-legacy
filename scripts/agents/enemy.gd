@@ -311,6 +311,7 @@ func _dragon_target() -> Building:
 
 
 func _breathe(at: Vector2) -> void:
+	Sound.play("breath", at)
 	_breath_at = at
 	_breath_time = 0.5
 	var radius: float = def.breath_radius * Terrain.TILE_SIZE
@@ -329,6 +330,7 @@ func _breathe(at: Vector2) -> void:
 
 
 func _summon() -> void:
+	Sound.play("roar", position)
 	GameState.notify("The Dragon roars, and its horde answers!")
 	for id: String in def.summon:
 		for i in int(def.summon[id]):
@@ -402,6 +404,7 @@ func _try_attack() -> void:
 	if target is Building and BuildingDefs.is_fortification(target.def):
 		damage *= def.get("wall_damage", 1.0)
 	target.health.take_damage(damage)
+	Sound.play("hit", position)
 	if target is Building and randf() < def.get("ignite_chance", 0.0):
 		target.ignite()
 
@@ -430,8 +433,11 @@ func _flee() -> void:
 
 func _on_died() -> void:
 	if def.behavior == "dragon":
+		Sound.play("roar", position, 3.0)
 		GameState.notify("The Dragon is slain!")
 	if is_lair():
+		Sound.play("crash", position)
+		Sound.play("coins")
 		GameState.add_resource("gold", def.bounty)
 		GameState.notify("The %s is destroyed! +%d gold. Raids will be smaller." % [def.name, def.bounty])
 	if loot_amount > 0:

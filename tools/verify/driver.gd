@@ -130,6 +130,15 @@ func _run_step(step: Dictionary) -> String:
 		return _find_site(step.find_site)
 	elif step.has("find_crossing"):
 		return _find_crossing(step.find_crossing)
+	elif step.has("click_minimap"):
+		# A point on the minimap as fractions of its width and height.
+		var mm: Control = main.hud._minimap
+		if not mm.is_visible_in_tree():
+			return "FAIL minimap is hidden"
+		var f: Array = step.click_minimap
+		var r: Rect2 = mm._map.get_global_rect()
+		await _click(r.position + r.size * Vector2(f[0], f[1]), MOUSE_BUTTON_LEFT)
+		return "ok"
 	elif step.has("pan_to"):
 		# Test-only: centres the camera on a tile (a player would scroll there).
 		main.camera.position = world.tile_center(_tile_of(step.pan_to))
@@ -428,6 +437,9 @@ func _snapshot() -> Dictionary:
 		"final_siege": main.raids.final_siege,
 		"boss_hp": _boss_hp(),
 		"fields": world.fields.size(),
+		"camera_tile": [world.world_to_tile(main.camera.position).x, world.world_to_tile(main.camera.position).y],
+		"minimap_visible": main.hud._minimap.visible,
+		"sounds": Sound.played.duplicate(),
 		"bridges": world.roads.keys().filter(func(t: Vector2i) -> bool: return world.is_bridge(t)).size(),
 		"bridges_walkable": world.roads.keys().all(func(t: Vector2i) -> bool: return world.is_walkable(t)),
 		"season": main.seasons.current(),
@@ -523,6 +535,16 @@ func _check(expect: Dictionary) -> String:
 		problems.append("call_to_arms %s != %s" % [s.call_to_arms, expect.call_to_arms])
 	if expect.has("hint") and not expect.hint in s.hint:
 		problems.append("hint '%s' doesn't contain '%s'" % [s.hint, expect.hint])
+	if expect.has("minimap_visible") and s.minimap_visible != expect.minimap_visible:
+		problems.append("minimap_visible %s != %s" % [s.minimap_visible, expect.minimap_visible])
+	for n: String in expect.get("sounds_min", {}):
+		if s.sounds.get(n, 0) < int(expect.sounds_min[n]):
+			problems.append("sound %s played %d < %s" % [n, s.sounds.get(n, 0), expect.sounds_min[n]])
+	if expect.has("camera_near"):
+		var want: Vector2i = Vector2i(int(expect.camera_near[0]), int(expect.camera_near[1]))
+		var have := Vector2i(s.camera_tile[0], s.camera_tile[1])
+		if Vector2(have).distance_to(Vector2(want)) > float(expect.camera_near[2]):
+			problems.append("camera at %s, not within %s of %s" % [have, expect.camera_near[2], want])
 	if expect.has("bridges_walkable") and s.bridges_walkable != expect.bridges_walkable:
 		problems.append("bridges_walkable %s != %s" % [s.bridges_walkable, expect.bridges_walkable])
 	if expect.has("game_over") and s.game_over != expect.game_over:
