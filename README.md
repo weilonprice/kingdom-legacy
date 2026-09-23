@@ -178,6 +178,12 @@ to `.verify-evidence/`. The scenario format is in
 [`tools/verify/README.md`](tools/verify/README.md), and the agent guide and
 feature map are in `.claude/skills/verify-kingdom-legacy/`.
 
+### Balance autoplayer
+
+`tools/autoplay/run.sh --seeds 12345,7 --minutes 90` plays whole games with a
+rule-abiding bot and writes timelines to `.autoplay/`. See
+[`tools/autoplay/README.md`](tools/autoplay/README.md).
+
 ### Building a release
 
 `export_presets.cfg` has macOS (universal .zip) and Windows (.exe) presets.

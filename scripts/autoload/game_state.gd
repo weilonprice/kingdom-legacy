@@ -39,6 +39,9 @@ var map_size := 1
 var hints_enabled := true
 ## Which seasonal art set the map uses ("" = the original green one).
 var season := "autumn"
+## Running totals for balance tools: goods produced at workplaces, spent on
+## building/training/research, and used up (food eaten, firewood burned).
+var stats := {"produced": {}, "spent": {}, "used": {}}
 ## Where saves go (tests point this elsewhere so they never touch real saves).
 var save_dir := "user://saves"
 ## A save to apply when the game scene starts (set by Load / Continue).
@@ -70,6 +73,7 @@ func reset() -> void:
 	jobs = 0
 	game_over = false
 	season = "autumn"
+	stats = {"produced": {}, "spent": {}, "used": {}}
 	modifiers = {}
 	tax_rate = NeedDefs.DEFAULT_TAX_RATE
 	happiness = NeedDefs.BASE_HAPPINESS
@@ -173,13 +177,22 @@ func can_afford(cost: Dictionary) -> bool:
 
 
 func spend(cost: Dictionary) -> bool:
-	return can_afford(cost) and stock.spend(cost)
+	if not (can_afford(cost) and stock.spend(cost)):
+		return false
+	for item: String in cost:
+		tally("spent", item, cost[item])
+	return true
+
+
+func tally(kind: String, item: String, amount: int) -> void:
+	stats[kind][item] = stats[kind].get(item, 0) + amount
 
 
 func remove_resource(item: String, amount: int) -> bool:
 	if count(item) < amount:
 		return false
 	stock.take_anywhere(item, amount)
+	tally("used", item, amount)
 	return true
 
 
@@ -216,7 +229,9 @@ func eat(meals: int) -> int:
 				best = item
 		if best == "":
 			break
-		eaten += stock.take_anywhere(best, mini(meals - eaten, count(best)))
+		var took := stock.take_anywhere(best, mini(meals - eaten, count(best)))
+		tally("used", "food", took)
+		eaten += took
 	return eaten
 
 

@@ -97,6 +97,7 @@ func add_output(item: String, amount: int) -> int:
 	var added := mini(amount, output_space())
 	if added > 0:
 		output_stock[item] = output_stock.get(item, 0) + added
+		GameState.tally("produced", item, added)
 		queue_redraw()
 	return added
 

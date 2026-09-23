@@ -336,6 +336,16 @@ M11 — SOUND & MINIMAP (done)
   [x] (M) Minimap with units, lairs and the view frame; click to move
   [ ] (M) Music (CC0 packs, needs a download OK) or procedural tunes
 
+================================================================================
+M12 — AUTOPLAYER (tool done; balance changes next)
+================================================================================
+  [x] (M) Bot that plays full games by the rules; timeline, rates, failure
+          reasons -> tools/autoplay/ (see its README for first findings)
+  [x] (S) probe.tscn: one workplace's real output and time use
+  [x] (S) GameState.stats: produced / spent / used totals
+  [ ] (M) Balance changes from the findings (storage, fire, raid curve,
+          food), then re-run the bot to confirm
+
   Later
   [ ] Economy tuning from playtests (costs, yields, tier requirements)
 

@@ -7,3 +7,4 @@
 # Verification evidence (tools/verify/run.sh)
 .verify-evidence/
 builds/
+.autoplay/
