@@ -311,8 +311,20 @@ M9 — ART DIRECTION & SEASONS (done)                 Goal: look like the refere
   [x] (S) Crop variety on farms (wheat, cabbage, pumpkin, tomato)
   [x] (M) Seasons cycle: 3 days per season; winter freezes fields and burns
           firewood -> scripts/systems/seasons.gd
-  [ ] (M) Rivers and stone-edged canals (need bridges first)
+  [x] (M) Rivers and bridges -> see M10
   [ ] (S) Wooden palisade art, snowy walls
+
+================================================================================
+M10 — RIVERS & BRIDGES (done)
+================================================================================
+  [x] (M) Rivers: 1-2 per map, winding edge to edge, clear of the start
+          -> WorldMap._carve_rivers
+  [x] (S) Fords: 2 sandy crossings per river where both banks are dry
+  [x] (M) Bridges: Road tool across water, <= 5 tiles, land at both ends,
+          6 wood + 2 stone per tile; walkable for everyone; demolish refunds
+          half; plank art (autumn + snowy) -> scripts/world/bridge_layer.gd
+  [x] (S) tools/verify/map_preview.tscn: whole-map image + edge reachability
+  [ ] (S) Stone-edged canals (decorative)
 
   Later
   [ ] Sound and music, then volume settings

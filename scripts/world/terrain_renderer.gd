@@ -29,6 +29,7 @@ const CROP_ART := "res://assets/tiles/crop_%s.png"
 const CROP_SOURCE := 10
 
 var world: WorldMap
+var bridges: BridgeLayer
 ## Trees and props (see Nature). When there's tree art, forests are drawn as
 ## grass with trees standing on it instead of the forest tileset.
 var nature: Nature
@@ -126,6 +127,13 @@ func _build_layers() -> void:
 			_art_terrains[t] = true
 		if spec.get("roads", false):
 			_roads_have_art = true
+	_add_bridge_layer()
+
+
+func _add_bridge_layer() -> void:
+	bridges = BridgeLayer.new()
+	bridges.world = world
+	add_child(bridges)
 
 
 func rebuild() -> void:
@@ -138,6 +146,7 @@ func rebuild() -> void:
 			for x in world.width + 1:
 				_paint_overlay_cell(o, Vector2i(x, y))
 	nature.rebuild()
+	bridges.queue_redraw()
 
 
 ## Call after a tile's terrain or road status changes.
@@ -149,6 +158,8 @@ func refresh_tile(t: Vector2i) -> void:
 			for dx in 2:
 				_paint_overlay_cell(o, t + Vector2i(dx, dy))
 	nature.refresh_tile(t)
+	if bridges != null:
+		bridges.queue_redraw()
 
 
 func _paint_base(t: Vector2i) -> void:
@@ -177,7 +188,7 @@ func _field_source(t: Vector2i, stage: int) -> int:
 
 
 func _paint_road_fallback(t: Vector2i) -> void:
-	if not _roads_have_art and world.roads.has(t):
+	if not _roads_have_art and world.roads.has(t) and world.get_terrain(t) != Terrain.WATER:
 		road_fallback.set_cell(t, CODE_SOURCE, Terrain.ROAD_ATLAS)
 	else:
 		road_fallback.erase_cell(t)
@@ -187,7 +198,7 @@ func _matches(o: Dictionary, t: Vector2i) -> bool:
 	if not world.is_in_bounds(t):
 		return false
 	if o.roads:
-		return world.roads.has(t)
+		return world.roads.has(t) and world.get_terrain(t) != Terrain.WATER
 	return world.get_terrain(t) in o.terrains
 
 

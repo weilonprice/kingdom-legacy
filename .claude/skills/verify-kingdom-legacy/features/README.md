@@ -51,6 +51,7 @@ tools/verify/run.sh`, `Gotchas`.
 - [Menu and tutorial hints](./menu-and-hints.md): title screen (seed, difficulty, hints), end-screen Main Menu, the goal panel. `menu_check.tscn` + scenario `tutorial-hints.json`.
 - [Save and load](./save-load.md): F5/F8, the ☰ game menu, autosave, refusal during raids. Scenario `save-load.json`.
 - [Seasons and art](./seasons-and-art.md): the season cycle, winter firewood and frozen fields, seasonal art, trees/props/walls. Scenarios `seasons.json`, `art-showcase.json`.
+- [Rivers and bridges](./rivers-bridges.md): rivers, fords, building/refusing/demolishing bridges. Scenario `rivers-bridges.json`, tool `map_preview.tscn`.
 - [Tiers and research](./tiers-and-research.md): locked content, tier panel, reaching Village, Scholar's Hall research. Scenario `tiers-research.json`.
 
 Not yet mapped: food chain (farm, mill, bakery, fisher), demolish, storage

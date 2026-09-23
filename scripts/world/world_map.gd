@@ -95,6 +95,8 @@ func generate(seed_value: int) -> void:
 			var m := moisture.get_noise_2d(x, y)
 			_set_terrain_raw(Vector2i(x, y), _pick_terrain(e, m))
 
+	_carve_rivers(seed_value)
+
 	# Guarantee a buildable start with wood and stone within reach.
 	var center := Vector2i(width >> 1, height >> 1)
 	_stamp(center, 8, Terrain.GRASS)
@@ -117,6 +119,91 @@ func generate(seed_value: int) -> void:
 	stock = Stock.new(self)
 	_place_start(center)
 	GameState.attach_stock(stock)
+
+
+## Rivers run edge to edge, winding, passing 14-26 tiles from the start so
+## they're close enough to matter but never through the town site. Each gets
+## sandy fords where anyone can wade across, so a river is never a wall.
+const RIVER_WIDTH := 2
+## Tools can turn rivers off to compare maps.
+static var rivers_enabled := true
+const FORDS_PER_RIVER := 2
+
+
+func _carve_rivers(seed_value: int) -> void:
+	if not rivers_enabled:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value + 3
+	var count := 1 if width <= 128 else 2
+	var center := Vector2(width, height) * 0.5
+	for r in count:
+		var vertical := rng.randf() < 0.5
+		var side := -1.0 if rng.randf() < 0.5 else 1.0
+		var base: float = (center.x if vertical else center.y) + side * rng.randi_range(14, 26)
+		var meander := _noise(seed_value + 11 + r, 0.025, 2)
+		var length := height if vertical else width
+		var course: Array[Vector2i] = []
+		var prev := -1
+		for i in length:
+			var c := roundi(base + meander.get_noise_1d(i) * 16.0)
+			# Fill sideways steps so the river never breaks up diagonally.
+			var from := c if prev < 0 else prev
+			for k in range(mini(from, c), maxi(from, c) + 1):
+				for w in RIVER_WIDTH:
+					var t := Vector2i(k + w, i) if vertical else Vector2i(i, k + w)
+					if is_in_bounds(t) and Vector2(t).distance_to(center) > 12.0:
+						_set_terrain_raw(t, Terrain.WATER)
+						course.append(t)
+			prev = c
+		_place_fords(course, vertical, rng)
+
+
+func _place_fords(course: Array[Vector2i], vertical: bool, rng: RandomNumberGenerator) -> void:
+	if course.is_empty():
+		return
+	var along := func(t: Vector2i) -> int: return t.y if vertical else t.x
+	var length := height if vertical else width
+	for f in FORDS_PER_RIVER:
+		# Spread fords along the river, one in each stretch of it, at a spot
+		# with dry land on both banks (not where the river runs into a lake).
+		var lo := int(float(f) / FORDS_PER_RIVER * length) + 4
+		var hi := maxi(lo, int(float(f + 1) / FORDS_PER_RIVER * length) - 5)
+		var at := -1
+		for attempt in 30:
+			var candidate := rng.randi_range(lo, hi)
+			if _banks_dry(course, along, candidate, vertical):
+				at = candidate
+				break
+		if at < 0:
+			continue
+		for t in course:
+			if absi(along.call(t) - at) <= 1:
+				_set_terrain_raw(t, Terrain.SAND)
+
+
+## True when the river's cross-section at `at` has land just beyond it on
+## both sides.
+func _banks_dry(course: Array[Vector2i], along: Callable, at: int, vertical: bool) -> bool:
+	var across: Array[int] = []
+	for t in course:
+		if along.call(t) == at:
+			across.append(t.x if vertical else t.y)
+	if across.is_empty():
+		return false
+	var lo: int = across.min() - 1
+	var hi: int = across.max() + 1
+	for side in [lo, hi]:
+		var t := Vector2i(side, at) if vertical else Vector2i(at, side)
+		if not is_in_bounds(t) or get_terrain(t) == Terrain.WATER:
+			return false
+	return true
+
+
+## Sand with water on two opposite sides: a river crossing.
+func _is_ford(t: Vector2i) -> bool:
+	var w := func(o: Vector2i) -> bool: return is_in_bounds(t + o) and get_terrain(t + o) == Terrain.WATER
+	return (w.call(Vector2i.LEFT) and w.call(Vector2i.RIGHT)) or (w.call(Vector2i.UP) and w.call(Vector2i.DOWN))
 
 
 func _noise(seed_value: int, frequency: float, octaves: int) -> FastNoiseLite:
@@ -216,10 +303,12 @@ func describe_tile(t: Vector2i) -> String:
 	if occupancy.has(t):
 		return occupancy[t].describe()
 	if roads.has(t):
-		return "Road"
+		return "Bridge" if get_terrain(t) == Terrain.WATER else "Road"
 	if fields.has(t):
 		return "Field — %s" % ["Tilled", "Growing", "Ripe"][fields[t].stage]
 	var text: String = Terrain.NAMES[get_terrain(t)]
+	if get_terrain(t) == Terrain.SAND and _is_ford(t):
+		text = "Ford (shallow crossing)"
 	var left := resource_left[t.y * width + t.x]
 	if left > 0:
 		text += " (%d harvests left)" % left
@@ -229,7 +318,8 @@ func describe_tile(t: Vector2i) -> String:
 # --- Pathfinding ------------------------------------------------------------
 
 func _update_nav(t: Vector2i) -> void:
-	var water := get_terrain(t) == Terrain.WATER
+	# Water is solid unless a bridge crosses it.
+	var water := get_terrain(t) == Terrain.WATER and not roads.has(t)
 	var ground_cost := 1.0 if roads.has(t) else Terrain.walk_cost(get_terrain(t))
 	var b: Building = occupancy.get(t)
 	var fortification: bool = b != null and BuildingDefs.is_fortification(b.def)
@@ -489,6 +579,8 @@ func demolish_at(t: Vector2i) -> String:
 			GameState.add_resource(item, goods[item])
 		return ""
 	if roads.has(t):
+		if get_terrain(t) == Terrain.WATER:
+			GameState.refund(BRIDGE_COST, 0.5)
 		roads.erase(t)
 		renderer.refresh_tile(t)
 		_update_nav(t)
@@ -575,11 +667,16 @@ func harvest_field(t: Vector2i) -> int:
 
 # --- Roads ------------------------------------------------------------------
 
+## Why the last place_roads left something out ("" if it didn't).
+var road_problem := ""
+const MAX_BRIDGE := 5
+const BRIDGE_COST := {"wood": 6, "stone": 2}
+
+
 func can_place_road(t: Vector2i) -> bool:
 	return is_in_bounds(t) and not occupancy.has(t) and not roads.has(t) and get_terrain(t) != Terrain.WATER
 
 
-## Places roads on every valid tile, clearing trees and rocks. Returns count placed.
 # --- Loading a save (see SaveGame) ----------------------------------------------
 
 ## Replaces every road with `tiles`.
@@ -621,20 +718,76 @@ func restore_fields(saved: Array) -> void:
 		renderer.refresh_tile(f.t)
 
 
+## Places roads on every valid tile of a drag, clearing trees and rocks.
+## Water crossings become bridges (see bridge_spans): each span is paid for
+## as a whole or not built. Returns the count placed; road_problem says why
+## a bridge wasn't built.
 func place_roads(tiles: Array[Vector2i]) -> int:
+	road_problem = ""
 	var placed := 0
-	for t in tiles:
-		if not can_place_road(t):
+	var spans := bridge_spans(tiles)
+	var bridged := {}
+	for span: Array in spans.valid:
+		var cost := bridge_cost(span.size())
+		if not GameState.spend(cost):
+			road_problem = "Not enough for a %d-tile bridge (%s)" % [span.size(), BuildingDefs.cost_text(cost)]
 			continue
-		if not Terrain.is_buildable(get_terrain(t)):
-			set_terrain(t, Terrain.GRASS)
-		roads[t] = true
+		for t: Vector2i in span:
+			bridged[t] = true
+	if spans.too_long > 0 and road_problem == "":
+		road_problem = "Bridges can span at most %d tiles of water, with land at both ends" % MAX_BRIDGE
+	for t in tiles:
+		if bridged.has(t):
+			roads[t] = true
+		elif can_place_road(t):
+			if not Terrain.is_buildable(get_terrain(t)):
+				set_terrain(t, Terrain.GRASS)
+			roads[t] = true
+		else:
+			continue
 		renderer.refresh_tile(t)
 		_update_nav(t)
 		placed += 1
 	if placed > 0:
 		_refresh_road_access()
 	return placed
+
+
+func is_bridge(t: Vector2i) -> bool:
+	return roads.has(t) and get_terrain(t) == Terrain.WATER
+
+
+static func bridge_cost(length: int) -> Dictionary:
+	var cost := {}
+	for item: String in BRIDGE_COST:
+		cost[item] = BRIDGE_COST[item] * length
+	return cost
+
+
+## Splits a road drag into its water crossings. A crossing can be bridged
+## when it is at most MAX_BRIDGE tiles and the drag has land (or an existing
+## bridge/road) right before and after it.
+## -> {"valid": [[tiles...], ...], "too_long": count of rejected crossings}
+func bridge_spans(tiles: Array[Vector2i]) -> Dictionary:
+	var valid := []
+	var too_long := 0
+	var run: Array[Vector2i] = []
+	var land_before := false
+	for i in tiles.size() + 1:
+		var t: Vector2i = tiles[i] if i < tiles.size() else INVALID_TILE
+		var water := i < tiles.size() and is_in_bounds(t) and get_terrain(t) == Terrain.WATER and not roads.has(t)
+		if water:
+			run.append(t)
+			continue
+		if not run.is_empty():
+			var land_after := i < tiles.size() and is_in_bounds(t) and not occupancy.has(t)
+			if land_before and land_after and run.size() <= MAX_BRIDGE:
+				valid.append(run.duplicate())
+			else:
+				too_long += 1
+			run.clear()
+		land_before = i < tiles.size() and is_in_bounds(t)
+	return {"valid": valid, "too_long": too_long}
 
 
 func is_road(t: Vector2i) -> bool:
