@@ -167,6 +167,16 @@ func _run_step(step: Dictionary) -> String:
 		for id: String in step.setup_research:
 			main.research._complete(id)
 		report.setup_shortcuts.append(step)
+	elif step.has("setup_season"):
+		# Test-only: jump to a season ("none" = the original art, no season art).
+		report.setup_shortcuts.append(step)
+		if step.setup_season == "none":
+			Art.season = ""
+			world.renderer.rebuild_art()
+		else:
+			main.seasons.set_season(Seasons.ORDER.find(step.setup_season), true)
+		await _frames(3)
+		return "ok (%s)" % step.setup_season
 	elif step.has("setup_hints"):
 		GameState.hints_enabled = bool(step.setup_hints)
 		report.setup_shortcuts.append(step)
@@ -379,6 +389,9 @@ func _snapshot() -> Dictionary:
 		"final_siege": main.raids.final_siege,
 		"boss_hp": _boss_hp(),
 		"fields": world.fields.size(),
+		"season": main.seasons.current(),
+		"warm": main.seasons.warm,
+		"art_season": Art.season,
 		"employed": GameState.employed,
 		"lair_hp": world.lairs().map(func(l: Enemy) -> int: return int(l.health.hp)),
 		"wild": world.wild.size(),
@@ -448,7 +461,7 @@ func _check(expect: Dictionary) -> String:
 	for id: String in expect.get("buildings_max", {}):
 		if s.buildings.get(id, 0) > int(expect.buildings_max[id]):
 			problems.append("%s count %d > %d" % [id, s.buildings.get(id, 0), expect.buildings_max[id]])
-	for key in ["tier", "raid_phase", "build_mode", "selected_building"]:
+	for key in ["tier", "raid_phase", "build_mode", "selected_building", "season"]:
 		if expect.has(key) and s[key] != expect[key]:
 			problems.append("%s '%s' != '%s'" % [key, s[key], expect[key]])
 	if expect.has("text") and not s.visible_text.any(func(t: String) -> bool: return expect.text in t):

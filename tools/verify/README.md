@@ -42,6 +42,7 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 | `{"setup_spawn": {"enemy": "troll", "count": 1, "at": [dx, dy]}}` | TEST-ONLY: spawns raiders there outside a raid. Logged |
 | `{"setup_lair": [dx, dy]}` | TEST-ONLY: puts a goblin lair there. Logged |
 | `{"setup_research": ["masonry"]}` | TEST-ONLY: completes research instantly. Logged |
+| `{"setup_season": "winter"}` | TEST-ONLY: jumps to a season (`autumn`/`winter`/`spring`/`summer`, or `none` for the original art). Logged |
 | `{"setup_hints": true}` | Turns tutorial hints on (the driver starts with them off so they don't cover tiles) |
 | `{"setup_delay_raids": s}` | TEST-ONLY: no natural raid for `s` game seconds. Logged |
 
@@ -55,7 +56,7 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 `house_level_min` (`{"level": 2, "count": 1}`), `night` (bool),
 `stored_min` / `pile_min` (`{"stockpile": {"wood": 1}}`: goods stored in /
 waiting at buildings of that type), `min`/`max` also take `villagers_awake`, `enemies`, `burning`, `lairs`,
-`villagers_fighting`, `boss_hp` (dragon HP %, -1 if none), `call_to_arms`
+`villagers_fighting`, `boss_hp` (dragon HP %, -1 if none), `season` (exact), `call_to_arms`
 (bool), `game_over` (bool), `hint` (current tutorial hint contains the text),
 `squad_troops_min`, `squad_mode` (`AUTO`/`MANUAL`),
 `research_done` (research id), `button_on_screen` (a visible button whose

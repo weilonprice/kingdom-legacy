@@ -7,6 +7,8 @@ const BUILDINGS := "res://assets/sprites/buildings/%s.png"
 const CHARACTER_ROTATION := "res://assets/sprites/%s/%s.png"
 const TILESET_IMAGE := "res://assets/tiles/%s_image.png"
 const TILESET_METADATA := "res://assets/tiles/%s_metadata.json"
+## Seasonal art lives in assets/tiles/<season>/ and wins over the shared set.
+const SEASON_TILESET := "%s/%s"
 const DIRECTIONS := ["south", "east", "north", "west"]
 const WALK_FPS := 8.0
 const FIRE_FRAME := "res://assets/sprites/fire/fire_%d.png"
@@ -15,6 +17,9 @@ const FIRE_FPS := 10.0
 static var _textures := {}
 static var _walk_frames := {}
 static var _wang := {}
+## The season the map is drawn for ("" = the original green set). Changing it
+## needs a terrain rebuild.
+static var season := ""
 
 
 static func texture(path: String) -> Texture2D:
@@ -23,7 +28,12 @@ static func texture(path: String) -> Texture2D:
 	return _textures[path]
 
 
+## Seasonal variants (e.g. snow on the roofs) live in buildings/<season>/.
 static func building(def_id: String) -> Texture2D:
+	if season != "":
+		var seasonal := texture(BUILDINGS % (season + "/" + def_id))
+		if seasonal != null:
+			return seasonal
 	return texture(BUILDINGS % def_id)
 
 
@@ -89,6 +99,14 @@ static func walk_frames(character: String, direction: String) -> Array:
 ## where corner_key is NW,NE,SW,SE as 0 (lower) / 1 (upper), e.g. "0101".
 ## Null if the files aren't there.
 static func wang(name: String) -> Variant:
+	if season != "":
+		var seasonal: Variant = _load_wang(SEASON_TILESET % [season, name])
+		if seasonal != null:
+			return seasonal
+	return _load_wang(name)
+
+
+static func _load_wang(name: String) -> Variant:
 	if _wang.has(name):
 		return _wang[name]
 	var tex := texture(TILESET_IMAGE % name)

@@ -136,6 +136,8 @@ func _apply_keep_upgrade() -> void:
 		return
 	var keep_def: Dictionary = TierDefs.TIERS[tier].keep
 	world.keep.title = keep_def.title
+	world.keep.art_id = keep_def.get("art", "keep")
+	world.keep.queue_redraw()
 	world.keep.base_capacity = keep_def.capacity
 	world.keep.set_base_hp(keep_def.hp)
 	world.recompute_capacity()

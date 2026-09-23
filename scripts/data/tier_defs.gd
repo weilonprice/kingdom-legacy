@@ -34,19 +34,19 @@ const TIERS := [
 			"units": ["archer"],
 			"research": ["tempered_steel", "masonry"],
 		},
-		"keep": {"title": "Castle", "hp": 1500.0, "capacity": 400},
+		"keep": {"title": "Castle", "art": "castle", "hp": 1500.0, "capacity": 400},
 	},
 	{
 		"name": "City",
 		"requires": {"population": 70, "raids_survived": 5, "research": 4, "buildings": ["warehouse", "stone_tower"],
 			"house_level": {"level": 3, "count": 6}, "happiness": 60},
 		"unlocks": {"units": ["knight"]},
-		"keep": {"title": "Castle", "hp": 2000.0, "capacity": 500},
+		"keep": {"title": "Castle", "art": "castle", "hp": 2000.0, "capacity": 500},
 	},
 	{
 		"name": "Kingdom",
 		"requires": {"population": 120, "raids_survived": 8, "research": 6, "happiness": 65},
 		"unlocks": {},
-		"keep": {"title": "Citadel", "hp": 2500.0, "capacity": 600},
+		"keep": {"title": "Citadel", "art": "citadel", "hp": 2500.0, "capacity": 600},
 	},
 ]

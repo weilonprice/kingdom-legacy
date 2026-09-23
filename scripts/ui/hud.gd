@@ -144,7 +144,9 @@ func _process(delta: float) -> void:
 	_menu.position = (vp - _menu.size) * 0.5
 	_hints.suppressed = _tier_panel.visible
 	_update_raid_ui(vp)
-	_set_bar(_clock_label, day_night.label(), "%s — %d:%02d until %s" % [
+	var season: Seasons = get_parent().seasons
+	_set_bar(_clock_label, "%s · %s" % [season.label(), day_night.label()], "%s (%d day%s left) — %s — %d:%02d until %s" % [
+		season.label(), season.days_left(), "" if season.days_left() == 1 else "s",
 		day_night.label(), floori(day_night.time_to_change() / 60.0), floori(day_night.time_to_change()) % 60,
 		"morning" if world.is_night else "nightfall"])
 	_squad_panel.position = Vector2(10, vp.y - _squad_panel.size.y - 90)

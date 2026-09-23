@@ -13,6 +13,7 @@ const EMIGRATION_DELAY := 45.0
 
 var world: WorldMap
 var citizens: CitizenManager
+var seasons: Seasons
 ## Gold collected at the last tax time, for the HUD.
 var last_tax := 0
 
@@ -62,6 +63,8 @@ func _update_homes(elapsed: float) -> void:
 	var list := homes()
 	for home in list:
 		var met := {"food": _fed(home)}
+		if seasons != null and seasons.is_winter():
+			met["warmth"] = seasons.warm
 		for need: String in providers:
 			met[need] = providers[need].any(func(p: Building) -> bool: return p.covers(home))
 		home.needs_met = met
