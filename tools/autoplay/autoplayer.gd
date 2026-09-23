@@ -43,6 +43,8 @@ var actions := {}
 ## Why builds failed: "<id>: <reason>" -> count.
 var failures := {}
 var _street_cooldown := 0.0
+## Edible food made (bread + fish) over roughly the last game minute.
+var _food_window: Array = []   # [game_time, total_edible_made]
 const MAX_AVENUE := 30
 
 
@@ -107,6 +109,7 @@ func _act() -> void:
 	var free_housing := GameState.housing - pop
 	var food_min := GameState.edible_total() / float(maxi(pop, 1)) * CitizenManager.MEAL_INTERVAL / 60.0
 	var raid_near: bool = main.raids.phase != RaidDirector.Phase.CALM
+	var winter_soon: bool = main.seasons.is_winter() or (main.seasons.current() == "autumn" and main.seasons.days_left() <= 2)
 	var wood_reserve := homes * (10 if main.seasons.current() in ["autumn", "winter"] else 2)
 	_manage_war()
 	# A tower before the first raid, more as raids grow.
@@ -119,11 +122,10 @@ func _act() -> void:
 		return
 	if food_min < 8.0 and _count("farm") < 1 + pop / 10 and _try("farm"):
 		return
-	if _count("farm") >= 2 and _count("mill") < 1 + _count("farm") / 4 and _try("mill"):
+	if _count("farm") >= 2 and _count("mill") < 1 + _count("farm") / 3 and _try("mill"):
 		return
 	if _count("mill") >= 1 and _count("bakery") < _count("mill") and _try("bakery"):
 		return
-	var winter_soon: bool = main.seasons.is_winter() or (main.seasons.current() == "autumn" and main.seasons.days_left() <= 2)
 	if winter_soon and GameState.count("wood") < homes * 8 and _count("woodcutter") < 2 + homes / 4 and _try("woodcutter", Terrain.FOREST):
 		return
 	# Basic economy: wood is the first bottleneck, so keep enough woodcutters.
@@ -131,7 +133,17 @@ func _act() -> void:
 		return
 	if GameState.count("wood") < 80 and _count("woodcutter") < 2 + pop / 6 and _try("woodcutter", Terrain.FOREST):
 		return
-	var can_grow := (food_min >= 2.5 or pop < 12) and GameState.count("wood") >= wood_reserve
+	# Grow only while food income covers everyone with some to spare (and,
+	# before winter, on a real stock too).
+	var food_needed := 5.0 if winter_soon else 2.0
+	var income := _food_income()
+	var can_grow := (pop < 12 or (food_min >= food_needed and income >= pop * 1.15)) \
+		and GameState.count("wood") >= wood_reserve
+	if income < pop and food_min < 8.0:
+		if _count("fisher") < 2 + pop / 8 and _try("fisher", Terrain.WATER):
+			return
+		if _count("farm") < 2 + pop / 8 and _try("farm"):
+			return
 	if free_housing < 2 and homes < 40 and can_grow:
 		if tier >= 1 and _unlocked("stone_house") and GameState.count("stone") > 60 and _try("stone_house"):
 			return
@@ -163,7 +175,8 @@ func _act() -> void:
 			return
 		if _count("market") < 1 + homes / 12 and _try("market"):
 			return
-		if _count("carter") < 1 and pop >= 20 and _try("carter"):
+		var workplaces := _count("farm") + _count("mill") + _count("bakery") + _count("woodcutter") + _count("quarry")
+		if _count("carter") < 1 + workplaces / 8 and pop >= 20 and _try("carter"):
 			return
 		if _count("iron_mine") < 1 and _try("iron_mine", Terrain.STONE):
 			return
@@ -194,14 +207,17 @@ func _act() -> void:
 func _manage_war() -> void:
 	var raid: bool = main.raids.phase == RaidDirector.Phase.ACTIVE
 	# Call to Arms when raiders outnumber troops near the Keep.
-	if raid and not world.call_to_arms:
-		var close := 0
-		for e in world.enemies:
-			if e.position.distance_to(world.keep.center()) < 12 * Terrain.TILE_SIZE:
-				close += 1
-		if close > main.military.troops().size() * 2 + 4:
-			world.call_to_arms = true
-			_event("Call to Arms (%d raiders near the Keep)" % close)
+	var close := 0
+	for e in world.enemies:
+		if e.position.distance_to(world.keep.center()) < 12 * Terrain.TILE_SIZE:
+			close += 1
+	if raid and not world.call_to_arms and close > main.military.troops().size() * 2 + 4:
+		world.call_to_arms = true
+		_event("Call to Arms (%d raiders near the Keep)" % close)
+	elif world.call_to_arms and close < 4:
+		# Back to work once the worst is over.
+		world.call_to_arms = false
+		_event("stand down (%d raiders left near the Keep)" % close)
 	# Assault a lair once the army is strong.
 	if not raid and main.progression.tier >= 3 and _lair_target == null and main.military.troops().size() >= 6:
 		var lairs := world.lairs()
@@ -392,6 +408,18 @@ func _place_road_tiles(tiles: Array[Vector2i]) -> void:
 
 
 # --- Bookkeeping ------------------------------------------------------------------
+
+## Bread + fish made per game minute, over the last minute or so.
+func _food_income() -> float:
+	var made: int = GameState.stats.produced.get("bread", 0) + GameState.stats.produced.get("fish", 0)
+	_food_window.append([game_time, made])
+	while _food_window.size() > 2 and game_time - _food_window[1][0] >= 60.0:
+		_food_window.pop_front()
+	var span: float = game_time - _food_window[0][0]
+	if span < 20.0:
+		return 999.0  # not enough history yet
+	return (made - _food_window[0][1]) / span * 60.0
+
 
 func _fail(id: String, why: String) -> bool:
 	var key := "%s: %s" % [id, why]

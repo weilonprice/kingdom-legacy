@@ -72,7 +72,7 @@ func call_raid_now() -> void:
 ## Which enemies the next raid brings.
 func composition() -> Dictionary:
 	var tier := progression.tier if progression != null else 0
-	var goblins := 2 + floori(GameState.population / 8.0) + raids_survived + tier
+	var goblins := 2 + floori(GameState.population / 16.0) + raids_survived + tier
 	# Lairs ramp up: +1 goblin each per raid survived, up to their full bonus,
 	# so the first raid isn't doubled for a brand-new town.
 	for lair in world.lairs():

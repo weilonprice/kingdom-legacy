@@ -345,7 +345,11 @@ M12 — AUTOPLAYER (tool done; balance changes next)
   [x] (S) GameState.stats: produced / spent / used totals
   [x] (M) Balance round 1 (M13): storage room, slower fire + bucket
           brigades, later/rarer orc fires; fixed repair cancelling fires
-  [ ] (M) Balance round 2: food chain throughput, raid size vs population
+  [x] (M) Balance round 2 (M14): full-load producer trips, faster 2-worker
+          mills, raids grow half as fast with population; bot grows on
+          food income
+  [ ] (M) Bot defends competently (walls, tower rings, bigger army) to tell
+          "raids too strong" from "bot too weak"
 
   Later
   [ ] Economy tuning from playtests (costs, yields, tier requirements)

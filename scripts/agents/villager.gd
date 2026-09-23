@@ -607,8 +607,10 @@ func _arrive_fetch() -> void:
 	if _dest.inventory.get(item, 0) + _dest.output_stock.get(item, 0) < needed:
 		_wait("Waiting for %s" % item, 2.0)
 		return
+	# Bring a full load (whole batches) so the next batches need no trip.
+	var load := maxi(needed, int(HAUL_LOAD / float(needed)) * needed)
 	carrying = item
-	carry_amount = world.stock.take_from_source(_dest, item, needed)
+	carry_amount = world.stock.take_from_source(_dest, item, load)
 	queue_redraw()
 	if _walk_to(job.entrance()):
 		state = State.TO_WORKPLACE
@@ -622,6 +624,10 @@ func _arrive_workplace() -> void:
 		_reset()
 		return
 	if carrying == job.input_item():
+		# One batch goes to work now; the rest waits at the workplace.
+		var extra := carry_amount - job.input_batch()
+		if extra > 0:
+			job.add_input(carrying, extra)
 		carrying = ""
 		carry_amount = 0
 		queue_redraw()
