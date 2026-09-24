@@ -59,7 +59,7 @@ func start(id: String, progression: Progression) -> String:
 func _process(delta: float) -> void:
 	if queue.is_empty():
 		return
-	progress += delta * scholars_working()
+	progress += delta * scholars_working() * GameState.mod("research_speed")
 	if progress >= ResearchDefs.get_def(queue[0]).time:
 		_complete(queue.pop_front())
 

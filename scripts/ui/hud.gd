@@ -36,6 +36,7 @@ var _game_over: GameOverPanel
 var _squad_panel: SquadPanel
 var _tier_button: Button
 var _tier_panel: TierPanel
+var _royal_panel: RoyalPanel
 var _mode_label: Label
 var _info_label: Label
 var _msg_label: Label
@@ -89,6 +90,12 @@ func _ready() -> void:
 	_tier_panel.setup(progression)
 	add_child(_tier_panel)
 	_tier_panel.position = Vector2(10, 80)
+	_royal_panel = RoyalPanel.new()
+	_royal_panel.royals = get_parent().royals
+	add_child(_royal_panel)
+	_royal_panel.position = Vector2(10, 80)
+	build.royal_clicked.connect(func(_role: String) -> void: open_royal_court())
+	_panel.royal_court = open_royal_court
 	progression.tier_changed.connect(func(_t: int) -> void:
 		_show_category(_category)
 		_refresh_tier())
@@ -183,7 +190,7 @@ func _process(delta: float) -> void:
 	# Zoom buttons sit beside the minimap (or in the corner when it's hidden).
 	var zoom_right := _minimap.position.x - 6 if _minimap.visible else vp.x - 8
 	_zoom_box.position = Vector2(zoom_right - _zoom_box.size.x, vp.y - _zoom_box.size.y - 96)
-	_hints.suppressed = _tier_panel.visible
+	_hints.suppressed = _tier_panel.visible or _royal_panel.visible
 	_update_raid_ui(vp)
 	var season: Seasons = get_parent().seasons
 	_set_bar(_clock_label, "%s · %s" % [season.label(), day_night.label()], "%s (%d day%s left) — %s — %d:%02d until %s" % [
@@ -210,7 +217,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.keycode == KEY_O:
 		GameState.notify(overlay.cycle())
 	elif event.keycode == KEY_T:
+		_royal_panel.hide()
 		_tier_panel.toggle()
+	elif event.keycode == KEY_K:
+		_tier_panel.hide()
+		_royal_panel.toggle()
 	elif event.keycode == KEY_M:
 		_minimap.visible = not _minimap.visible
 	elif event.keycode == KEY_F9:
@@ -246,7 +257,14 @@ func _build_top_bar() -> void:
 	var menu_button := _button(row, "☰", "Game menu (Esc): save, load, settings, main menu")
 	menu_button.pressed.connect(func() -> void: _menu.toggle())
 	_tier_button = _button(row, "", "Settlement tier — click (or T) for what the next tier needs")
-	_tier_button.pressed.connect(func() -> void: _tier_panel.toggle())
+	_tier_button.pressed.connect(func() -> void:
+		_royal_panel.hide()
+		_tier_panel.toggle())
+	var crown := _button(row, "♛", "The Royal Court (K): the ruling family, their traits and the treasury")
+	crown.add_theme_font_override("font", ThemeDB.fallback_font)
+	crown.pressed.connect(func() -> void:
+		_tier_panel.hide()
+		_royal_panel.toggle())
 	# Info labels share the leftover width and truncate, so the speed buttons
 	# on the right always stay on screen however long the numbers get.
 	_bar_icon(row, "wood")
@@ -374,6 +392,12 @@ func show_defeat(title: String, body: String) -> void:
 
 
 ## Hooks the game menu's Save and Load buttons up to the game.
+func open_royal_court() -> void:
+	_tier_panel.hide()
+	if not _royal_panel.visible:
+		_royal_panel.toggle()
+
+
 func set_save_actions(on_save: Callable, on_load: Callable) -> void:
 	_menu.on_save = on_save
 	_menu.on_load = on_load

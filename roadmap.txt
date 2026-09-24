@@ -411,7 +411,7 @@ PHASE 2 — SIMULATION DIRECTION (decided 2026-09-24)
   M23  The royal family and the treasury: a named lord, spouse and heir
        living in the castle, succession when the lord dies; the treasury
        and reserve stores kept in the castle; raiders who break in steal
-       and burn them
+       and burn them   [DONE]
   M24  Better wall building: gatehouses, automatic corner towers,
        cost/length preview while dragging
   M25  People's lives: ages, families, births, children growing into
@@ -447,5 +447,4 @@ BACKLOG / MAYBE LATER
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. M23 royal family and treasury
-  2. M24 wall building, then M25-M27 simulation systems
+  1. M24 wall building, then M25-M27 simulation systems

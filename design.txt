@@ -490,6 +490,25 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 
 17. DIRECTION: SIMULATION FIRST (2026-09-24, DECIDED)
 --------------------------------------------------------------------------------
+  THE ROYAL FAMILY AND TREASURY (M23, 2026-09-24): a ruling house lives in
+  the castle: a ruler, a spouse and an heir with names and ages, strolling
+  the castle grounds by day (inside at night and during raids); click one,
+  press K or the crown button for the Royal Court panel. The ruler has one
+  or two traits applied to the realm while they reign: Just (+6
+  happiness), Greedy (+30% tax, -6 happiness), Builder (castle work +60%),
+  Warlike (troop damage +15%), Wise (research +30%), Thrifty (troop upkeep
+  -25%). Royals age a year every 100 s; rulers die of old age at 58-72
+  (roughly 45-65 minutes of play). The heir inherits, marries 2 years later
+  and has a child 2 years after that. A ruler who dies with no heir leaves
+  a succession crisis: 3 minutes of no taxes and -15 happiness, and a
+  quarter of the treasury lost, until a noble of a new house claims the
+  throne. Titles follow the tier: Lord/Lady, Duke/Duchess, King/Queen
+  (Prince/Princess for the heir). The castle holds the treasury: raiders
+  who bring it below half HP during a raid break in once (until it's
+  repaired above half), stealing 30% of the gold, burning 20% of the goods
+  stored in the castle, and with a 35% chance killing a royal (the ruler's
+  death triggers succession). Saves are version 3.
+
   ANIMATIONS (M23, 2026-09-24): villagers animate what they do, all four
   directions: walk, carry (walking with a load), idle (breathing), chop
   (woodcutters), mine (quarry, iron mine), farm (planting, harvesting,

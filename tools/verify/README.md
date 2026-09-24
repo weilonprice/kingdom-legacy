@@ -52,6 +52,9 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 | `{"reload_settings": true}` | Re-reads the settings file, as the next launch would. Tests use `user://verify-settings.cfg`, fresh each run |
 | `{"setup_cut_forest": [dx, dy]}` | TEST-ONLY: fells the forest tile nearest that spot (with forest beside it, nothing built nearby) as a woodcutter would; alias `cut`. Logged |
 | `{"setup_forest_time": s}` | TEST-ONLY: runs sapling growth and regrowth forward `s` game seconds. Logged |
+| `{"setup_royal": {"ruler_age": 90, "no_heir": true, "traits": ["just"], "crisis_left": 1}}` | TEST-ONLY: changes the royal family (any of those keys). Logged |
+| `{"setup_keep_hp": 0.4}` | TEST-ONLY: sets the castle's HP to that share of its maximum (a breach needs a raid on). Logged |
+| `{"click_royal": "ruler"}` | Clicks that family member (`ruler`/`spouse`/`heir`) where they stand |
 | `{"setup_hints": true}` | Turns tutorial hints on (the driver starts with them off so they don't cover tiles) |
 | `{"setup_delay_raids": s}` | TEST-ONLY: no natural raid for `s` game seconds. Logged |
 
@@ -74,6 +77,8 @@ merchant in town, "" if none), `camera_near`
 `settings` (`{"game/pan_speed": 1.6}`: values in Settings), `speed` (0 = paused, 1-3),
 `ui_scale` (the window's content scale), `camera_moved` (`{"since": "<state>", "min": n}` or
 `"max"`: tiles the camera moved since that snapshot),
+`royal_ruler` / `royal_spouse` / `royal_heir` (title contains the text; `""` = nobody), `royal_crisis`,
+`royal_breached` (bools), `royals_on_map` / `happiness_mod` / `tax_mod` (in `min`/`max`),
 `anims_seen` (list: every villager animation named must have been seen since the run
 started, e.g. `["chop", "carry"]`), `castle` (stage title, exact), `castle_building` (bool), `castle_size` / `castle_progress` (0..1) /
 `builders` / `keep_hp` (in `min`/`max`), `zoom` / `min_zoom` / `fps` (in `min`/`max`), `saplings` / `cleared` / `forest` (counts, in `min`/`max`), `increased` (`{"since": "<state>", "forest": 2}`:

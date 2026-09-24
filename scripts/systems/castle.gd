@@ -124,7 +124,7 @@ func work_spot() -> Vector2i:
 func add_work(seconds: float) -> void:
 	if project.is_empty() or not materials_done():
 		return
-	project.work_done += seconds
+	project.work_done += seconds * GameState.mod("castle_work")
 	changed.emit()
 	if project.work_done >= CastleDefs.STAGES[project.stage].work:
 		_complete()

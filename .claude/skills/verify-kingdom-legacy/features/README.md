@@ -53,6 +53,7 @@ tools/verify/run.sh`, `Gotchas`.
 - [Seasons and art](./seasons-and-art.md): the season cycle, winter firewood and frozen fields, seasonal art, trees/props/walls. Scenarios `seasons.json`, `art-showcase.json`.
 - [Rivers and bridges](./rivers-bridges.md): rivers, fords, building/refusing/demolishing bridges. Scenario `rivers-bridges.json`, tool `map_preview.tscn`.
 - [Sound and minimap](./sound-minimap.md): synthesized effects, ambience, volume sliders, the minimap. Scenario `sound-minimap.json`.
+- [Royal family and treasury](./royals.md): the court panel, royals on the map, traits, succession, crisis, castle breach, saves. Scenario `royals.json`.
 - [Villager animations](./animations.md): chop, mine, farm, hammer, carry, idle, pick up / put down. Scenario `animations.json`.
 - [The growing castle](./castle.md): reserved grounds, upgrade to Castle/Citadel, builders hauling materials, scaffolding, saves mid-project. Scenario `castle.json`.
 - [Camera and zoom](./camera-zoom.md): wheel, pinch, trackpad pan, +/- keys, HUD zoom buttons, whole-map view. Scenario `camera-zoom.json`.

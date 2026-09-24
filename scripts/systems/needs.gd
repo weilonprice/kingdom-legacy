@@ -87,6 +87,7 @@ func _happiness(met: Dictionary) -> float:
 	for need: String in met:
 		h += NeedDefs.NEEDS[need].met if met[need] else NeedDefs.NEEDS[need].unmet
 	h += NeedDefs.TAX_RATES[GameState.tax_rate].happiness
+	h += GameState.mod("happiness", 0.0)  # the ruler's traits, a succession crisis
 	return clampf(h, 0.0, 100.0)
 
 
@@ -140,7 +141,7 @@ func tax_per_minute() -> int:
 	for home in homes():
 		if home.happiness >= NeedDefs.UNHAPPY:
 			total += home.residents.size() * rate * NeedDefs.LEVELS[home.level - 1].tax
-	return roundi(total)
+	return roundi(total * GameState.mod("tax"))
 
 
 func _collect_taxes() -> void:

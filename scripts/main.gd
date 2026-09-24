@@ -15,6 +15,7 @@ var fire: FireSystem
 var seasons: Seasons
 var trade: Trade
 var castle: Castle
+var royals: Royals
 var build: BuildController
 var camera: CameraController
 var hud: HUD
@@ -84,6 +85,11 @@ func _ready() -> void:
 	castle.setup(world, progression)
 	add_child(castle)
 	progression.castle = castle
+
+	royals = Royals.new()
+	royals.setup(world, progression)
+	add_child(royals)
+	royals.found(world.map_seed)
 
 	trade = Trade.new()
 	trade.world = world

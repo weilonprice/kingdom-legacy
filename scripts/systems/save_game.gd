@@ -9,8 +9,9 @@ extends RefCounted
 ## Saves can't be made while a raid is warning or under way: enemies in
 ## flight are not stored.
 
-## 2: the castle grows in reserved grounds (M22); older saves can't load.
-const VERSION := 2
+## 2: the castle grows in reserved grounds (M22); 3: the royal family (M23).
+## Older saves can't load.
+const VERSION := 3
 const SLOT := "savegame"
 const AUTO := "autosave"
 
@@ -123,6 +124,7 @@ static func capture(main: Node) -> Dictionary:
 		"season": main.seasons.index,
 		"trade": {"timer": main.trade.timer, "merchant": main.trade.merchant},
 		"castle": main.castle.to_save(),
+		"royals": main.royals.to_save(),
 		"season_days": main.seasons.days_in,
 		"clock": main.day_night.clock,
 		"tax_rate": GameState.tax_rate,
@@ -147,6 +149,7 @@ static func apply(main: Node, data: Dictionary) -> void:
 
 	world.restore_roads(data.roads.map(func(a: Array) -> Vector2i: return _t(a)))
 	main.castle.restore(data.castle)
+	main.royals.restore(data.royals)
 
 	var by_origin := {world.keep.origin: world.keep}
 	for entry: Dictionary in data.buildings:
