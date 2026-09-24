@@ -86,6 +86,11 @@ var _strike_timer := 0.0
 var _facing := "south"
 var _moving := false
 var _anim_time := 0.0
+## A one-off animation (picking up, putting down) and how long the villager
+## stands still for it.
+var _once := ""
+var _once_time := 0.0
+var _hold := 0.0
 
 
 func setup(p_world: WorldMap, p_home: Building) -> void:
@@ -175,14 +180,19 @@ func _wait(reason: String, seconds := 2.0) -> void:
 
 func _process(delta: float) -> void:
 	_anim_time += delta
-	var was_moving := _moving
+	_once_time += delta
 	_moving = not path.is_empty()
-	if _moving or was_moving:
+	if visible:
 		queue_redraw()
 	_danger_timer -= delta
 	if _danger_timer <= 0.0:
 		_danger_timer = DANGER_CHECK_INTERVAL
 		_update_raid_response()
+	if _hold > 0.0:
+		_hold -= delta
+		if _hold <= 0.0:
+			_once = ""
+		return
 	if not path.is_empty():
 		_step(delta)
 		return
@@ -206,6 +216,37 @@ func _process(delta: float) -> void:
 				_finish_work()
 		_:
 			_arrive()
+
+
+## Plays a one-off animation and stands still for it.
+func _play_once(anim: String, hold := 0.45) -> void:
+	_once = anim
+	_once_time = 0.0
+	_hold = hold
+
+
+## What the villager's body is doing right now.
+func current_anim() -> String:
+	if _once != "":
+		return _once
+	if _moving:
+		return "carry" if carrying != "" else "walk"
+	if state == State.WORKING:
+		match task:
+			Task.GATHER:
+				match job.def.get("resource", "") if job != null else "":
+					"wood":
+						return "chop"
+					"stone", "iron":
+						return "mine"
+				return "idle"
+			Task.PLANT, Task.HARVEST, Task.PLANT_TREE:
+				return "farm"
+			Task.BUILD:
+				return "hammer"
+			Task.PRODUCE:
+				return "hammer" if job != null and job.def_id in ["smithy", "armory"] else "idle"
+	return "idle"
 
 
 func _step(delta: float) -> void:
@@ -607,6 +648,9 @@ func _arrive() -> void:
 				_reset()
 				return
 			state = State.WORKING
+			var look := world.tile_center(_target_tile) if _target_tile != WorldMap.INVALID_TILE else job.center()
+			if look.distance_to(position) > 2.0:
+				_facing = Art.facing(look - position, _facing)
 			timer = job.def.get("work_time", 4.0) * _work_multiplier() \
 					* (GameState.mod("gather_time") if task == Task.GATHER else 1.0)
 			note = {Task.GATHER: "Gathering %s" % job.def.get("resource", ""),
@@ -625,6 +669,7 @@ func _arrive() -> void:
 			if is_instance_valid(_supply_target):
 				_supply_target.add_input(carrying, carry_amount)
 				note = "Delivered %s to %s" % [carrying, _supply_target.title]
+				_play_once("putdown")
 				carrying = ""
 				carry_amount = 0
 				queue_redraw()
@@ -636,6 +681,7 @@ func _arrive() -> void:
 				if carry_amount <= 0:
 					carrying = ""
 					carry_amount = 0
+					_play_once("putdown")
 				queue_redraw()
 			_wait(note, 0.3)  # anything left over goes to another storage
 		State.WANDER:
@@ -660,6 +706,7 @@ func _arrive_fetch() -> void:
 			_castle_claim.amount = got
 		carrying = item
 		carry_amount = got
+		_play_once("pickup")
 		queue_redraw()
 		if _walk_to(job.entrance()):
 			state = State.TO_WORKPLACE
@@ -679,6 +726,7 @@ func _arrive_fetch() -> void:
 			return
 		carrying = input
 		carry_amount = got
+		_play_once("pickup")
 		queue_redraw()
 		if _walk_to(target.entrance()):
 			state = State.TO_SUPPLY
@@ -696,6 +744,7 @@ func _arrive_fetch() -> void:
 	var load := maxi(needed, int(HAUL_LOAD / float(needed)) * needed)
 	carrying = item
 	carry_amount = world.stock.take_from_source(_dest, item, load)
+	_play_once("pickup")
 	queue_redraw()
 	if _walk_to(job.entrance()):
 		state = State.TO_WORKPLACE
@@ -711,6 +760,7 @@ func _arrive_workplace() -> void:
 	if not _castle_claim.is_empty():
 		world.get_parent().castle.deliver(carrying, carry_amount)
 		_castle_claim = {}
+		_play_once("putdown")
 		carrying = ""
 		carry_amount = 0
 		queue_redraw()
@@ -742,6 +792,7 @@ func _arrive_drop() -> void:
 		_go_deposit()  # pile filled up on the way
 		return
 	carrying = ""
+	_play_once("putdown")
 	queue_redraw()
 	_wait(note, 0.2)
 
@@ -758,6 +809,7 @@ func _arrive_pickup() -> void:
 		return
 	carrying = item
 	carry_amount = got
+	_play_once("pickup")
 	queue_redraw()
 	_go_deposit()
 
@@ -793,13 +845,16 @@ func _finish_work() -> void:
 	_release_claims()
 	task = Task.NONE
 	if amount > 0:
+		_play_once("pickup")
 		_deliver_output(item, amount)
 	else:
 		_wait(note, 0.2)
 
 
 func _draw() -> void:
-	var top := Art.draw_character(self, "villager", _facing, _moving, _anim_time)
+	var anim := current_anim()
+	var top := Art.draw_character_anim(self, "villager", _facing, anim,
+		_once_time if anim in Art.ONE_SHOT else _anim_time)
 	if is_nan(top):
 		top = -8.0
 		var body := COLOR_UNEMPLOYED
@@ -813,7 +868,9 @@ func _draw() -> void:
 		draw_line(Vector2(6, 8), Vector2(6, top + 4), Color(0.50, 0.35, 0.18), 1.5)
 		for dx in [-2, 0, 2]:
 			draw_line(Vector2(6 + dx, top + 4), Vector2(6 + dx, top), Color(0.75, 0.75, 0.8), 1.0)
-	if carrying != "":
+	# While walking the carry animation shows the load; otherwise a small
+	# box in the goods' colour does.
+	if carrying != "" and not (anim == "carry" and not Art.anim_frames("villager", "carry", _facing).is_empty()):
 		var c := ItemDefs.color_of(carrying)
 		var box := Rect2(Vector2(4, top + 12), Vector2(7, 7))
 		draw_rect(box, c)

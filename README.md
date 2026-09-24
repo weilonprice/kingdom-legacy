@@ -57,6 +57,9 @@ the next raid hits. Made with Godot 4.
 - **Rivers and bridges.** A river winds past every town, with a couple of
   shallow fords. Drag a road across it to build a bridge, then guard the
   crossing: raiders use bridges too.
+- **Villagers at work.** Woodcutters swing axes, miners pickaxes, farmers
+  hoes, builders hammers; porters carry crates and stoop to pick up and put
+  down their loads.
 - **A castle that grows.** The Keep stands in reserved grounds at the
   heart of the map. At Town and again at Kingdom you can raise it into a
   Castle and then a Citadel: builders haul stone, wood and iron to the
@@ -236,6 +239,7 @@ after its scenarios pass.
 | M19 | Settings menu ✅ |
 | M20 | Forester and forest regrowth ✅ |
 | M21 | Camera: trackpad pinch and pan, zoom keys and buttons, whole-map view ✅ |
+| M23a | Villager animations: chopping, mining, farming, hammering, carrying, picking up and putting down ✅ |
 | M22 | The growing castle: Keep 5×5 → Castle 7×7 → Citadel 9×9, built by builders in reserved grounds ✅ |
 | M23–M27 | **Direction change: simulation first** (planned): the royal family and treasury, better wall building, people's lives, stats & graphs, health & disease. See design.txt §17 |
 

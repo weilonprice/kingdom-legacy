@@ -490,6 +490,14 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 
 17. DIRECTION: SIMULATION FIRST (2026-09-24, DECIDED)
 --------------------------------------------------------------------------------
+  ANIMATIONS (M23, 2026-09-24): villagers animate what they do, all four
+  directions: walk, carry (walking with a load), idle (breathing), chop
+  (woodcutters), mine (quarry, iron mine), farm (planting, harvesting,
+  forester), hammer (castle builders, smiths), and a pick-up / put-down
+  when goods change hands (a short pause). Missing animations fall back to
+  walking or the standing pose. Frames: assets/sprites/villager/
+  <anim>_<dir>_<n>.png; speeds in Art.ANIM_FPS.
+
   M22 (built 2026-09-24): the castle grows in reserved 9x9 grounds at the
   map centre (nothing else can be built there; the Build/Wall tools outline
   them). Keep 5x5 -> Castle 7x7 (Town; 150 gold + 250 stone, 150 wood,
