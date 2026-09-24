@@ -7,6 +7,7 @@ extends Node2D
 ##   gather:  go to resource tile -> work -> drop at the workplace's pile
 ##   farm:    go to ripe field -> harvest -> drop wheat at the farm's pile
 ##            (or go to tilled field -> plant)
+##   forester: go to open ground -> plant a sapling
 ##   produce: use delivered input (or fetch it from the nearest storage or
 ##            workplace pile) -> work -> drop output at the pile
 ##   haul:    empty the fullest workplace pile into storage, or deliver
@@ -24,7 +25,7 @@ enum State {
 	TO_PICKUP, TO_SUPPLY, TO_SHELTER, HIDING, TO_POST, STATIONED, TO_BED, SLEEPING,
 	FIGHTING,
 }
-enum Task { NONE, GATHER, PLANT, HARVEST, PRODUCE }
+enum Task { NONE, GATHER, PLANT, HARVEST, PRODUCE, PLANT_TREE }
 
 const SPEED := 42.0
 const COLOR_UNEMPLOYED := Color(0.87, 0.75, 0.55)
@@ -244,6 +245,8 @@ func _think() -> void:
 			_plan_gather()
 		"farm":
 			_plan_farm()
+		"forester":
+			_plan_forester()
 		"produce":
 			_plan_produce()
 		"haul":
@@ -314,6 +317,17 @@ func _plan_farm() -> void:
 		note = "Going to plant"
 		return
 	_wait("Waiting for crops to grow", 3.0)
+
+
+func _plan_forester() -> void:
+	var t: Vector2i = world.find_plant_site(job.entrance(), job.def.radius)
+	if t != WorldMap.INVALID_TILE and _walk_to(t):
+		_claim(t)
+		task = Task.PLANT_TREE
+		state = State.TO_TARGET
+		note = "Going to plant a sapling"
+		return
+	_wait("No open ground left to plant", 5.0)
 
 
 func _plan_produce() -> void:
@@ -548,7 +562,8 @@ func _arrive() -> void:
 			timer = job.def.work_time * _work_multiplier() \
 					* (GameState.mod("gather_time") if task == Task.GATHER else 1.0)
 			note = {Task.GATHER: "Gathering %s" % job.def.get("resource", ""),
-					Task.PLANT: "Planting", Task.HARVEST: "Harvesting"}.get(task, "Working")
+					Task.PLANT: "Planting", Task.HARVEST: "Harvesting",
+					Task.PLANT_TREE: "Planting a sapling"}.get(task, "Working")
 		State.TO_FETCH:
 			_arrive_fetch()
 		State.TO_WORKPLACE:
@@ -687,6 +702,8 @@ func _finish_work() -> void:
 			item = def.resource
 		Task.PLANT:
 			world.plant_field(_target_tile)
+		Task.PLANT_TREE:
+			world.plant_sapling(_target_tile)
 		Task.HARVEST:
 			amount = world.harvest_field(_target_tile)
 			item = def.resource

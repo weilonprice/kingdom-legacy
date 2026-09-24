@@ -214,6 +214,29 @@ func _run_step(step: Dictionary) -> String:
 	elif step.has("reload_settings"):
 		# Re-read the settings file, as the next launch would.
 		Settings.load_file()
+	elif step.has("setup_cut_forest"):
+		# Test-only: fells the forest tile nearest a keep-relative spot (one
+		# with forest beside it and nothing built nearby), as a woodcutter
+		# would. Saved as alias "cut".
+		report.setup_shortcuts.append(step)
+		var near := _tile_of(step.setup_cut_forest)
+		var best := WorldMap.INVALID_TILE
+		for r in 30:
+			for t in _ring(near, r):
+				if best == WorldMap.INVALID_TILE and world.is_in_bounds(t) \
+						and world.get_terrain(t) == Terrain.FOREST and world._touches_trees(t) \
+						and _clear_around(t):
+					best = t
+		if best == WorldMap.INVALID_TILE:
+			return "FAIL no forest tile to cut near %s" % near
+		while world.get_terrain(best) == Terrain.FOREST:
+			world.harvest(best, Terrain.FOREST, 0)
+		aliases["cut"] = best
+		return "ok (cut %s)" % best
+	elif step.has("setup_forest_time"):
+		# Test-only: runs forest growth forward this many game seconds.
+		report.setup_shortcuts.append(step)
+		world._grow_forests(float(step.setup_forest_time))
 	elif step.has("setup_hints"):
 		GameState.hints_enabled = bool(step.setup_hints)
 		report.setup_shortcuts.append(step)
@@ -367,6 +390,24 @@ func _find_button(node: Node, text: String) -> Button:
 	return null
 
 
+func _ring(center: Vector2i, r: int) -> Array[Vector2i]:
+	var tiles: Array[Vector2i] = []
+	for dy in range(-r, r + 1):
+		for dx in range(-r, r + 1):
+			if maxi(absi(dx), absi(dy)) == r:
+				tiles.append(center + Vector2i(dx, dy))
+	return tiles
+
+
+## No building, road, door or field on or beside `t`.
+func _clear_around(t: Vector2i) -> bool:
+	for off in WorldMap.NEIGHBORS + [Vector2i.ZERO]:
+		var n: Vector2i = t + off
+		if world.occupancy.has(n) or world.roads.has(n) or world.entrances.has(n) or world.fields.has(n):
+			return false
+	return true
+
+
 ## Keep-relative tile offset ([dx, dy]) or a find_site alias -> screen position.
 func _tile_of(ref: Variant) -> Vector2i:
 	if ref is String:
@@ -480,6 +521,9 @@ func _snapshot() -> Dictionary:
 		"music_mood": Music.mood,
 		"merchant": main.trade.merchant_name() if main.trade.is_open() else "",
 		"settings": Settings.values.duplicate(),
+		"saplings": world.saplings.size(),
+		"cleared": world.cleared.size(),
+		"forest": Array(world.terrain).count(Terrain.FOREST),
 		"speed": GameState.speed,
 		"ui_scale": get_window().content_scale_factor,
 		"music_notes": Music.notes_played,
@@ -631,6 +675,17 @@ func _check(expect: Dictionary) -> String:
 		if moved < float(spec.get("min", 0)) or moved > float(spec.get("max", INF)):
 			problems.append("camera moved %.1f tiles since %s (want %s..%s)" % [
 				moved, spec.since, spec.get("min", 0), spec.get("max", "any")])
+	if expect.has("sapling_at") and not world.saplings.has(_tile_of(expect.sapling_at)):
+		problems.append("no sapling at %s" % _tile_of(expect.sapling_at))
+	if expect.has("increased"):
+		# {"since": "<state>", "forest": 3}: metric grew by at least that much.
+		var then: Dictionary = snapshots.get(expect.increased.since, s)
+		for key: String in expect.increased:
+			if key == "since":
+				continue
+			var grew := _metric(s, key) - _metric(then, key)
+			if grew < float(expect.increased[key]):
+				problems.append("%s grew %s since %s, want %s+" % [key, grew, expect.increased.since, expect.increased[key]])
 	if expect.has("speed") and s.speed != int(expect.speed):
 		problems.append("speed %d != %s" % [s.speed, expect.speed])
 	if expect.has("ui_scale") and not is_equal_approx(s.ui_scale, float(expect.ui_scale)):
@@ -676,7 +731,7 @@ func _sum_by_building(field: String) -> Dictionary:
 ## or a kingdom resource total.
 func _metric(s: Dictionary, key: String) -> float:
 	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning", "lairs",
-			"villagers_fighting", "boss_hp", "bridges", "music_notes"]:
+			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest"]:
 		return float(s[key])
 	return float(s.resources.get(key, 0))
 

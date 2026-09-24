@@ -61,6 +61,9 @@ var _trees := {}   # Vector2i -> Sprite2D
 var _props := {}   # Vector2i -> Sprite2D (wild props)
 var _rocks := {}   # Vector2i -> Sprite2D
 var _near := {}    # Vector2i -> Sprite2D (props beside buildings)
+var _saplings := {}  # Vector2i -> Sprite2D (young trees: the tree art, smaller)
+## Sapling sizes by stage (seedling, young tree) relative to a grown tree.
+const SAPLING_SCALE := [0.5, 0.75]
 
 
 func _init(p_world: WorldMap) -> void:
@@ -78,7 +81,7 @@ func has_rocks() -> bool:
 
 
 func rebuild() -> void:
-	for layer in [_trees, _props, _rocks, _near]:
+	for layer in [_trees, _props, _rocks, _near, _saplings]:
 		for s in layer.values():
 			s.queue_free()
 		layer.clear()
@@ -123,9 +126,13 @@ func refresh_tile(t: Vector2i) -> void:
 	_set_sprite(_rocks, t, Art.texture(PROP_ART % ROCKS[int(_hash(t, 12) * ROCKS.size()) % ROCKS.size()])
 		if want_rock else null, false)
 	var open := _open(t)
+	var sapling := open and world.saplings.has(t)
+	_set_sprite(_saplings, t, _tree_texture(t) if sapling else null, true)
+	if sapling:
+		_saplings[t].scale = Vector2.ONE * SAPLING_SCALE[world.sapling_stage(t)]
 	if _near.has(t) and not open:
 		_set_sprite(_near, t, null, false)
-	var want_prop := open and not _near.has(t) and _hash(t, 2) < PROP_CHANCE
+	var want_prop := open and not sapling and not _near.has(t) and _hash(t, 2) < PROP_CHANCE
 	_set_sprite(_props, t, _prop_texture(t) if want_prop else null, false)
 
 

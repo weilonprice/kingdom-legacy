@@ -376,6 +376,18 @@ M19 — SETTINGS MENU (done)
   [x] (S) Esc opens the game menu when nothing is selected; F11 fullscreen
   [x] (S) Tools and tests use their own settings file
 
+
+================================================================================
+M20 — FORESTER & REGROWTH (done)
+================================================================================
+  [x] (M) Forester's Lodge (Hamlet): plants saplings within 8 tiles
+          -> building_defs.gd, villager.gd (_plan_forester)
+  [x] (M) Saplings grow into forest in ~3 min (paused in winter); cut
+          forest regrows from the forest's edge after 7 min; never beside
+          roads, buildings, doors or fields -> world_map.gd (Forests)
+  [x] (S) Saplings drawn as small trees (two stages); saves keep them
+  [x] (S) Autoplayer builds a Forester beside thinning woodcutters
+
   Later
   [ ] Economy tuning from playtests (costs, yields, tier requirements)
 
@@ -390,7 +402,6 @@ BACKLOG / MAYBE LATER
   - Hero / lord unit
   - Handmade scenarios / campaign
   - Disease & healthcare
-  - Forester (replant trees), forest regrowth
   - Rubble tiles for destroyed buildings (rebuild at a discount)
   - Attack / death / work animations for characters
   - Key rebinding

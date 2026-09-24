@@ -56,7 +56,7 @@ const MAX_AVENUE := 21
 ## Buildings worth saving up for: when one is short, its cost is held back
 ## from everything lower on the list except income buildings.
 const SAVE_FOR := ["barracks", "guard_tower", "trading_post", "scholars_hall", "stone_tower", "smithy"]
-const INCOME := ["woodcutter", "quarry", "farm", "fisher", "iron_mine"]
+const INCOME := ["woodcutter", "forester", "quarry", "farm", "fisher", "iron_mine"]
 var _reserve := {}
 var _ring: Array[Vector2i] = []
 var _ring_next := 0
@@ -176,6 +176,11 @@ func _act() -> void:
 	if _count("woodcutter") < 1 + pop / 8 and _try("woodcutter", Terrain.FOREST):
 		return
 	if _count("quarry") < 1 + pop / 20 and _try("quarry", Terrain.STONE):
+		return
+	# Replant: a Forester beside any woodcutter whose woods are thinning.
+	var thinning := _thinning_woodcutter()
+	if thinning != null and _count("forester") < 1 + _count("woodcutter") / 4 \
+			and _try("forester", -1, 0, thinning.entrance()):
 		return
 	if _near_full("materials") and _try("stockpile" if tier < 2 else "warehouse"):
 		return
@@ -361,6 +366,21 @@ func _affordable_after_reserve(cost: Dictionary) -> bool:
 		if GameState.count(item) - int(_reserve.get(item, 0)) < int(cost[item]):
 			return false
 	return true
+
+
+## A woodcutter with little forest left in reach and no Forester near it.
+func _thinning_woodcutter() -> Building:
+	for wc in world.buildings:
+		if wc.def_id != "woodcutter":
+			continue
+		var r: int = wc.def.radius
+		if world.find_resource_tiles(wc.entrance(), Terrain.FOREST, r, 20).size() >= 20:
+			continue
+		var covered := world.buildings.any(func(b: Building) -> bool:
+			return b.def_id == "forester" and b.entrance().distance_to(wc.entrance()) <= 10.0)
+		if not covered:
+			return wc
+	return null
 
 
 func _dry_home() -> Building:
@@ -667,7 +687,9 @@ func _snapshot() -> void:
 		"raids_survived": main.raids.raids_survived, "warm": main.seasons.warm,
 		"rates": _rates(),
 		"counts": {"woodcutter": _count("woodcutter"), "quarry": _count("quarry"), "farm": _count("farm"),
-			"fisher": _count("fisher"), "well": _count("well"), "homes": _count("house") + _count("stone_house")},
+			"fisher": _count("fisher"), "well": _count("well"), "homes": _count("house") + _count("stone_house"),
+			"forester": _count("forester")},
+		"forest": Array(world.terrain).count(Terrain.FOREST), "saplings": world.saplings.size(),
 	})
 
 

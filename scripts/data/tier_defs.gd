@@ -10,7 +10,7 @@ const TIERS := [
 		"name": "Hamlet",
 		"requires": {},
 		"unlocks": {
-			"buildings": ["house", "well", "woodcutter", "quarry", "farm", "fisher", "mill",
+			"buildings": ["house", "well", "woodcutter", "forester", "quarry", "farm", "fisher", "mill",
 				"bakery", "stockpile", "granary", "carter", "guard_tower", "palisade", "gate"],
 		},
 		"keep": {"title": "Keep", "hp": 800.0, "capacity": 300},

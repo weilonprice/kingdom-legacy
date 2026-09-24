@@ -106,6 +106,8 @@ static func capture(main: Node) -> Dictionary:
 		"roads": world.roads.keys().map(func(t: Vector2i) -> Array: return _v(t)),
 		"buildings": buildings,
 		"fields": fields,
+		"saplings": world.saplings.keys().map(func(t: Vector2i) -> Array: return [t.x, t.y, world.saplings[t]]),
+		"cleared": world.cleared.keys().map(func(t: Vector2i) -> Array: return [t.x, t.y, world.cleared[t]]),
 		"villagers": villagers,
 		"settlers_arrived": main.citizens._settlers_arrived,
 		"squads": squads,
@@ -151,6 +153,7 @@ static func apply(main: Node, data: Dictionary) -> void:
 		Marshalls.base64_to_raw(data.resource_left).to_int32_array())
 	world.restore_fields(data.fields.map(func(f: Dictionary) -> Dictionary: return {
 		"t": _t(f.t), "farm": by_origin.get(_t(f.farm)), "stage": int(f.stage), "timer": float(f.timer)}))
+	world.restore_forests(data.get("saplings", []), data.get("cleared", []))
 
 	for entry: Dictionary in data.buildings:
 		var b: Building = by_origin[_t(entry.origin)]

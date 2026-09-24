@@ -49,6 +49,8 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 | `{"setup_merchant": "timber"}` | TEST-ONLY: a merchant (`timber`/`grain`/`iron`/`peddler`) arrives at the Trading Post now. Logged |
 | `{"move_mouse": [x, y]}` | Moves the mouse to that viewport position (e.g. the window edge for edge scrolling); focuses the window first |
 | `{"reload_settings": true}` | Re-reads the settings file, as the next launch would. Tests use `user://verify-settings.cfg`, fresh each run |
+| `{"setup_cut_forest": [dx, dy]}` | TEST-ONLY: fells the forest tile nearest that spot (with forest beside it, nothing built nearby) as a woodcutter would; alias `cut`. Logged |
+| `{"setup_forest_time": s}` | TEST-ONLY: runs sapling growth and regrowth forward `s` game seconds. Logged |
 | `{"setup_hints": true}` | Turns tutorial hints on (the driver starts with them off so they don't cover tiles) |
 | `{"setup_delay_raids": s}` | TEST-ONLY: no natural raid for `s` game seconds. Logged |
 
@@ -71,5 +73,7 @@ merchant in town, "" if none), `camera_near`
 `settings` (`{"game/pan_speed": 1.6}`: values in Settings), `speed` (0 = paused, 1-3),
 `ui_scale` (the window's content scale), `camera_moved` (`{"since": "<state>", "min": n}` or
 `"max"`: tiles the camera moved since that snapshot),
+`saplings` / `cleared` / `forest` (counts, in `min`/`max`), `increased` (`{"since": "<state>", "forest": 2}`:
+a metric grew by at least that much), `sapling_at` (alias or offset has a sapling),
 `research_done` (research id), `button_on_screen` (a visible button whose
 label contains the text lies fully inside the window).
