@@ -55,7 +55,7 @@ var _food_window: Array = []   # [game_time, total_edible_made]
 const MAX_AVENUE := 21
 ## Buildings worth saving up for: when one is short, its cost is held back
 ## from everything lower on the list except income buildings.
-const SAVE_FOR := ["barracks", "guard_tower", "scholars_hall", "stone_tower", "smithy"]
+const SAVE_FOR := ["barracks", "guard_tower", "trading_post", "scholars_hall", "stone_tower", "smithy"]
 const INCOME := ["woodcutter", "quarry", "farm", "fisher", "iron_mine"]
 var _reserve := {}
 var _ring: Array[Vector2i] = []
@@ -128,10 +128,13 @@ func _act() -> void:
 	var winter_soon: bool = main.seasons.is_winter() or (main.seasons.current() == "autumn" and main.seasons.days_left() <= 2)
 	var wood_reserve := homes * (10 if main.seasons.current() in ["autumn", "winter"] else 2)
 	_manage_war()
+	_trade(food_min, homes)
 	# A tower before the first raid, more as raids grow.
 	if game_time > 180.0 and _count("guard_tower") < mini(1 + main.raids.raids_survived, 5) and _try("guard_tower"):
 		return
 	if tier >= 1 and _count("barracks") < 1 and _try("barracks"):
+		return
+	if tier >= 1 and pop >= 20 and _count("trading_post") < 1 and _try("trading_post"):
 		return
 	if tier >= 2 and _count("barracks") < 2 and _try("barracks"):
 		return
@@ -191,6 +194,8 @@ func _act() -> void:
 			return
 		if _count("scholars_hall") < 1 and _try("scholars_hall"):
 			return
+		if _count("trading_post") < 1 and pop >= 20 and _try("trading_post"):
+			return
 		if _count("chapel") < 1 + homes / 12 and _try("chapel"):
 			return
 		if _count("market") < 1 + homes / 12 and _try("market"):
@@ -247,6 +252,38 @@ func _manage_war() -> void:
 		_lair_target = null
 		for s: Squad in main.military.squads:
 			s.return_to_barracks()
+
+
+## When a merchant is in town: buy what's short, sell what's piling up.
+func _trade(food_min: float, homes: int) -> void:
+	var trade: Trade = main.trade
+	if not trade.is_open():
+		return
+	for i in 3:  # a few lots per tick
+		if food_min < 3.0:
+			for item in ["bread", "fish"]:
+				if trade.buy(item) == "":
+					_note_action("buy " + item)
+					return
+		if GameState.count("wood") < 40 and trade.buy("wood") == "":
+			_note_action("buy wood")
+			continue
+		if _count("barracks") > 0 and GameState.count("weapons") < 2 and GameState.count("gold") > 150 \
+				and trade.buy("weapons") == "":
+			_note_action("buy weapons")
+			continue
+		if GameState.count("wood") > homes * 10 + 250 and trade.sell("wood") == "":
+			_note_action("sell wood")
+			continue
+		if GameState.count("stone") > 300 and trade.sell("stone") == "":
+			_note_action("sell stone")
+			continue
+		if food_min > 12.0:
+			for item in ["bread", "fish"]:
+				if GameState.count(item) > 60 and trade.sell(item) == "":
+					_note_action("sell " + item)
+					break
+		return
 
 
 func _train() -> void:
@@ -594,6 +631,8 @@ func _on_notice(text: String) -> void:
 		counters.fires += 1
 	elif "left an unhappy home" in t:
 		counters.left_unhappy += 1
+	elif "has arrived at the trading post" in t or "packs up" in t or "moves on" in t:
+		_event(text)
 	elif "winter has come" in t or "dragon" in t or "research complete" in t:
 		_event(text)
 
@@ -640,6 +679,7 @@ func _finish(result: String) -> void:
 		"seed": world.map_seed, "difficulty": GameState.DIFFICULTIES[GameState.difficulty].name,
 		"result": result, "minutes": _minute(), "milestones": milestones, "counters": counters,
 		"actions": actions, "failures": failures, "events": events, "timeline": timeline,
+		"trade": {"bought": GameState.stats.bought, "sold": GameState.stats.sold},
 	}
 	var f := FileAccess.open(out_dir.path_join("report.json"), FileAccess.WRITE)
 	f.store_string(JSON.stringify(report, "  "))
@@ -657,6 +697,7 @@ func _summary(r: Dictionary) -> String:
 		return "%s %s" % [t, ("min %.1f" % r.milestones["tier_" + t]) if r.milestones.has("tier_" + t) else "—"])))
 	lines.append("Counters: " + JSON.stringify(r.counters))
 	lines.append("Actions: " + JSON.stringify(r.actions))
+	lines.append("Trade: " + JSON.stringify(r.trade))
 	var top: Array = r.failures.keys()
 	top.sort_custom(func(a: String, b: String) -> bool: return r.failures[a] > r.failures[b])
 	lines.append("Most frequent build failures: " + ", ".join(top.slice(0, 8).map(func(k: String) -> String:

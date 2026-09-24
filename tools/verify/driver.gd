@@ -193,6 +193,13 @@ func _run_step(step: Dictionary) -> String:
 			main.seasons.set_season(Seasons.ORDER.find(step.setup_season), true)
 		await _frames(3)
 		return "ok (%s)" % step.setup_season
+	elif step.has("setup_merchant"):
+		# Test-only: a merchant of that type arrives at the Trading Post now.
+		report.setup_shortcuts.append(step)
+		if main.trade.post() == null:
+			return "FAIL no Trading Post with road access"
+		main.trade.arrive(step.setup_merchant, main.trade.post().entrance())
+		return "ok (%s)" % main.trade.merchant_name()
 	elif step.has("setup_hints"):
 		GameState.hints_enabled = bool(step.setup_hints)
 		report.setup_shortcuts.append(step)
@@ -308,6 +315,12 @@ func _click_button(text: String) -> String:
 	var btn := _find_button(get_tree().root, text)
 	if btn == null:
 		return "FAIL no visible button containing '%s'" % text
+	# Hover first, then aim again: panels can re-lay themselves out while
+	# the cursor travels (a person tracks the button the same way).
+	await _move_mouse(btn.get_global_rect().get_center())
+	await _frames(3)
+	if not is_instance_valid(btn) or not btn.is_visible_in_tree():
+		return "FAIL button '%s' went away" % text
 	await _click(btn.get_global_rect().get_center(), MOUSE_BUTTON_LEFT)
 	# Windowed runs occasionally lose a click while macOS shuffles window
 	# focus. Toggle buttons (category tabs, speeds) show whether it landed.
@@ -441,6 +454,7 @@ func _snapshot() -> Dictionary:
 		"minimap_visible": main.hud._minimap.visible,
 		"sounds": Sound.played.duplicate(),
 		"music_mood": Music.mood,
+		"merchant": main.trade.merchant_name() if main.trade.is_open() else "",
 		"music_notes": Music.notes_played,
 		"bridges": world.roads.keys().filter(func(t: Vector2i) -> bool: return world.is_bridge(t)).size(),
 		"bridges_walkable": world.roads.keys().all(func(t: Vector2i) -> bool: return world.is_walkable(t)),
@@ -516,7 +530,7 @@ func _check(expect: Dictionary) -> String:
 	for id: String in expect.get("buildings_max", {}):
 		if s.buildings.get(id, 0) > int(expect.buildings_max[id]):
 			problems.append("%s count %d > %d" % [id, s.buildings.get(id, 0), expect.buildings_max[id]])
-	for key in ["tier", "raid_phase", "build_mode", "selected_building", "season", "music_mood"]:
+	for key in ["tier", "raid_phase", "build_mode", "selected_building", "season", "music_mood", "merchant"]:
 		if expect.has(key) and s[key] != expect[key]:
 			problems.append("%s '%s' != '%s'" % [key, s[key], expect[key]])
 	if expect.has("text") and not s.visible_text.any(func(t: String) -> bool: return expect.text in t):

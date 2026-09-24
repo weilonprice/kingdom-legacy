@@ -325,6 +325,14 @@ const DEFS := {
 		"gate": true,
 		"siege_cost": 35.0,
 	},
+	"trading_post": {
+		"name": "Trading Post",
+		"desc": "Travelling merchants stop here to buy and sell goods. Click it while one is in town.",
+		"size": Vector2i(2, 2),
+		"cost": {"wood": 60, "stone": 20},
+		"color": Color(0.72, 0.52, 0.30),
+		"hp": 300.0,
+	},
 	"stockpile": {
 		"name": "Stockpile",
 		"desc": "Stores 250 materials (wood, stone, iron, weapons, armor).",
@@ -361,7 +369,7 @@ const CATEGORIES := [
 	{"name": "Resources", "items": ["woodcutter", "quarry", "iron_mine"]},
 	{"name": "Industry", "items": ["smithy", "armory"]},
 	{"name": "Food", "items": ["farm", "fisher", "mill", "bakery"]},
-	{"name": "Storage", "items": ["stockpile", "granary", "warehouse", "carter"]},
+	{"name": "Storage", "items": ["stockpile", "granary", "warehouse", "carter", "trading_post"]},
 	{"name": "Defense", "items": ["guard_tower", "stone_tower", "barracks", "palisade", "gate", "stone_wall", "wall_tower"]},
 	{"name": "Civic", "items": ["chapel", "market", "tavern", "scholars_hall"]},
 ]

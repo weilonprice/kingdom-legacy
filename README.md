@@ -51,6 +51,9 @@ the next raid hits. Made with Godot 4.
 - **Seasons.** The year turns from autumn to winter, spring and summer, and
   the whole map changes with it: golden leaves, then snow on every roof. In
   winter the fields freeze and every home burns firewood.
+- **Merchants and trade.** Build a Trading Post and travelling merchants
+  come to town: sell your surplus for gold, buy what your map lacks. Each
+  merchant has a specialty and a limited purse.
 - **Rivers and bridges.** A river winds past every town, with a couple of
   shallow fords. Drag a road across it to build a bridge, then guard the
   crossing: raiders use bridges too.
@@ -219,6 +222,7 @@ after its scenarios pass.
 | M11 | Sound effects, ambience, volume settings, minimap ✅ |
 | M12–M16 | Balance autoplayer and three balance rounds ✅ |
 | M17 | Grain storage, music ✅ |
+| M18 | Merchants and trade ✅ |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 

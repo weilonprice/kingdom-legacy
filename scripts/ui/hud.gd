@@ -73,6 +73,10 @@ func _ready() -> void:
 
 	_panel = BuildingPanel.new()
 	_panel.setup(build, world, military, progression, research, needs)
+	_panel.trade = get_parent().trade
+	get_parent().trade.changed.connect(func() -> void:
+		if _panel.building != null:
+			_panel._refresh())
 	add_child(_panel)
 
 	_tier_panel = TierPanel.new()

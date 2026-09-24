@@ -23,6 +23,9 @@ var _tax_row: HBoxContainer
 var _tax_buttons: Array[Button] = []
 var _research_box: VBoxContainer
 var _research_buttons := {}  # research id -> Button
+var trade: Trade
+var _trade_box: VBoxContainer
+var _trade_rows := {}  # item -> {"label": Label, "buy": Button, "sell": Button}
 var _refresh_time := 0.0
 
 
@@ -103,6 +106,29 @@ func _ready() -> void:
 		_research_box.add_child(rbtn)
 		_research_buttons[id] = rbtn
 
+	_trade_box = VBoxContainer.new()
+	col.add_child(_trade_box)
+	for item: String in TradeDefs.items():
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 6)
+		_trade_box.add_child(row)
+		# Fixed widths so the buttons don't shift as prices change.
+		var label := Label.new()
+		label.custom_minimum_size = Vector2(118, 0)
+		label.clip_text = true
+		row.add_child(label)
+		var buy := Button.new()
+		buy.custom_minimum_size = Vector2(100, 0)
+		buy.focus_mode = Control.FOCUS_NONE
+		buy.pressed.connect(_on_trade.bind(item, true))
+		row.add_child(buy)
+		var sell := Button.new()
+		sell.custom_minimum_size = Vector2(100, 0)
+		sell.focus_mode = Control.FOCUS_NONE
+		sell.pressed.connect(_on_trade.bind(item, false))
+		row.add_child(sell)
+		_trade_rows[item] = {"row": row, "label": label, "buy": buy, "sell": sell}
+
 	_demolish = Button.new()
 	_demolish.text = "Demolish (50% refund)"
 	_demolish.focus_mode = Control.FOCUS_NONE
@@ -153,6 +179,12 @@ func _refresh() -> void:
 	if studies:
 		text += "\n\n" + _research_text()
 		_refresh_research_buttons()
+	var trading := building.def_id == "trading_post" and trade != null
+	_trade_box.visible = trading and trade.is_open()
+	if trading:
+		text += "\n\n" + _trade_text()
+		if trade.is_open():
+			_refresh_trade_rows()
 	_body.text = text
 	_demolish.visible = building != world.keep
 	# Shrink back to fit when the text gets shorter.
@@ -209,6 +241,39 @@ func _refresh_research_buttons() -> void:
 		else:
 			btn.text = "%s  (%s)" % [rdef.name, BuildingDefs.cost_text(rdef.cost)]
 			btn.disabled = not GameState.can_afford(rdef.cost)
+
+
+func _trade_text() -> String:
+	if trade.is_open():
+		return "%s in town for %d:%02d — has %d gold to spend.\nBuy or sell %d at a time:" % [
+			trade.merchant_name(), floori(trade.merchant.time_left / 60.0), floori(trade.merchant.time_left) % 60,
+			trade.merchant.gold, TradeDefs.LOT]
+	if not trade.merchant.is_empty():
+		return "A %s is on the way." % trade.merchant_name().to_lower()
+	if not building.has_road:
+		return "Merchants can't reach it: connect it to a road."
+	return "Next caravan in about %d:%02d." % [floori(trade.timer / 60.0), floori(trade.timer) % 60]
+
+
+func _refresh_trade_rows() -> void:
+	for item: String in _trade_rows:
+		var r: Dictionary = _trade_rows[item]
+		var buy_price := trade.buy_price(item)
+		var sell_price := trade.sell_price(item)
+		var stock: int = trade.merchant.stock.get(item, 0)
+		r.label.text = "%s (%d)" % [ItemDefs.display_name(item), GameState.count(item)]
+		r.buy.text = "Buy for %dg" % buy_price if buy_price > 0 else "Buy —"
+		r.buy.disabled = buy_price <= 0 or GameState.count("gold") < buy_price
+		r.buy.tooltip_text = "The merchant has %d %s" % [stock, item]
+		r.sell.text = "Sell for %dg" % sell_price
+		r.sell.disabled = GameState.count(item) < TradeDefs.LOT or trade.merchant.gold < sell_price
+
+
+func _on_trade(item: String, buying: bool) -> void:
+	var err := trade.buy(item) if buying else trade.sell(item)
+	if err != "":
+		build.message.emit(err)
+	_refresh()
 
 
 func _on_research(id: String) -> void:
