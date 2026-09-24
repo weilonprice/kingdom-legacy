@@ -440,6 +440,8 @@ func _snapshot() -> Dictionary:
 		"camera_tile": [world.world_to_tile(main.camera.position).x, world.world_to_tile(main.camera.position).y],
 		"minimap_visible": main.hud._minimap.visible,
 		"sounds": Sound.played.duplicate(),
+		"music_mood": Music.mood,
+		"music_notes": Music.notes_played,
 		"bridges": world.roads.keys().filter(func(t: Vector2i) -> bool: return world.is_bridge(t)).size(),
 		"bridges_walkable": world.roads.keys().all(func(t: Vector2i) -> bool: return world.is_walkable(t)),
 		"season": main.seasons.current(),
@@ -514,7 +516,7 @@ func _check(expect: Dictionary) -> String:
 	for id: String in expect.get("buildings_max", {}):
 		if s.buildings.get(id, 0) > int(expect.buildings_max[id]):
 			problems.append("%s count %d > %d" % [id, s.buildings.get(id, 0), expect.buildings_max[id]])
-	for key in ["tier", "raid_phase", "build_mode", "selected_building", "season"]:
+	for key in ["tier", "raid_phase", "build_mode", "selected_building", "season", "music_mood"]:
 		if expect.has(key) and s[key] != expect[key]:
 			problems.append("%s '%s' != '%s'" % [key, s[key], expect[key]])
 	if expect.has("text") and not s.visible_text.any(func(t: String) -> bool: return expect.text in t):
@@ -616,7 +618,7 @@ func _sum_by_building(field: String) -> Dictionary:
 ## or a kingdom resource total.
 func _metric(s: Dictionary, key: String) -> float:
 	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning", "lairs",
-			"villagers_fighting", "boss_hp", "bridges"]:
+			"villagers_fighting", "boss_hp", "bridges", "music_notes"]:
 		return float(s[key])
 	return float(s.resources.get(key, 0))
 

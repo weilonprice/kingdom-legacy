@@ -127,3 +127,11 @@ Same seeds, 90 minutes: still no win, and results swing a lot by seed
 Conclusion: the bot is now the bottleneck, not the game. A competent bot
 needs real economic planning (income-aware budgets per goal), which is a
 project of its own. A human playtest is the better next source of truth.
+
+## M16-M17
+
+Raid 2 became goblins only (brutes from the 3rd raid), and wheat/flour got
+their own "grain" storage. Same seeds: seed 7 survived the full 90 minutes
+for the first time (peak population 106); none of the three towns starved;
+seeds 12345 and 99 still lost their Keep around minute 40 (the bot's
+defense).

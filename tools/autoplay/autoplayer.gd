@@ -175,7 +175,7 @@ func _act() -> void:
 		return
 	if _near_full("materials") and _try("stockpile" if tier < 2 else "warehouse"):
 		return
-	if _near_full("food") and _try("granary"):
+	if (_near_full("food") or _near_full("grain")) and _try("granary"):
 		return
 	# Tier requirements and services. Wells go where homes lack water (they
 	# are also the town's firefighting).

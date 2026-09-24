@@ -15,6 +15,8 @@ the camera; M hides it.
 - `ambience` amb_bird_*, amb_cricket, amb_wind.
 - `volume` sliders labelled `Volume`, `Effects`, `Ambience`.
 - `minimap` click to move the camera; `M` toggles.
+- `music` moods title/day/night/winter/raid/siege (snapshot `music_mood`,
+  `music_notes`); crossfades on change; `Music` slider.
 
 ## How to get to it (user POV)
 
@@ -26,7 +28,8 @@ the camera; M hides it.
   `minimap_visible` true; `click_minimap` `[0.25, 0.25]` → `camera_near`
   `[32, 32, 3]`; `M` hides/shows; building a House and a road → `sounds_min`
   build/road/click; a Woodcutter at 4x → `chop`; `F9` → `horn`; ☰ shows
-  `Effects`.
+  `Effects`; `music_mood` `day` with notes playing, then `raid` once a raid is
+  active. Listen offline: `godot --headless --path . -s res://tools/music/preview.gd -- --out=/tmp/music`.
 - Sound can't be heard in tests: `Sound.played` counts plays (snapshot
   `sounds`). Listen yourself in the editor.
 

@@ -9,15 +9,17 @@ const ITEMS := {
 	"iron": {"name": "Iron", "category": "materials", "color": Color(0.62, 0.36, 0.28)},
 	"weapons": {"name": "Weapons", "category": "materials", "color": Color(0.80, 0.82, 0.88)},
 	"armor": {"name": "Armor", "category": "materials", "color": Color(0.45, 0.50, 0.62)},
-	"wheat": {"name": "Wheat", "category": "food", "color": Color(0.93, 0.80, 0.35)},
-	"flour": {"name": "Flour", "category": "food", "color": Color(0.97, 0.95, 0.88)},
+	"wheat": {"name": "Wheat", "category": "grain", "color": Color(0.93, 0.80, 0.35)},
+	"flour": {"name": "Flour", "category": "grain", "color": Color(0.97, 0.95, 0.88)},
 	"bread": {"name": "Bread", "category": "food", "color": Color(0.80, 0.52, 0.25), "edible": true},
 	"fish": {"name": "Fish", "category": "food", "color": Color(0.55, 0.70, 0.85), "edible": true},
 	"gold": {"name": "Gold", "category": "treasury", "color": Color(0.95, 0.80, 0.25)},
 }
 
 ## Categories limited by storage capacity.
-const CAPPED_CATEGORIES := ["materials", "food"]
+## "grain" (wheat, flour) has its own room so unground wheat never crowds
+## out edible food.
+const CAPPED_CATEGORIES := ["materials", "food", "grain"]
 const EDIBLE := ["bread", "fish"]
 
 

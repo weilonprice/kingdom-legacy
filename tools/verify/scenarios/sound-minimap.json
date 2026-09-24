@@ -1,5 +1,6 @@
 [
   {"expect": {"minimap_visible": true}},
+  {"wait_until": {"music_mood": "day", "min": {"music_notes": 5}}, "timeout": 10},
   {"screenshot": "00-minimap"},
   {"click_minimap": [0.25, 0.25]},
   {"expect": {"camera_near": [32, 32, 3]}},
@@ -28,8 +29,10 @@
   {"wait_until": {"sounds_min": {"chop": 1}}, "timeout": 60},
   {"key": "F9"},
   {"wait_until": {"raid_phase": "WARNING"}, "timeout": 10},
+  {"wait_until": {"raid_phase": "ACTIVE"}, "timeout": 30},
+  {"wait_until": {"music_mood": "raid"}, "timeout": 10},
   {"expect": {"sounds_min": {"horn": 1}}},
-  {"click_button": "☰"},
+  {"click_button": "\u2630"},
   {"expect": {"text": "Effects"}},
   {"screenshot": "01-menu-volume"},
   {"click_button": "Resume"},

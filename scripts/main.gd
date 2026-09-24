@@ -124,10 +124,22 @@ func _process(delta: float) -> void:
 	Sound.listener = camera.position
 	Sound.ambience_mode = "" if GameState.game_over else (
 		"winter" if seasons.is_winter() and not world.is_night else ("night" if world.is_night else "day"))
+	Music.set_mood(_music_mood())
 	_autosave_timer -= delta
 	if _autosave_timer <= 0.0:
 		_autosave_timer = AUTOSAVE_INTERVAL
 		autosave()
+
+
+## Raids and the Dragon's siege outrank the time of day and season.
+func _music_mood() -> String:
+	if GameState.game_over:
+		return ""
+	if raids.phase == RaidDirector.Phase.ACTIVE:
+		return "siege" if raids.final_siege else "raid"
+	if world.is_night:
+		return "night"
+	return "winter" if seasons.is_winter() else "day"
 
 
 ## Manual save (F5 or the game menu).
