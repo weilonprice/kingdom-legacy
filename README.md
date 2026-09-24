@@ -57,6 +57,12 @@ the next raid hits. Made with Godot 4.
 - **Rivers and bridges.** A river winds past every town, with a couple of
   shallow fords. Drag a road across it to build a bridge, then guard the
   crossing: raiders use bridges too.
+- **A royal family.** A ruling house lives in the castle and strolls its
+  grounds. The ruler's traits shape the realm (Just, Greedy, Builder,
+  Warlike, Wise, Thrifty); rulers age and die, heirs inherit, and a ruler
+  who dies without an heir plunges the realm into a succession crisis.
+  Let raiders break into the castle and they loot the treasury and may
+  kill a royal.
 - **Villagers at work.** Woodcutters swing axes, miners pickaxes, farmers
   hoes, builders hammers; porters carry crates and stoop to pick up and put
   down their loads.
@@ -239,9 +245,10 @@ after its scenarios pass.
 | M19 | Settings menu ✅ |
 | M20 | Forester and forest regrowth ✅ |
 | M21 | Camera: trackpad pinch and pan, zoom keys and buttons, whole-map view ✅ |
+| M23 | The royal family (ruler, spouse, heir with traits, aging and succession) and the treasury raiders can break into ✅ |
 | M23a | Villager animations: chopping, mining, farming, hammering, carrying, picking up and putting down ✅ |
 | M22 | The growing castle: Keep 5×5 → Castle 7×7 → Citadel 9×9, built by builders in reserved grounds ✅ |
-| M23–M27 | **Direction change: simulation first** (planned): the royal family and treasury, better wall building, people's lives, stats & graphs, health & disease. See design.txt §17 |
+| M24–M27 | **Direction change: simulation first** (planned): better wall building, people's lives, stats & graphs, health & disease. See design.txt §17 |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 

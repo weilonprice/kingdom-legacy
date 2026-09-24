@@ -6,6 +6,8 @@ extends Node2D
 signal mode_changed(text: String)
 signal message(text: String)
 signal building_selected(building: Building)
+## A member of the royal family was clicked (role: ruler/spouse/heir).
+signal royal_clicked(role: String)
 
 enum Mode { NONE, BUILD, ROAD, WALL, DEMOLISH }
 
@@ -125,7 +127,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		Mode.NONE:
 			if not event.pressed:
 				return
-			select_building(world.occupancy.get(hover_tile))
+			# A royal takes the click only on open ground: buildings win, so a
+			# stroll past the barracks never hides it.
+			var royals: Royals = world.get_parent().get("royals")
+			var role := ""
+			if royals != null and not world.occupancy.has(hover_tile):
+				role = royals.royal_at(get_canvas_transform().affine_inverse() * _mouse_screen)
+			if role != "":
+				royal_clicked.emit(role)
+			else:
+				select_building(world.occupancy.get(hover_tile))
 		Mode.BUILD:
 			if event.pressed:
 				_try_build()

@@ -37,7 +37,7 @@ func upkeep_per_minute() -> int:
 	var total := 0
 	for t in troops():
 		total += t.def.upkeep
-	return total
+	return roundi(total * GameState.mod("troop_upkeep"))
 
 
 func squad_for(barracks: Building) -> Squad:

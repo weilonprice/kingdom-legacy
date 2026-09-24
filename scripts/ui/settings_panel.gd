@@ -21,6 +21,7 @@ const CONTROLS := [
 	["Ctrl+1–9, G", "Select squad N / release it to guard"],
 	["C", "Call to Arms during a raid"],
 	["O / T / M", "Overlays / tier goals / minimap"],
+	["K", "The Royal Court"],
 	["F5 / F8", "Save / load"],
 	["F11", "Fullscreen"],
 ]

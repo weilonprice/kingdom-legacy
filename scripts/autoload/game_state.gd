@@ -75,6 +75,7 @@ func reset() -> void:
 	season = "autumn"
 	stats = {"produced": {}, "spent": {}, "used": {}, "bought": {}, "sold": {}}
 	modifiers = {}
+	royal_mods = {}
 	tax_rate = NeedDefs.DEFAULT_TAX_RATE
 	happiness = NeedDefs.BASE_HAPPINESS
 	speed = 1
@@ -115,7 +116,20 @@ func set_tax_rate(index: int) -> void:
 # --- Modifiers --------------------------------------------------------------
 
 func mod(key: String, default := 1.0) -> float:
-	return modifiers.get(key, default)
+	var value: float = modifiers.get(key, default)
+	var royal: Dictionary = royal_mods.get(key, {})
+	return value * royal.get("mul", 1.0) + royal.get("add", 0.0)
+
+
+## The ruler's traits and any succession crisis (see Royals): key ->
+## {"mul": x} or {"add": y}, layered on top of research. Replaced whole
+## whenever the court changes.
+var royal_mods := {}
+
+
+func set_royal_mods(mods: Dictionary) -> void:
+	royal_mods = mods
+	modifiers_changed.emit()
 
 
 func apply_effect(effect: Dictionary) -> void:

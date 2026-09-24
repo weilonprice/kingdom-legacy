@@ -26,6 +26,9 @@ var _research_buttons := {}  # research id -> Button
 var trade: Trade
 var castle: Castle
 var _castle_button: Button
+var _court_button: Button
+## Opens the Royal Court (set by the HUD).
+var royal_court: Callable
 var _trade_box: VBoxContainer
 var _trade_rows := {}  # item -> {"label": Label, "buy": Button, "sell": Button}
 var _refresh_time := 0.0
@@ -103,6 +106,12 @@ func _ready() -> void:
 			GameState.notify(problem)
 		_refresh())
 	col.add_child(_castle_button)
+	_court_button = Button.new()
+	_court_button.text = "Royal Court"
+	_court_button.tooltip_text = "The ruling family, their traits and the treasury (K)"
+	_court_button.focus_mode = Control.FOCUS_NONE
+	_court_button.pressed.connect(func() -> void: royal_court.call())
+	col.add_child(_court_button)
 
 	_research_box = VBoxContainer.new()
 	col.add_child(_research_box)
@@ -186,6 +195,7 @@ func _refresh() -> void:
 		text += "\n\nTax rate: %s — about %d gold/min from homes\nAverage happiness: %d" % [
 			NeedDefs.TAX_RATES[GameState.tax_rate].name, needs.tax_per_minute(), GameState.happiness]
 		text += "\n\n" + _castle_text()
+	_court_button.visible = is_keep and royal_court.is_valid()
 	var next := castle.next_stage() if is_keep and castle != null else {}
 	_castle_button.visible = not next.is_empty() and not castle.is_building()
 	if _castle_button.visible:

@@ -264,6 +264,35 @@ func _run_step(step: Dictionary) -> String:
 		# Test-only: runs forest growth forward this many game seconds.
 		report.setup_shortcuts.append(step)
 		world._grow_forests(float(step.setup_forest_time))
+	elif step.has("setup_royal"):
+		# Test-only: {"ruler_age": 90} / {"no_heir": true} / {"traits": ["just"]}
+		# / {"crisis_left": 1}. Ages take effect on the next frame.
+		report.setup_shortcuts.append(step)
+		var spec: Dictionary = step.setup_royal
+		var r: Royals = main.royals
+		if spec.has("ruler_age") and not r.ruler.is_empty():
+			r.ruler.age = float(spec.ruler_age)
+		if spec.get("no_heir", false):
+			r.heir = {}
+			r._child_timer = 1e9
+		if spec.has("traits") and not r.ruler.is_empty():
+			r.ruler.traits = Array(spec.traits)
+		if spec.has("crisis_left") and r.in_crisis():
+			r.crisis_left = float(spec.crisis_left)
+		r._after_change()
+		return "ok (%s)" % r.title_of("ruler")
+	elif step.has("setup_keep_hp"):
+		# Test-only: sets the castle's HP to this share of its maximum.
+		report.setup_shortcuts.append(step)
+		var h: Health = world.keep.health
+		h.hp = h.max_hp * float(step.setup_keep_hp)
+		h.changed.emit()
+	elif step.has("click_royal"):
+		# Clicks the family member in that role where they stand on the map.
+		var agent: RoyalAgent = main.royals._agents.get(step.click_royal)
+		if agent == null or not agent.visible:
+			return "FAIL no visible %s on the map" % step.click_royal
+		await _click(get_viewport().get_canvas_transform() * (agent.position + Vector2(0, -12)), MOUSE_BUTTON_LEFT)
 	elif step.has("setup_hints"):
 		GameState.hints_enabled = bool(step.setup_hints)
 		report.setup_shortcuts.append(step)
@@ -548,6 +577,15 @@ func _snapshot() -> Dictionary:
 		"music_mood": Music.mood,
 		"merchant": main.trade.merchant_name() if main.trade.is_open() else "",
 		"settings": Settings.values.duplicate(),
+		"royal_ruler": main.royals.title_of("ruler"),
+		"royal_spouse": main.royals.title_of("spouse"),
+		"royal_heir": main.royals.title_of("heir"),
+		"royal_crisis": main.royals.in_crisis(),
+		"royal_breached": main.royals.breached,
+		"royal_house": main.royals.house,
+		"royals_on_map": main.royals._agents.values().filter(func(a: RoyalAgent) -> bool: return a.visible).size(),
+		"happiness_mod": GameState.mod("happiness", 0.0),
+		"tax_mod": GameState.mod("tax"),
 		"anims_seen": anims_seen.keys(),
 		"castle": main.castle.title(),
 		"castle_size": world.keep.size.x,
@@ -726,6 +764,12 @@ func _check(expect: Dictionary) -> String:
 			var grew := _metric(s, key) - _metric(then, key)
 			if grew < float(expect.increased[key]):
 				problems.append("%s grew %s since %s, want %s+" % [key, grew, expect.increased.since, expect.increased[key]])
+	for key in ["royal_crisis", "royal_breached"]:
+		if expect.has(key) and s[key] != expect[key]:
+			problems.append("%s %s != %s" % [key, s[key], expect[key]])
+	for key in ["royal_ruler", "royal_spouse", "royal_heir"]:
+		if expect.has(key) and not (str(expect[key]) in s[key] if expect[key] != "" else s[key] == ""):
+			problems.append("%s '%s' doesn't match '%s'" % [key, s[key], expect[key]])
 	if expect.has("castle_building") and s.castle_building != expect.castle_building:
 		problems.append("castle_building %s != %s" % [s.castle_building, expect.castle_building])
 	if expect.has("speed") and s.speed != int(expect.speed):
@@ -773,7 +817,7 @@ func _sum_by_building(field: String) -> Dictionary:
 ## or a kingdom resource total.
 func _metric(s: Dictionary, key: String) -> float:
 	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning", "lairs",
-			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps", "castle_size", "castle_progress", "builders", "keep_hp"]:
+			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps", "castle_size", "castle_progress", "builders", "keep_hp", "royals_on_map", "happiness_mod", "tax_mod"]:
 		return float(s[key])
 	return float(s.resources.get(key, 0))
 
