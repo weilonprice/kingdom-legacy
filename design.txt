@@ -290,8 +290,10 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 11. CONTROLS
 --------------------------------------------------------------------------------
   Pan camera        WASD / Arrow keys / Middle-mouse drag
-  Zoom              Mouse wheel (zooms to cursor). Trackpad pinch and
-                    two-finger scroll are NOT handled yet (planned M21).
+  Zoom              Mouse wheel or trackpad pinch (toward the cursor),
+                    +/- keys or the HUD's + / − buttons; Home or ⌂ zooms
+                    out to the whole map. Zoom eases smoothly. (M21)
+  Pan (trackpad)    Two-finger scroll
   Build             R Road, Tab cycles categories, 1-9 picks a building
   Select            Left-click a building to inspect it
   Demolish          X (50% refund)
@@ -479,7 +481,7 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     disease.
   - Walls: better wall building (gatehouses, automatic corner towers,
     cost/length preview).
-  Still open: how far out zoom should go (default: the whole map).
+  - Zoom: out until the whole map fits on screen. Start with M21 (zoom).
   - Should roads have tiers (dirt -> cobblestone) with speed bonuses?
   - Trade with neighboring kingdoms (beyond travelling merchants)?
   - Hero / lord character that the player controls directly?
@@ -505,7 +507,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
                 dragging. Not chosen: castle curtain wall, walls as a tier
                 requirement, a wall art pass.
     Zoom        Trackpad pinch and two-finger scroll, +/- keys, on-screen
-                zoom buttons, smooth zoom (no decision needed).
+                zoom buttons, smooth zoom; zoom out until the whole map fits.
+    Order       Zoom first (M21), then the growing castle (M22).
 
   The player's request: more of a simulation feel; a castle that's big
   enough for its importance and worth protecting; walls; the feeling of
@@ -520,6 +523,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
       dragged like roads. They're optional, and nothing ties them to the
       castle or to the kingdom's growth.
     - Zoom: mouse wheel only, 0.35x-3x. On a Mac trackpad it can't zoom.
+      [Fixed in M21: pinch, two-finger pan, +/- keys, HUD buttons, Home
+      for the whole map, 0.21x-3x on a Normal map.]
     - Simulation: villagers are agents with homes, jobs and needs; goods
       move physically; happiness, house levels, taxes, seasons, trade.
       Missing: people's lives (age, families, births, deaths), statistics

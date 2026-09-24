@@ -231,7 +231,8 @@ after its scenarios pass.
 | M18 | Merchants and trade ✅ |
 | M19 | Settings menu ✅ |
 | M20 | Forester and forest regrowth ✅ |
-| M21–M27 | **Direction change: simulation first** (planned): trackpad zoom, a castle that grows 5×5 → 9×9, the royal family and treasury, better wall building, people's lives, stats & graphs, health & disease. See design.txt §17 |
+| M21 | Camera: trackpad pinch and pan, zoom keys and buttons, whole-map view ✅ |
+| M22–M27 | **Direction change: simulation first** (planned): a castle that grows 5×5 → 9×9, the royal family and treasury, better wall building, people's lives, stats & graphs, health & disease. See design.txt §17 |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 

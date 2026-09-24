@@ -402,7 +402,7 @@ PHASE 2 — SIMULATION DIRECTION (decided 2026-09-24)
   Decisions: design.txt section 17.
 
   M21  Camera: trackpad pinch and two-finger pan, +/- keys, on-screen zoom
-       buttons, smooth zoom, zoom out to the whole map
+       buttons, smooth zoom, zoom out to the whole map   [DONE]
   M22  The castle grows: Keep 5x5 -> Castle 7x7 -> Citadel 9x9, upgrades
        are construction projects (materials hauled in, builders at work),
        new art for each stage; the map start clears room for it
@@ -423,7 +423,8 @@ PHASE 2 — SIMULATION DIRECTION (decided 2026-09-24)
   castle curtain wall, walls as a tier requirement, wall art pass,
   decrees & laws.
 
-  Nothing in Phase 2 is started.
+  M21 done 2026-09-24 (camera_controller.gd, HUD zoom buttons beside the
+  minimap; whole map at ~0.21x runs ~70 fps on a Normal map at 4x).
 
 
 ================================================================================
@@ -444,6 +445,5 @@ BACKLOG / MAYBE LATER
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. M21 camera and zoom
-  2. M22 the growing castle, M23 royal family and treasury
-  3. M24 wall building, then M25-M27 simulation systems
+  1. M22 the growing castle, M23 royal family and treasury
+  2. M24 wall building, then M25-M27 simulation systems

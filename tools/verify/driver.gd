@@ -211,6 +211,23 @@ func _run_step(step: Dictionary) -> String:
 		await _move_mouse(Vector2(step.move_mouse[0], step.move_mouse[1]))
 		if DisplayServer.get_name() != "headless" and not get_window().has_focus():
 			return "ok (window has no focus; edge checks will show it)"
+	elif step.has("gesture"):
+		# Trackpad input: {"magnify": 1.5, "at": [x, y]} pinches (factor per
+		# event, sent in 4 steps); {"pan": [dx, dy]} is a two-finger scroll.
+		var g: Dictionary = step.gesture
+		var at := _to_window(Vector2(g.get("at", [800, 450])[0], g.get("at", [800, 450])[1]))
+		for i in 4:
+			var ev: InputEventGesture
+			if g.has("magnify"):
+				ev = InputEventMagnifyGesture.new()
+				ev.factor = pow(float(g.magnify), 0.25)
+			else:
+				ev = InputEventPanGesture.new()
+				ev.delta = Vector2(g.pan[0], g.pan[1]) * 0.25
+			ev.position = at
+			Input.parse_input_event(ev)
+			await _frames(1)
+		await _frames(2)
 	elif step.has("reload_settings"):
 		# Re-read the settings file, as the next launch would.
 		Settings.load_file()
@@ -521,6 +538,9 @@ func _snapshot() -> Dictionary:
 		"music_mood": Music.mood,
 		"merchant": main.trade.merchant_name() if main.trade.is_open() else "",
 		"settings": Settings.values.duplicate(),
+		"zoom": snappedf(main.camera.zoom.x, 0.001),
+		"fps": Engine.get_frames_per_second(),
+		"min_zoom": snappedf(main.camera.min_zoom(), 0.001),
 		"saplings": world.saplings.size(),
 		"cleared": world.cleared.size(),
 		"forest": Array(world.terrain).count(Terrain.FOREST),
@@ -731,7 +751,7 @@ func _sum_by_building(field: String) -> Dictionary:
 ## or a kingdom resource total.
 func _metric(s: Dictionary, key: String) -> float:
 	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning", "lairs",
-			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest"]:
+			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps"]:
 		return float(s[key])
 	return float(s.resources.get(key, 0))
 
