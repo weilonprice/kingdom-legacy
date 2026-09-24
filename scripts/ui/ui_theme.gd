@@ -54,6 +54,13 @@ static func _build() -> Theme:
 	theme.set_stylebox("pressed", "Button", _flat(WOOD_LIGHT.darkened(0.2), GOLD.lightened(0.2)))
 	theme.set_stylebox("disabled", "Button", _flat(Color(WOOD, 0.6), Color(GOLD, 0.25)))
 	theme.set_stylebox("focus", "Button", StyleBoxEmpty.new())
+	# Check boxes are just the tick and the text, highlighted on hover.
+	for state in ["normal", "pressed", "hover_pressed", "disabled", "focus"]:
+		theme.set_stylebox(state, "CheckBox", StyleBoxEmpty.new())
+	theme.set_stylebox("hover", "CheckBox", StyleBoxEmpty.new())
+	theme.set_color("font_hover_color", "CheckBox", GOLD.lightened(0.3))
+	theme.set_color("font_hover_pressed_color", "CheckBox", GOLD.lightened(0.3))
+	theme.set_color("font_pressed_color", "CheckBox", TEXT)
 	theme.set_stylebox("panel", "TooltipPanel", _flat(Color(0.12, 0.08, 0.05, 0.96), GOLD))
 	theme.set_color("font_color", "TooltipLabel", TEXT)
 	return theme

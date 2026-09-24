@@ -29,6 +29,7 @@ var _banner: Label
 var _arms_button: Button
 var _hints: HintPanel
 var _menu: GameMenu
+var _settings: SettingsPanel
 var _minimap: Minimap
 var _game_over: GameOverPanel
 var _squad_panel: SquadPanel
@@ -117,6 +118,10 @@ func _ready() -> void:
 
 	_menu = GameMenu.new()
 	add_child(_menu)
+	_settings = SettingsPanel.new()
+	add_child(_settings)
+	_menu.settings = _settings
+	_settings.closed.connect(_menu.settings_closed)
 	_game_over = GameOverPanel.new()
 	add_child(_game_over)
 
@@ -154,6 +159,7 @@ func _process(delta: float) -> void:
 	_msg_label.position = Vector2((vp.x - _msg_label.size.x) * 0.5, vp.y - 130)
 	_panel.position = Vector2(vp.x - _panel.size.x - 10, 50)
 	_menu.position = (vp - _menu.size) * 0.5
+	_settings.position = (vp - _settings.size) * 0.5
 	_minimap.position = Vector2(vp.x - _minimap.size.x - 8, vp.y - _minimap.size.y - 96)
 	_hints.suppressed = _tier_panel.visible
 	_update_raid_ui(vp)
@@ -168,7 +174,16 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
-	if event.keycode == KEY_SPACE:
+	if event.keycode == KEY_ESCAPE:
+		# Esc cancels a tool or selection first (build/unit controllers);
+		# with nothing to cancel it opens or closes the game menu.
+		if GameState.game_over or not _menu.visible and (build.mode != BuildController.Mode.NONE or build.selected != null
+				or not units.selected.is_empty()):
+			return
+		_menu.toggle()
+	elif event.keycode == KEY_F11:
+		Settings.toggle_fullscreen()
+	elif event.keycode == KEY_SPACE:
 		GameState.toggle_pause()
 	elif event.keycode == KEY_O:
 		GameState.notify(overlay.cycle())
@@ -206,7 +221,7 @@ func _build_top_bar() -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	bar.add_child(row)
-	var menu_button := _button(row, "☰", "Game menu: save, load, main menu")
+	var menu_button := _button(row, "☰", "Game menu (Esc): save, load, settings, main menu")
 	menu_button.pressed.connect(func() -> void: _menu.toggle())
 	_tier_button = _button(row, "", "Settlement tier — click (or T) for what the next tier needs")
 	_tier_button.pressed.connect(func() -> void: _tier_panel.toggle())

@@ -33,8 +33,10 @@
   {"wait_until": {"music_mood": "raid"}, "timeout": 10},
   {"expect": {"sounds_min": {"horn": 1}}},
   {"click_button": "\u2630"},
+  {"click_button": "Settings"},
   {"expect": {"text": "Effects"}},
   {"screenshot": "01-menu-volume"},
+  {"click_button": "Back"},
   {"click_button": "Resume"},
   {"state": "end"}
 ]

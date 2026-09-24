@@ -74,6 +74,7 @@ func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	Engine.max_fps = 0
 	OS.low_processor_usage_mode = false
+	Settings.use_file("user://autoplay-settings.cfg")
 	GameState.hints_enabled = false
 	GameState.save_dir = "user://autoplay-saves"
 	GameState.new_game_seed = int(args.get("seed", "12345"))

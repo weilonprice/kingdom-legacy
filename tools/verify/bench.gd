@@ -13,6 +13,7 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--") and "=" in a:
 			args[a.substr(2).get_slice("=", 0)] = int(a.get_slice("=", 1))
+	Settings.use_file("user://verify-settings.cfg")
 	GameState.hints_enabled = false
 	GameState.new_game_seed = 12345
 	var main: Node = load("res://scenes/main.tscn").instantiate()

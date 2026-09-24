@@ -47,6 +47,8 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 | `{"setup_research": ["masonry"]}` | TEST-ONLY: completes research instantly. Logged |
 | `{"setup_season": "winter"}` | TEST-ONLY: jumps to a season (`autumn`/`winter`/`spring`/`summer`, or `none` for the original art). Logged |
 | `{"setup_merchant": "timber"}` | TEST-ONLY: a merchant (`timber`/`grain`/`iron`/`peddler`) arrives at the Trading Post now. Logged |
+| `{"move_mouse": [x, y]}` | Moves the mouse to that viewport position (e.g. the window edge for edge scrolling); focuses the window first |
+| `{"reload_settings": true}` | Re-reads the settings file, as the next launch would. Tests use `user://verify-settings.cfg`, fresh each run |
 | `{"setup_hints": true}` | Turns tutorial hints on (the driver starts with them off so they don't cover tiles) |
 | `{"setup_delay_raids": s}` | TEST-ONLY: no natural raid for `s` game seconds. Logged |
 
@@ -66,5 +68,8 @@ merchant in town, "" if none), `camera_near`
 (`[x, y, max_tiles]` absolute tile), `sounds_min` (`{"horn": 1}`: plays so far), `call_to_arms`
 (bool), `game_over` (bool), `hint` (current tutorial hint contains the text),
 `squad_troops_min`, `squad_mode` (`AUTO`/`MANUAL`),
+`settings` (`{"game/pan_speed": 1.6}`: values in Settings), `speed` (0 = paused, 1-3),
+`ui_scale` (the window's content scale), `camera_moved` (`{"since": "<state>", "min": n}` or
+`"max"`: tiles the camera moved since that snapshot),
 `research_done` (research id), `button_on_screen` (a visible button whose
 label contains the text lies fully inside the window).
