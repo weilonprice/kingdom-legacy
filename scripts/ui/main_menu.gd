@@ -43,7 +43,8 @@ func _ready() -> void:
 		var pic := TextureRect.new()
 		pic.texture = tex
 		pic.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		pic.custom_minimum_size = Vector2(tex.get_size()) * 2.0
+		# Small sprites double up; the big castle art is already large.
+		pic.custom_minimum_size = Vector2(tex.get_size()) * (2.0 if tex.get_height() <= 96 else 1.0)
 		pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		pic.size_flags_vertical = Control.SIZE_SHRINK_END

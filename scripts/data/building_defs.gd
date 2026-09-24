@@ -21,8 +21,8 @@ extends RefCounted
 const DEFS := {
 	"keep": {
 		"name": "Keep",
-		"desc": "The heart of your kingdom. Houses 4 and stores everything.",
-		"size": Vector2i(3, 3),
+		"desc": "The heart of your kingdom. Houses 4 and stores everything. It grows into a Castle (Town) and a Citadel (Kingdom) in its reserved grounds.",
+		"size": Vector2i(5, 5),
 		"cost": {},
 		"color": Color(0.48, 0.42, 0.55),
 		"housing": 4,

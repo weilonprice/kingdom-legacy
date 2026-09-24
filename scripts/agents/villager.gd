@@ -8,6 +8,8 @@ extends Node2D
 ##   farm:    go to ripe field -> harvest -> drop wheat at the farm's pile
 ##            (or go to tilled field -> plant)
 ##   forester: go to open ground -> plant a sapling
+##   build:   (castle builders) fetch a missing material from storage ->
+##            carry it to the castle; once all is there, work on the site
 ##   produce: use delivered input (or fetch it from the nearest storage or
 ##            workplace pile) -> work -> drop output at the pile
 ##   haul:    empty the fullest workplace pile into storage, or deliver
@@ -25,7 +27,7 @@ enum State {
 	TO_PICKUP, TO_SUPPLY, TO_SHELTER, HIDING, TO_POST, STATIONED, TO_BED, SLEEPING,
 	FIGHTING,
 }
-enum Task { NONE, GATHER, PLANT, HARVEST, PRODUCE, PLANT_TREE }
+enum Task { NONE, GATHER, PLANT, HARVEST, PRODUCE, PLANT_TREE, BUILD }
 
 const SPEED := 42.0
 const COLOR_UNEMPLOYED := Color(0.87, 0.75, 0.55)
@@ -75,6 +77,8 @@ var _target_tile := WorldMap.INVALID_TILE
 var _dest: Building
 ## Haulers: the producer being supplied.
 var _supply_target: Building
+## Castle builders: the material this builder promised to bring {item, amount}.
+var _castle_claim := {}
 var _danger_timer := 0.0
 var _foe: Enemy
 var _sound_timer := 0.0
@@ -122,6 +126,7 @@ func set_job(building: Building) -> void:
 
 
 func lose_job() -> void:
+	_drop_castle_claim()
 	if job != null:
 		job.workers.erase(self)
 		job = null
@@ -130,6 +135,7 @@ func lose_job() -> void:
 
 func _exit_tree() -> void:
 	_release_claims()
+	_drop_castle_claim()
 
 
 ## Drops the current plan. Anything carried is kept and taken to storage.
@@ -240,7 +246,9 @@ func _think() -> void:
 		note = "Workplace has no road"
 		_wander()
 		return
-	match job.def.get("work", ""):
+	match job.work_type():
+		"build":
+			_plan_build()
 		"gather":
 			_plan_gather()
 		"farm":
@@ -317,6 +325,46 @@ func _plan_farm() -> void:
 		note = "Going to plant"
 		return
 	_wait("Waiting for crops to grow", 3.0)
+
+
+## Castle builders: bring what the project still lacks, then build.
+func _plan_build() -> void:
+	var castle: Castle = world.get_parent().castle
+	if not castle.is_building():
+		_wait("Waiting for orders", 3.0)
+		return
+	if castle.materials_done():
+		var spot := castle.work_spot()
+		if spot != WorldMap.INVALID_TILE and _walk_to(spot):
+			task = Task.BUILD
+			state = State.TO_TARGET
+			_target_tile = WorldMap.INVALID_TILE
+			note = "Going to build the %s" % CastleDefs.STAGES[castle.project.stage].title
+			return
+		_wait("Can't reach the building site", 3.0)
+		return
+	var missing := castle.missing()
+	for item: String in missing:
+		# The castle's own storehouse counts too: goods move from store to site.
+		var source := world.stock.nearest_source(item, 1, current_tile())
+		if source != null and _walk_to(source.entrance()):
+			var amount := mini(HAUL_LOAD, missing[item])
+			castle.claim(item, amount)
+			_castle_claim = {"item": item, "amount": amount}
+			_dest = source
+			state = State.TO_FETCH
+			note = "Fetching %s for the castle" % item
+			return
+	_wait("Waiting for %s" % ", ".join(missing.keys()) if not missing.is_empty() else "Materials on the way", 3.0)
+
+
+## Gives back a castle material claim that won't be delivered.
+func _drop_castle_claim() -> void:
+	if _castle_claim.is_empty():
+		return
+	var castle: Castle = world.get_parent().castle
+	castle.deliver(_castle_claim.item, _castle_claim.amount, false)
+	_castle_claim = {}
 
 
 func _plan_forester() -> void:
@@ -555,15 +603,16 @@ func _arrive() -> void:
 			visible = false
 			note = {"guard": "On watch", "study": "Studying"}.get(job.def.work, "Serving customers")
 		State.TO_TARGET:
-			if job == null or _target_tile == WorldMap.INVALID_TILE:
+			if job == null or (_target_tile == WorldMap.INVALID_TILE and task != Task.BUILD):
 				_reset()
 				return
 			state = State.WORKING
-			timer = job.def.work_time * _work_multiplier() \
+			timer = job.def.get("work_time", 4.0) * _work_multiplier() \
 					* (GameState.mod("gather_time") if task == Task.GATHER else 1.0)
 			note = {Task.GATHER: "Gathering %s" % job.def.get("resource", ""),
 					Task.PLANT: "Planting", Task.HARVEST: "Harvesting",
-					Task.PLANT_TREE: "Planting a sapling"}.get(task, "Working")
+					Task.PLANT_TREE: "Planting a sapling",
+					Task.BUILD: "Building the %s" % job.title}.get(task, "Working")
 		State.TO_FETCH:
 			_arrive_fetch()
 		State.TO_WORKPLACE:
@@ -596,7 +645,28 @@ func _arrive() -> void:
 
 func _arrive_fetch() -> void:
 	if job == null or not is_instance_valid(_dest):
+		_drop_castle_claim()
 		_reset()
+		return
+	if not _castle_claim.is_empty():
+		var item: String = _castle_claim.item
+		var got := world.stock.take_from_source(_dest, item, _castle_claim.amount)
+		if got <= 0:
+			_drop_castle_claim()
+			_wait("No %s left there" % item, 1.0)
+			return
+		if got < _castle_claim.amount:
+			world.get_parent().castle.deliver(item, _castle_claim.amount - got, false)
+			_castle_claim.amount = got
+		carrying = item
+		carry_amount = got
+		queue_redraw()
+		if _walk_to(job.entrance()):
+			state = State.TO_WORKPLACE
+			note = "Carrying %s to the castle" % item
+		else:
+			_drop_castle_claim()
+			_go_deposit()
 		return
 	if job.def.get("work", "") == "haul":
 		var target := _supply_target
@@ -637,6 +707,14 @@ func _arrive_fetch() -> void:
 func _arrive_workplace() -> void:
 	if job == null:
 		_reset()
+		return
+	if not _castle_claim.is_empty():
+		world.get_parent().castle.deliver(carrying, carry_amount)
+		_castle_claim = {}
+		carrying = ""
+		carry_amount = 0
+		queue_redraw()
+		_wait("Delivered to the castle", 0.3)
 		return
 	if carrying == job.input_item():
 		# One batch goes to work now; the rest waits at the workplace.
@@ -704,6 +782,8 @@ func _finish_work() -> void:
 			world.plant_field(_target_tile)
 		Task.PLANT_TREE:
 			world.plant_sapling(_target_tile)
+		Task.BUILD:
+			world.get_parent().castle.add_work(job.def.get("work_time", 4.0) * _work_multiplier())
 		Task.HARVEST:
 			amount = world.harvest_field(_target_tile)
 			item = def.resource

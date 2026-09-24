@@ -44,6 +44,9 @@ var is_night := false
 ## Per-building inventories (storages, the Keep's treasury).
 var stock: Stock
 var keep: Building
+## Reserved for the castle to grow into (CastleDefs.GROUNDS square around
+## the map centre): no other buildings, walls, fields or trees.
+var castle_grounds := Rect2i()
 
 var renderer: TerrainRenderer
 var building_root: Node2D
@@ -109,7 +112,7 @@ func generate(seed_value: int) -> void:
 
 	# Guarantee a buildable start with wood and stone within reach.
 	var center := Vector2i(width >> 1, height >> 1)
-	_stamp(center, 8, Terrain.GRASS)
+	_stamp(center, 10, Terrain.GRASS)
 	_stamp(center + Vector2i(12, -5), 4, Terrain.FOREST)
 	_stamp(center + Vector2i(-12, 6), 3, Terrain.STONE)
 
@@ -245,13 +248,19 @@ func _stamp(center: Vector2i, radius: int, type: int) -> void:
 
 
 func _place_start(center: Vector2i) -> void:
-	keep = place_building("keep", center - Vector2i(1, 1))
+	var half := CastleDefs.GROUNDS / 2
+	castle_grounds = Rect2i(center - Vector2i(half, half), Vector2i(CastleDefs.GROUNDS, CastleDefs.GROUNDS))
+	var s: int = CastleDefs.STAGES[0].size
+	keep = place_building("keep", center - Vector2i(s / 2, s / 2))
+	# The approach road runs from the gate out of the grounds to a cross
+	# street, so every later (bigger) stage's gate is already on it.
 	var e := keep.entrance()
+	var street := castle_grounds.end.y + 2
 	var road_tiles: Array[Vector2i] = []
-	for dy in 4:
-		road_tiles.append(e + Vector2i(0, dy))
+	for y in range(e.y, street + 1):
+		road_tiles.append(Vector2i(e.x, y))
 	for dx in range(-5, 6):
-		road_tiles.append(e + Vector2i(dx, 3))
+		road_tiles.append(Vector2i(e.x + dx, street))
 	place_roads(road_tiles)
 
 
@@ -453,7 +462,8 @@ const FOREST_TICK := 2.0
 
 ## Open grass with nothing on or beside it that a tree would get in the way of.
 func is_plantable(t: Vector2i) -> bool:
-	if not is_in_bounds(t) or get_terrain(t) != Terrain.GRASS or saplings.has(t) or reserved.has(t):
+	if not is_in_bounds(t) or get_terrain(t) != Terrain.GRASS or saplings.has(t) or reserved.has(t) \
+			or in_castle_grounds(t):
 		return false
 	for off in NEIGHBORS + [Vector2i.ZERO]:
 		var n: Vector2i = t + off
@@ -551,6 +561,8 @@ func can_place_building(id: String, origin: Vector2i) -> String:
 				return "Space is blocked"
 			if entrances.has(t):
 				return "Would block an entrance"
+			if in_castle_grounds(t):
+				return "Castle grounds are reserved"
 			if not Terrain.is_buildable(get_terrain(t)):
 				return "Must build on clear ground"
 	var e := BuildingDefs.entrance_of(origin, size)
@@ -570,6 +582,8 @@ func _can_place_fortification(def: Dictionary, t: Vector2i) -> String:
 		return "Space is blocked"
 	if entrances.has(t):
 		return "Would block an entrance"
+	if in_castle_grounds(t):
+		return "Castle grounds are reserved"
 	if roads.has(t) and not def.get("gate", false):
 		return "Walls can't go on roads (use a Gate)"
 	if not roads.has(t) and not Terrain.is_buildable(get_terrain(t)):
@@ -624,6 +638,46 @@ func _redraw_fortifications_around(b: Building) -> void:
 		var n: Building = occupancy.get(b.origin + off)
 		if n != null and n != b:
 			n.queue_redraw()
+
+
+func in_castle_grounds(t: Vector2i) -> bool:
+	return castle_grounds.has_area() and castle_grounds.has_point(t)
+
+
+## Grows (or sets) the castle to `s` x `s`, centred in its grounds. Roads
+## under the new footprint go; the gate's road is extended to the old
+## approach road if needed.
+func resize_keep(s: int) -> void:
+	if keep == null or keep.size == Vector2i(s, s):
+		return
+	for t in keep.footprint():
+		occupancy.erase(t)
+	if entrances.get(keep.entrance()) == keep:
+		entrances.erase(keep.entrance())
+	var old := keep.footprint()
+	var center := castle_grounds.get_center()
+	keep.origin = Vector2i(center) - Vector2i(s / 2, s / 2)
+	keep.size = Vector2i(s, s)
+	keep.position = Vector2(keep.origin * T)
+	for t in keep.footprint():
+		occupancy[t] = keep
+		roads.erase(t)
+		fields.erase(t)
+		saplings.erase(t)
+	entrances[keep.entrance()] = keep
+	var e := keep.entrance()
+	var y := e.y
+	while is_in_bounds(Vector2i(e.x, y)) and not roads.has(Vector2i(e.x, y)) and y <= castle_grounds.end.y + 2:
+		roads[Vector2i(e.x, y)] = true
+		y += 1
+	roads[e] = true
+	for t in old + keep.footprint() + [e]:
+		_update_nav(t)
+		renderer.refresh_tile(t)
+	_refresh_road_access()
+	roads_changed.emit()
+	keep.queue_redraw()
+	recompute_capacity()
 
 
 ## Called when a building's health reaches zero.
@@ -719,7 +773,7 @@ func field_candidates(origin: Vector2i, size: Vector2i, radius: int) -> Array[Ve
 			if footprint.has_point(t) or t == e or not is_in_bounds(t):
 				continue
 			if Terrain.is_buildable(get_terrain(t)) and not occupancy.has(t) and not roads.has(t) \
-					and not entrances.has(t) and not fields.has(t):
+					and not entrances.has(t) and not fields.has(t) and not in_castle_grounds(t):
 				found.append(t)
 	found.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
 		return center.distance_squared_to(Vector2(a)) < center.distance_squared_to(Vector2(b)))

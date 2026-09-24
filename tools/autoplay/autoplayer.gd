@@ -130,6 +130,7 @@ func _act() -> void:
 	var wood_reserve := homes * (10 if main.seasons.current() in ["autumn", "winter"] else 2)
 	_manage_war()
 	_trade(food_min, homes)
+	_grow_castle()
 	# A tower before the first raid, more as raids grow.
 	if game_time > 180.0 and _count("guard_tower") < mini(1 + main.raids.raids_survived, 5) and _try("guard_tower"):
 		return
@@ -366,6 +367,21 @@ func _affordable_after_reserve(cost: Dictionary) -> bool:
 		if GameState.count(item) - int(_reserve.get(item, 0)) < int(cost[item]):
 			return false
 	return true
+
+
+## Start the next castle upgrade once it's allowed and the materials are
+## on hand (with a margin, so building doesn't stall the town).
+func _grow_castle() -> void:
+	var castle: Castle = main.castle
+	var next := castle.next_stage()
+	if next.is_empty() or castle.upgrade_problem() != "":
+		return
+	for item: String in next.materials:
+		if GameState.count(item) < next.materials[item] + 50:
+			return
+	if castle.start_upgrade() == "":
+		_note_action("castle " + next.title)
+		milestones["castle_" + next.title] = _minute()
 
 
 ## A woodcutter with little forest left in reach and no Forester near it.

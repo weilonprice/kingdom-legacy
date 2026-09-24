@@ -24,6 +24,8 @@ var _tax_buttons: Array[Button] = []
 var _research_box: VBoxContainer
 var _research_buttons := {}  # research id -> Button
 var trade: Trade
+var castle: Castle
+var _castle_button: Button
 var _trade_box: VBoxContainer
 var _trade_rows := {}  # item -> {"label": Label, "buy": Button, "sell": Button}
 var _refresh_time := 0.0
@@ -92,6 +94,15 @@ func _ready() -> void:
 			_refresh())
 		_tax_row.add_child(tbtn)
 		_tax_buttons.append(tbtn)
+
+	_castle_button = Button.new()
+	_castle_button.focus_mode = Control.FOCUS_NONE
+	_castle_button.pressed.connect(func() -> void:
+		var problem := castle.start_upgrade()
+		if problem != "":
+			GameState.notify(problem)
+		_refresh())
+	col.add_child(_castle_button)
 
 	_research_box = VBoxContainer.new()
 	col.add_child(_research_box)
@@ -174,6 +185,15 @@ func _refresh() -> void:
 			_tax_buttons[i].set_pressed_no_signal(i == GameState.tax_rate)
 		text += "\n\nTax rate: %s — about %d gold/min from homes\nAverage happiness: %d" % [
 			NeedDefs.TAX_RATES[GameState.tax_rate].name, needs.tax_per_minute(), GameState.happiness]
+		text += "\n\n" + _castle_text()
+	var next := castle.next_stage() if is_keep and castle != null else {}
+	_castle_button.visible = not next.is_empty() and not castle.is_building()
+	if _castle_button.visible:
+		_castle_button.text = "Upgrade to %s (%d gold)" % [next.title, next.gold]
+		_castle_button.disabled = castle.upgrade_problem() != ""
+		_castle_button.tooltip_text = "Grows the castle to %dx%d. Builders haul %s, then build.%s" % [
+			next.size, next.size, BuildingDefs.cost_text(next.materials),
+			"" if castle.upgrade_problem() == "" else "\n" + castle.upgrade_problem()]
 	var studies: bool = building.def.get("work", "") == "study"
 	_research_box.visible = studies
 	if studies:
@@ -189,6 +209,31 @@ func _refresh() -> void:
 	_demolish.visible = building != world.keep
 	# Shrink back to fit when the text gets shorter.
 	reset_size()
+
+
+func _castle_text() -> String:
+	if castle == null:
+		return ""
+	var st: Dictionary = CastleDefs.STAGES[castle.stage]
+	var lines := PackedStringArray(["%s (%dx%d)" % [st.title, st.size, st.size]])
+	if castle.is_building():
+		var target: Dictionary = CastleDefs.STAGES[castle.project.stage]
+		lines.append("Building the %s — %d%%" % [target.title, roundi(castle.progress() * 100)])
+		var parts := PackedStringArray()
+		for item: String in target.materials:
+			parts.append("%s %d/%d" % [item, mini(castle.project.delivered.get(item, 0), target.materials[item]),
+				target.materials[item]])
+		lines.append("Materials: " + ", ".join(parts))
+		if castle.materials_done():
+			lines.append("Construction: %d/%d" % [castle.project.work_done, target.work])
+		lines.append("Builders: %d/%d%s" % [building.workers.size(), CastleDefs.BUILDERS,
+			"  (builders are unemployed villagers: build homes to free some)" if building.workers.is_empty() else ""])
+	elif not castle.next_stage().is_empty():
+		var next := castle.next_stage()
+		var problem := castle.upgrade_problem()
+		lines.append("Next: %s (%dx%d) — %s" % [next.title, next.size, next.size,
+			"ready to begin" if problem == "" else problem])
+	return "\n".join(lines)
 
 
 func _military_text() -> String:
