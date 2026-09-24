@@ -103,6 +103,9 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   Raw resources:  Wood, Stone, Wheat, Fish, Game, Iron ore, Clay, Wool, Gold ore
   Storage (M13):  Keep holds 300 materials + 300 food at Hamlet (450 / 550 /
                   650 / 800 at later tiers), Stockpile 250 materials.
+  Grain (M17):    wheat and flour are "grain" with their own capacity (Keep,
+                  Granary, Warehouse), so unground wheat never crowds out
+                  bread and fish; a Granary holds 150 food and 150 grain.
   Storage:        Keep (starts, + gold treasury), Stockpile (materials),
                   Granary (food), Warehouse (both, Town); Carter's Yard haulers
 
@@ -305,7 +308,14 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   fanfare, victory, defeat. Ambience: birds by day, crickets at night, wind
   in winter. Sounds fade with distance from the camera. Buses Master / SFX /
   Ambience with sliders on the title screen and in the game menu, saved to
-  user://settings.cfg. Music: not yet (would come from CC0 packs).
+  user://settings.cfg.
+  MUSIC (M17): composed in code (scripts/autoload/music.gd): synthesized
+  lute, recorder, pad, bass, bells, brass and drums; a step sequencer; a
+  composer that writes each loop from a seed over a chord progression in a
+  medieval mode. Moods: title (G Mixolydian), day (D Dorian, lute arpeggios
+  + recorder), night (pads, sparse lute), winter (A minor, bells), raid
+  (drums, ostinato bass, brass), siege (A Phrygian, heavier). Crossfades
+  between moods; Music slider. tools/music/preview.gd renders WAV previews.
   MINIMAP (M11): bottom-right, terrain in the season's colours, roads,
   bridges, buildings, walls, lairs, raiders and troops, the camera's view
   frame; click or drag to look around; M hides it.

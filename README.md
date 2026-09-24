@@ -54,9 +54,11 @@ the next raid hits. Made with Godot 4.
 - **Rivers and bridges.** A river winds past every town, with a couple of
   shallow fords. Drag a road across it to build a bridge, then guard the
   crossing: raiders use bridges too.
-- **Sound.** Axes, pickaxes, hammers, a raid horn, arrows, a dragon's roar,
-  birdsong by day and crickets at night, all synthesized in code. Volume
-  sliders are on the title screen and in the ☰ menu.
+- **Sound and music.** Axes, pickaxes, hammers, a raid horn, arrows, a
+  dragon's roar, birdsong by day and crickets at night, plus music for the
+  title, day, night, winter, raids and the Dragon's siege, all synthesized
+  and composed in code. Volume sliders are on the title screen and in the ☰
+  menu.
 - **Procedural maps.** Every game is a new 128×128 map. Pass a seed to replay
   one.
 
@@ -215,6 +217,8 @@ after its scenarios pass.
 | M9 | Art direction: autumn/winter/summer art, trees, props, castle walls, seasons ✅ |
 | M10 | Rivers, fords and bridges ✅ |
 | M11 | Sound effects, ambience, volume settings, minimap ✅ |
+| M12–M16 | Balance autoplayer and three balance rounds ✅ |
+| M17 | Grain storage, music ✅ |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 

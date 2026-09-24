@@ -382,10 +382,12 @@ func _refresh_resources() -> void:
 	var pop := maxi(GameState.population, 1)
 	var minutes := GameState.edible_total() / float(pop) * CitizenManager.MEAL_INTERVAL / 60.0
 	var foods := ItemDefs.items_in("food")
-	_set_bar(_food_label, "%s  %d/%d · %.0f min" % [
-		_stock_text(foods, false), GameState.used("food"), GameState.capacity.get("food", 0), minutes],
-		"Food: %s\nStorage %d/%d\nAbout %.0f minutes of food for %d people" % [
-			_stock_text(foods, true), GameState.used("food"), GameState.capacity.get("food", 0), minutes, GameState.population])
+	var grains := ItemDefs.items_in("grain")
+	_set_bar(_food_label, "%s · Grain %d  %d/%d · %.0f min" % [
+		_stock_text(foods, false), GameState.used("grain"), GameState.used("food"), GameState.capacity.get("food", 0), minutes],
+		"Food: %s\nStorage %d/%d\nAbout %.0f minutes of food for %d people\n\nGrain for mills and bakeries: %s\nGrain storage %d/%d" % [
+			_stock_text(foods, true), GameState.used("food"), GameState.capacity.get("food", 0), minutes, GameState.population,
+			_stock_text(grains, true), GameState.used("grain"), GameState.capacity.get("grain", 0)])
 	_food_label.add_theme_color_override("font_color", Color(1, 0.45, 0.35) if minutes < 2.0 else Color.WHITE)
 	var upkeep := military.upkeep_per_minute() if military != null else 0
 	var tax := needs.tax_per_minute() if needs != null else 0

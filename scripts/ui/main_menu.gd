@@ -140,6 +140,7 @@ func _ready() -> void:
 	buttons.add_child(quit)
 
 	Sound.ambience_mode = ""
+	Music.set_mood("title")
 	var goal := Label.new()
 	goal.text = "Goal: reach the Kingdom tier, then survive the Dragon's siege."
 	goal.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

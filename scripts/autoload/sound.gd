@@ -6,14 +6,14 @@ extends Node
 ## with volumes saved in user://settings.cfg.
 
 const SETTINGS := "user://settings.cfg"
-const BUSES := ["Master", "SFX", "Ambience"]
+const BUSES := ["Master", "SFX", "Ambience", "Music"]
 const POOL := 12
 ## Sounds farther than this many pixels from the view centre are silent.
 const HEARING := 1400.0
 ## Minimum seconds between two plays of the same sound.
 const COOLDOWN := {"chop": 0.12, "pick": 0.12, "hit": 0.08, "arrow": 0.06, "step": 0.1}
 
-var volumes := {"Master": 0.8, "SFX": 0.8, "Ambience": 0.6}
+var volumes := {"Master": 0.8, "SFX": 0.8, "Ambience": 0.6, "Music": 0.5}
 ## Set by the game: where the camera is, the season and night.
 var listener := Vector2.ZERO
 var ambience_mode := ""   # "day", "night", "winter" or "" (silent)
@@ -87,7 +87,7 @@ func volume_controls() -> Control:
 	grid.add_theme_constant_override("h_separation", 10)
 	for bus: String in BUSES:
 		var label := Label.new()
-		label.text = {"Master": "Volume", "SFX": "Effects", "Ambience": "Ambience"}[bus]
+		label.text = {"Master": "Volume", "SFX": "Effects", "Ambience": "Ambience", "Music": "Music"}[bus]
 		grid.add_child(label)
 		var slider := HSlider.new()
 		slider.min_value = 0.0

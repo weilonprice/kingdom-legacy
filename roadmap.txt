@@ -334,7 +334,7 @@ M11 — SOUND & MINIMAP (done)
   [x] (S) Ambience: birds / crickets / winter wind; distance fade
   [x] (S) Volume sliders (title + game menu), saved settings
   [x] (M) Minimap with units, lairs and the view frame; click to move
-  [ ] (M) Music (CC0 packs, needs a download OK) or procedural tunes
+  [x] (M) Music composed in code: six moods, crossfades, Music slider (M17)
 
 ================================================================================
 M12 — AUTOPLAYER (tool done; balance changes next)
@@ -351,6 +351,7 @@ M12 — AUTOPLAYER (tool done; balance changes next)
   [~] (M) Bot defends: walls, gates, tower rings, 2 barracks, saving up
           (M15). Still loses; the bot's planning is now the bottleneck
   [x] (S) Softer raid 2 (M16): brutes from the 3rd raid, so raid 2 is goblins only
+  [x] (S) Grain storage (M17): wheat/flour have their own capacity
 
   Later
   [ ] Economy tuning from playtests (costs, yields, tier requirements)
