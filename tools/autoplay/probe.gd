@@ -11,6 +11,7 @@ func _ready() -> void:
 		if a.begins_with("--") and "=" in a:
 			args[a.substr(2).get_slice("=", 0)] = a.get_slice("=", 1)
 	Engine.max_fps = 0
+	Settings.use_file("user://verify-settings.cfg")
 	GameState.hints_enabled = false
 	GameState.new_game_seed = 12345
 	var main: Node2D = load("res://scenes/main.tscn").instantiate()

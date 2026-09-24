@@ -60,10 +60,10 @@ func _ready() -> void:
 	row.add_child(_text)
 	var close := Button.new()
 	close.text = "✕"
-	close.tooltip_text = "Hide hints"
+	close.tooltip_text = "Hide hints (turn them back on in Settings)"
 	close.focus_mode = Control.FOCUS_NONE
 	close.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	close.pressed.connect(func() -> void: GameState.hints_enabled = false)
+	close.pressed.connect(func() -> void: Settings.set_value("game/hints", false))
 	row.add_child(close)
 	_show_step()
 

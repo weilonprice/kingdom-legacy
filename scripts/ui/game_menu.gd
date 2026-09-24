@@ -1,10 +1,12 @@
 class_name GameMenu
 extends PanelContainer
-## In-game menu from the top bar's ☰ button: resume, save, load, main menu.
-## The game is paused while it's open.
+## In-game menu from the top bar's ☰ button (or Esc): resume, save, load,
+## settings, main menu. The game is paused while it's open.
 
 var on_save: Callable
 var on_load: Callable
+## Set by the HUD; the menu hides while it's open.
+var settings: SettingsPanel
 
 var _load_button: Button
 var _info: Label
@@ -26,10 +28,12 @@ func _ready() -> void:
 		on_save.call()
 		_refresh())
 	_load_button = _add(col, "Load Game (F8)", func() -> void: on_load.call(SaveGame.latest_slot()))
+	_add(col, "Settings", func() -> void:
+		hide()
+		settings.open())
 	_add(col, "Main Menu", func() -> void:
 		GameState.reset()
 		get_tree().change_scene_to_file("res://scenes/menu.tscn"))
-	col.add_child(Sound.volume_controls())
 	_info = Label.new()
 	_info.add_theme_color_override("font_color", UiTheme.TEXT_MUTED)
 	_info.add_theme_font_size_override("font_size", 13)
@@ -51,8 +55,14 @@ func _add(parent: Control, text: String, action: Callable) -> Button:
 func toggle() -> void:
 	if visible:
 		close()
-	else:
+	elif not settings.visible:
 		open()
+
+
+## Back from Settings returns here.
+func settings_closed() -> void:
+	_refresh()
+	show()
 
 
 func open() -> void:

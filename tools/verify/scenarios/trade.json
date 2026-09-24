@@ -30,7 +30,6 @@
   {"key": "F8"},
   {"wait": 2},
   {"expect": {"message": "Game loaded", "merchant": "Timber merchant", "min": {"bread": 140}}},
-  {"key": "Escape"},
   {"key": "F9"},
   {"wait_until": {"raid_phase": "ACTIVE"}, "timeout": 40},
   {"wait": 1},

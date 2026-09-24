@@ -37,7 +37,8 @@ func _ready() -> void:
 	# Hints would cover top-left tiles that scenarios click; scenarios that
 	# test them turn them on with setup_hints.
 	GameState.hints_enabled = false
-	# Never touch the player's own saves.
+	# Never touch the player's own saves or settings.
+	Settings.use_file("user://verify-settings.cfg")
 	GameState.save_dir = "user://verify-saves"
 	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://verify-saves/savegame.json"))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://verify-saves/autosave.json"))
@@ -200,6 +201,19 @@ func _run_step(step: Dictionary) -> String:
 			return "FAIL no Trading Post with road access"
 		main.trade.arrive(step.setup_merchant, main.trade.post().entrance())
 		return "ok (%s)" % main.trade.merchant_name()
+	elif step.has("move_mouse"):
+		# Viewport position, e.g. against the window edge. Edge scrolling
+		# ignores unfocused windows, so bring ours to the front first.
+		if DisplayServer.get_name() != "headless":
+			DisplayServer.window_move_to_foreground()
+			get_window().grab_focus()
+			await _frames(5)
+		await _move_mouse(Vector2(step.move_mouse[0], step.move_mouse[1]))
+		if DisplayServer.get_name() != "headless" and not get_window().has_focus():
+			return "ok (window has no focus; edge checks will show it)"
+	elif step.has("reload_settings"):
+		# Re-read the settings file, as the next launch would.
+		Settings.load_file()
 	elif step.has("setup_hints"):
 		GameState.hints_enabled = bool(step.setup_hints)
 		report.setup_shortcuts.append(step)
@@ -263,7 +277,14 @@ func _press_key(spec: String) -> void:
 	await _frames(2)
 
 
+## Positions are in viewport coordinates (what get_global_rect and the
+## camera give); events carry window pixels, which differ under UI scale.
+func _to_window(pos: Vector2) -> Vector2:
+	return get_tree().root.get_final_transform() * pos
+
+
 func _move_mouse(pos: Vector2) -> void:
+	pos = _to_window(pos)
 	var ev := InputEventMouseMotion.new()
 	ev.position = pos
 	ev.global_position = pos
@@ -276,6 +297,7 @@ func _click(pos: Vector2, button: MouseButton) -> void:
 	# Moving off a control whose tooltip is showing closes the tooltip; give
 	# that a few frames so it doesn't swallow the press.
 	await _frames(6)
+	pos = _to_window(pos)
 	for pressed in [true, false]:
 		var ev := InputEventMouseButton.new()
 		ev.position = pos
@@ -288,6 +310,8 @@ func _click(pos: Vector2, button: MouseButton) -> void:
 
 func _drag(from: Vector2, to: Vector2) -> void:
 	await _move_mouse(from)
+	from = _to_window(from)
+	to = _to_window(to)
 	var down := InputEventMouseButton.new()
 	down.position = from
 	down.global_position = from
@@ -455,6 +479,9 @@ func _snapshot() -> Dictionary:
 		"sounds": Sound.played.duplicate(),
 		"music_mood": Music.mood,
 		"merchant": main.trade.merchant_name() if main.trade.is_open() else "",
+		"settings": Settings.values.duplicate(),
+		"speed": GameState.speed,
+		"ui_scale": get_window().content_scale_factor,
 		"music_notes": Music.notes_played,
 		"bridges": world.roads.keys().filter(func(t: Vector2i) -> bool: return world.is_bridge(t)).size(),
 		"bridges_walkable": world.roads.keys().all(func(t: Vector2i) -> bool: return world.is_walkable(t)),
@@ -591,6 +618,23 @@ func _check(expect: Dictionary) -> String:
 		var btn := _find_button(get_tree().root, expect.button_on_screen)
 		if btn == null or not get_viewport().get_visible_rect().encloses(btn.get_global_rect()):
 			problems.append("button '%s' is %s" % [expect.button_on_screen, "missing" if btn == null else "off-screen at %s" % btn.get_global_rect()])
+	for key: String in expect.get("settings", {}):
+		var want: Variant = expect.settings[key]
+		var have: Variant = s.settings.get(key)
+		if have == null or not is_equal_approx(float(have), float(want)):
+			problems.append("setting %s = %s, not %s" % [key, have, want])
+	if expect.has("camera_moved"):
+		# {"since": "<state name>", "min": tiles} or "max": tiles.
+		var spec: Dictionary = expect.camera_moved
+		var then: Array = snapshots.get(spec.since, {}).get("camera_tile", s.camera_tile)
+		var moved := Vector2(s.camera_tile[0] - then[0], s.camera_tile[1] - then[1]).length()
+		if moved < float(spec.get("min", 0)) or moved > float(spec.get("max", INF)):
+			problems.append("camera moved %.1f tiles since %s (want %s..%s)" % [
+				moved, spec.since, spec.get("min", 0), spec.get("max", "any")])
+	if expect.has("speed") and s.speed != int(expect.speed):
+		problems.append("speed %d != %s" % [s.speed, expect.speed])
+	if expect.has("ui_scale") and not is_equal_approx(s.ui_scale, float(expect.ui_scale)):
+		problems.append("ui_scale %s != %s" % [s.ui_scale, expect.ui_scale])
 	if expect.has("research_done") and not expect.research_done in s.research_done:
 		problems.append("research %s not done" % expect.research_done)
 	return "ok" if problems.is_empty() else "FAIL " + "; ".join(problems)

@@ -1,7 +1,8 @@
 class_name MainMenu
 extends Control
 ## Title screen: new game with an optional seed, difficulty and tutorial
-## hints, or quit. Settings live on GameState so the game scene reads them.
+## hints, settings, or quit. New-game choices live on GameState so the game
+## scene reads them.
 
 const GAME_SCENE := "res://scenes/main.tscn"
 const BACKDROP := ["house", "woodcutter", "keep", "mill", "stone_tower"]
@@ -10,6 +11,8 @@ var _seed: LineEdit
 var _difficulty: Array[Button] = []
 var _hints: CheckBox
 var _sizes: Array[Button] = []
+var _settings: SettingsPanel
+var _center: CenterContainer
 
 
 func _ready() -> void:
@@ -23,6 +26,7 @@ func _ready() -> void:
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
+	_center = center
 	var col := VBoxContainer.new()
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_theme_constant_override("separation", 14)
@@ -108,11 +112,10 @@ func _ready() -> void:
 
 	_hints = CheckBox.new()
 	_hints.text = "Tutorial hints"
-	_hints.button_pressed = GameState.hints_enabled
+	_hints.button_pressed = Settings.get_value("game/hints")
 	_hints.focus_mode = Control.FOCUS_NONE
+	_hints.toggled.connect(func(on: bool) -> void: Settings.set_value("game/hints", on))
 	form.add_child(_hints)
-
-	form.add_child(Sound.volume_controls())
 
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -132,6 +135,14 @@ func _ready() -> void:
 	play.focus_mode = Control.FOCUS_NONE
 	play.pressed.connect(_start)
 	buttons.add_child(play)
+	var settings := Button.new()
+	settings.text = "Settings"
+	settings.custom_minimum_size = Vector2(120, 40)
+	settings.focus_mode = Control.FOCUS_NONE
+	settings.pressed.connect(func() -> void:
+		_center.hide()
+		_settings.open())
+	buttons.add_child(settings)
 	var quit := Button.new()
 	quit.text = "Quit"
 	quit.custom_minimum_size = Vector2(100, 40)
@@ -147,6 +158,16 @@ func _ready() -> void:
 	goal.add_theme_color_override("font_color", UiTheme.TEXT_MUTED)
 	col.add_child(goal)
 	Sound.wire_buttons(self)
+
+	var settings_center := CenterContainer.new()
+	settings_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	settings_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(settings_center)
+	_settings = SettingsPanel.new()
+	settings_center.add_child(_settings)
+	_settings.closed.connect(func() -> void:
+		_hints.set_pressed_no_signal(Settings.get_value("game/hints"))
+		_center.show())
 
 
 func _label(text: String) -> Label:
@@ -181,6 +202,6 @@ func _start() -> void:
 	for i in _sizes.size():
 		if _sizes[i].button_pressed:
 			GameState.map_size = i
-	GameState.hints_enabled = _hints.button_pressed
+	GameState.hints_enabled = Settings.get_value("game/hints")
 	GameState.reset()
 	get_tree().change_scene_to_file(GAME_SCENE)

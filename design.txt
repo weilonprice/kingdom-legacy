@@ -311,7 +311,13 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     villagers, squads, research, tier, raid clock, lairs, day/time). Saving
     is refused while raiders are coming.
   - Map size (M8b): Small 96, Normal 128, Large 160 tiles.
-  - Planned: minimap, settings (volume once there's sound).
+  - Settings (M19): from the title screen and the in-game menu (Esc or
+    ☰). Audio: Volume / Effects / Ambience / Music. Display: windowed or
+    fullscreen (F11), VSync, interface scale 75-200%. Game: tutorial hints,
+    autosave every 2/5/10 min or off, camera speed, edge scrolling, pause
+    when raiders are sighted. Controls: the hotkey list. Everything applies
+    at once and is saved in user://settings.cfg (scripts/autoload/
+    settings.gd).
 
 
   AUDIO (M11): every sound is synthesized at startup (scripts/autoload/
@@ -320,8 +326,7 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   arrow, hit, fire, death, dragon roar and breath, season chime, tier
   fanfare, victory, defeat. Ambience: birds by day, crickets at night, wind
   in winter. Sounds fade with distance from the camera. Buses Master / SFX /
-  Ambience with sliders on the title screen and in the game menu, saved to
-  user://settings.cfg.
+  Ambience / Music with sliders in Settings, saved to user://settings.cfg.
   MUSIC (M17): composed in code (scripts/autoload/music.gd): synthesized
   lute, recorder, pad, bass, bells, brass and drums; a step sequencer; a
   composer that writes each loop from a seed over a chord progression in a
@@ -439,11 +444,12 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   [DONE]  M10 Rivers with fords; bridges built with the Road tool
   [DONE]  M11 Sound (synthesized effects + ambience, volume sliders), minimap
   [DONE]  M18 Merchants and trade (Trading Post, four merchant types)
+  [DONE]  M19 Settings menu (audio, display, game options, controls)
 
 
 16. OPEN QUESTIONS
 --------------------------------------------------------------------------------
   - Should roads have tiers (dirt -> cobblestone) with speed bonuses?
-  - Trade with traveling merchants / neighboring kingdoms?
+  - Trade with neighboring kingdoms (beyond travelling merchants)?
   - Hero / lord character that the player controls directly?
   - Campaign of handmade scenarios later, or procedural only?

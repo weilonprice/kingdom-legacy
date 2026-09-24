@@ -57,6 +57,9 @@ the next raid hits. Made with Godot 4.
 - **Rivers and bridges.** A river winds past every town, with a couple of
   shallow fords. Drag a road across it to build a bridge, then guard the
   crossing: raiders use bridges too.
+- **Settings.** Volume per channel, fullscreen, interface scale, autosave
+  interval, camera speed, edge scrolling, and an option to pause when
+  raiders are sighted. Esc opens the menu.
 - **Sound and music.** Axes, pickaxes, hammers, a raid horn, arrows, a
   dragon's roar, birdsong by day and crickets at night, plus music for the
   title, day, night, winter, raids and the Dragon's siege, all synthesized
@@ -223,6 +226,7 @@ after its scenarios pass.
 | M12–M16 | Balance autoplayer and three balance rounds ✅ |
 | M17 | Grain storage, music ✅ |
 | M18 | Merchants and trade ✅ |
+| M19 | Settings menu ✅ |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 

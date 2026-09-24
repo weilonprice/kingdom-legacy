@@ -363,6 +363,19 @@ M18 — MERCHANTS & TRADE (done)
   [x] (S) Trade rows in the Trading Post panel; merchant walks in and out
   [x] (S) Saves keep the merchant and caravan timer; autoplayer trades
 
+
+================================================================================
+M19 — SETTINGS MENU (done)
+================================================================================
+  [x] (S) Settings autoload: one settings file, applied on change
+          -> scripts/autoload/settings.gd
+  [x] (M) Settings window (title screen + game menu): Audio, Display
+          (fullscreen, VSync, interface scale), Game (hints, autosave
+          interval, camera speed, edge scrolling, pause on raid), Controls
+          -> scripts/ui/settings_panel.gd
+  [x] (S) Esc opens the game menu when nothing is selected; F11 fullscreen
+  [x] (S) Tools and tests use their own settings file
+
   Later
   [ ] Economy tuning from playtests (costs, yields, tier requirements)
 
@@ -372,17 +385,15 @@ M18 — MERCHANTS & TRADE (done)
 ================================================================================
 BACKLOG / MAYBE LATER
 ================================================================================
-  - Seasons & winter (firewood, crop cycles)
   - Road tiers (dirt -> cobblestone) with speed bonuses
-  - Traveling merchants / trade routes
+  - Trade routes with neighbouring kingdoms
   - Hero / lord unit
   - Handmade scenarios / campaign
   - Disease & healthcare
   - Forester (replant trees), forest regrowth
-  - Minimap
   - Rubble tiles for destroyed buildings (rebuild at a discount)
-  - Sound: SFX (chop, build, horn, combat) and ambient music
   - Attack / death / work animations for characters
+  - Key rebinding
   - Rounder forest and rock edges (the "round" tileset style adds a cliff
     rim; needs a different prompt)
 

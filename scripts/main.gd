@@ -21,8 +21,7 @@ var hud: HUD
 ## changing scenes would free it.
 var reloader := func() -> void: get_tree().change_scene_to_file("res://scenes/main.tscn")
 
-const AUTOSAVE_INTERVAL := 300.0
-var _autosave_timer := AUTOSAVE_INTERVAL
+var _autosave_timer := 0.0
 
 
 func _ready() -> void:
@@ -118,6 +117,10 @@ func _ready() -> void:
 	citizens.all_villagers_lost.connect(_on_defeat.bind("Your people have abandoned the kingdom."))
 	raids.final_siege_won.connect(_on_victory)
 	raids.raid_ended.connect(func(_n: int) -> void: autosave())
+	raids.warning_started.connect(func(_t: Vector2i) -> void:
+		if Settings.get_value("game/pause_on_raid") and GameState.speed > 0:
+			GameState.set_speed(0)
+			GameState.notify("Paused: raiders sighted. Press Space to resume."))
 	hud.set_save_actions(save_game, load_game)
 
 	if not save.is_empty():
@@ -132,9 +135,10 @@ func _process(delta: float) -> void:
 	Sound.ambience_mode = "" if GameState.game_over else (
 		"winter" if seasons.is_winter() and not world.is_night else ("night" if world.is_night else "day"))
 	Music.set_mood(_music_mood())
-	_autosave_timer -= delta
-	if _autosave_timer <= 0.0:
-		_autosave_timer = AUTOSAVE_INTERVAL
+	var every: float = Settings.get_value("game/autosave_minutes") * 60.0
+	_autosave_timer += delta
+	if every > 0.0 and _autosave_timer >= every:
+		_autosave_timer = 0.0
 		autosave()
 
 
@@ -155,9 +159,10 @@ func save_game() -> void:
 	GameState.notify("Game saved." if err == "" else "Not saved: " + err)
 
 
-## Quiet save between raids; silently skipped during one.
+## Quiet save between raids; silently skipped during one (and when the
+## player turned autosave off).
 func autosave() -> void:
-	if SaveGame.save(self, SaveGame.AUTO) == "":
+	if Settings.get_value("game/autosave_minutes") > 0 and SaveGame.save(self, SaveGame.AUTO) == "":
 		print("Autosaved")
 
 

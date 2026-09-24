@@ -1,7 +1,7 @@
 extends Node
 ## Menu smoke test: opens the title screen, types a seed, picks Hard, turns
 ## hints off and clicks New Game with injected mouse events; checks the game
-## starts with those settings; then shows the victory screen and clicks Main
+## starts with those settings (after opening and closing Settings); then shows the victory screen and clicks Main
 ## Menu to check the way back. Lives on the root so it survives scene changes.
 ##   godot --headless --path . res://tools/verify/menu_check.tscn
 
@@ -18,6 +18,7 @@ func _ready() -> void:
 
 func _run() -> void:
 	get_window().size = Vector2i(1600, 900)
+	Settings.use_file("user://verify-settings.cfg")
 	GameState.save_dir = "user://verify-saves"
 	for slot in ["savegame", "autosave"]:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path("user://verify-saves/%s.json" % slot))
@@ -30,6 +31,17 @@ func _run() -> void:
 		await RenderingServer.frame_post_draw
 		var out := ProjectSettings.globalize_path("res://.verify-evidence/menu-title.png")
 		get_viewport().get_texture().get_image().save_png(out)
+	await _click(_button(menu, "Settings"))
+	await _frames(5)
+	var panel := _find(menu, func(n: Node) -> bool: return n is SettingsPanel) as SettingsPanel
+	_check(panel != null and panel.visible, "Settings opens from the title screen")
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(
+			ProjectSettings.globalize_path("res://.verify-evidence/menu-settings.png"))
+	await _click(_button(menu, "Back"))
+	await _frames(5)
+	_check(not panel.visible and _button(menu, "New Game") != null, "Back returns to the title screen")
 	var seed_edit := _find(menu, func(n: Node) -> bool: return n is LineEdit) as LineEdit
 	seed_edit.text = "4242"
 	await _click(_button(menu, "Hard"))

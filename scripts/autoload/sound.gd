@@ -2,10 +2,9 @@ extends Node
 ## Game audio (autoload "Sound"). Sound effects are synthesized at startup
 ## (see Synth); play(name, where) plays one, quieter the farther `where` is
 ## from the camera. Ambience (birds by day, crickets at night, wind in
-## winter) is scheduled here too. Three buses — SFX, Ambience under Master —
-## with volumes saved in user://settings.cfg.
+## winter) is scheduled here too. Buses SFX, Ambience and Music under
+## Master; their volumes come from Settings.
 
-const SETTINGS := "user://settings.cfg"
 const BUSES := ["Master", "SFX", "Ambience", "Music"]
 const POOL := 12
 ## Sounds farther than this many pixels from the view centre are silent.
@@ -42,7 +41,8 @@ func _ready() -> void:
 		p.bus = "SFX"
 		add_child(p)
 		_players.append(p)
-	_load_settings()
+	for bus: String in volumes:
+		_apply(bus)
 	_build_sounds()
 
 
@@ -80,45 +80,10 @@ func wire_buttons(root: Node) -> void:
 		wire_buttons(child)
 
 
-## Three labelled sliders (Master, Effects, Ambience) bound to the buses.
-func volume_controls() -> Control:
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 10)
-	for bus: String in BUSES:
-		var label := Label.new()
-		label.text = {"Master": "Volume", "SFX": "Effects", "Ambience": "Ambience", "Music": "Music"}[bus]
-		grid.add_child(label)
-		var slider := HSlider.new()
-		slider.min_value = 0.0
-		slider.max_value = 1.0
-		slider.step = 0.05
-		slider.value = volumes[bus]
-		slider.custom_minimum_size = Vector2(160, 20)
-		slider.focus_mode = Control.FOCUS_NONE
-		slider.value_changed.connect(func(v: float) -> void:
-			set_volume(bus, v)
-			play("click", null, -6.0, 0.0))
-		grid.add_child(slider)
-	return grid
-
-
+## Called by Settings.
 func set_volume(bus: String, value: float) -> void:
 	volumes[bus] = clampf(value, 0.0, 1.0)
 	_apply(bus)
-	var cfg := ConfigFile.new()
-	cfg.load(SETTINGS)
-	cfg.set_value("audio", bus, volumes[bus])
-	cfg.save(SETTINGS)
-
-
-func _load_settings() -> void:
-	var cfg := ConfigFile.new()
-	if cfg.load(SETTINGS) == OK:
-		for bus: String in volumes:
-			volumes[bus] = float(cfg.get_value("audio", bus, volumes[bus]))
-	for bus: String in volumes:
-		_apply(bus)
 
 
 func _apply(bus: String) -> void:
