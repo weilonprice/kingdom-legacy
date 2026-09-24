@@ -640,6 +640,45 @@ func _redraw_fortifications_around(b: Building) -> void:
 			n.queue_redraw()
 
 
+## Every wall piece joined to `b` (walls, gates, towers), walking along
+## neighbouring fortification tiles.
+func connected_wall(b: Building) -> Array[Building]:
+	var found: Array[Building] = []
+	var seen := {b.origin: true}
+	var queue: Array[Vector2i] = [b.origin]
+	while not queue.is_empty():
+		var t: Vector2i = queue.pop_back()
+		var here: Building = occupancy.get(t)
+		if here == null or not BuildingDefs.is_fortification(here.def):
+			continue
+		found.append(here)
+		for off in [Vector2i(0, 1), Vector2i(1, 0), Vector2i(0, -1), Vector2i(-1, 0)]:
+			var n: Vector2i = t + off
+			if not seen.has(n):
+				seen[n] = true
+				queue.append(n)
+	return found
+
+
+## Replaces every palisade joined to `b` with stone wall (gates and towers
+## stay). Returns "" or why not.
+func upgrade_wall_to_stone(b: Building) -> String:
+	var palisades := connected_wall(b).filter(func(w: Building) -> bool: return w.def_id == "palisade")
+	var cost := {}
+	for item: String in BuildingDefs.get_def("stone_wall").cost:
+		cost[item] = BuildingDefs.get_def("stone_wall").cost[item] * palisades.size()
+	if palisades.is_empty():
+		return "No palisade to upgrade."
+	if not GameState.spend(cost):
+		return "Upgrading %d segments needs %s." % [palisades.size(), BuildingDefs.cost_text(cost)]
+	for p: Building in palisades:
+		var t := p.origin
+		remove_building(p)
+		place_building("stone_wall", t)
+	GameState.notify("%d palisade segments rebuilt in stone." % palisades.size())
+	return ""
+
+
 func in_castle_grounds(t: Vector2i) -> bool:
 	return castle_grounds.has_area() and castle_grounds.has_point(t)
 

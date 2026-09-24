@@ -412,13 +412,17 @@ PHASE 2 — SIMULATION DIRECTION (decided 2026-09-24)
        living in the castle, succession when the lord dies; the treasury
        and reserve stores kept in the castle; raiders who break in steal
        and burn them   [DONE]
-  M24  Better wall building: gatehouses, automatic corner towers,
-       cost/length preview while dragging
-  M25  People's lives: ages, families, births, children growing into
+  M24  Better wall building (gates on roads, cost/length preview, upgrade
+       palisade to stone in place), kingdom scale ~250 people, the Dragon
+       challenged by the player   [DONE]
+  M25  A living kingdom: townsfolk life (chatting, children playing,
+       crowds at market and tavern), animals (chickens, cows, sheep, dogs,
+       birds), town effects (chimney smoke, lit windows, carts, banners)
+  M26  People's lives: ages, families, births, children growing into
        workers, old age and death, named citizens to follow
-  M26  Stats & graphs: a kingdom ledger with graphs over time and
+  M27  Stats & graphs: a kingdom ledger with graphs over time and
        per-building production
-  M27  Health & disease: illness in crowded or dirty quarters, healers,
+  M28  Health & disease: illness in crowded or dirty quarters, healers,
        clean water, plague events
 
   Not chosen for now: castle damage penalties, castle garrison/towers,
@@ -447,4 +451,4 @@ BACKLOG / MAYBE LATER
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. M24 wall building, then M25-M27 simulation systems
+  1. M25 a living kingdom, then M26-M28 simulation systems

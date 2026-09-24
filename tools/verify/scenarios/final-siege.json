@@ -1,6 +1,11 @@
 [
   {"setup_tier": "Kingdom"},
-  {"expect": {"tier": "Kingdom", "message": "The Dragon has woken"}},
+  {"expect": {"tier": "Kingdom", "message": "The Dragon stirs"}},
+  {"key": "T"},
+  {"expect": {"text": "Challenge the Dragon"}},
+  {"click_button": "Challenge the Dragon"},
+  {"expect": {"message": "You have challenged the Dragon"}},
+  {"key": "T"},
   {"setup_grant": {"stone": 500, "wood": 80, "bread": 150}},
   {"setup_research": ["masonry", "fletching"]},
   {"key": "T"},

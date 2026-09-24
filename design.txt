@@ -49,8 +49,8 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   Goal-based. Default scenario goals (tunable per map):
     - WIN:  Reach the Kingdom tier AND survive the final great raid.
             [implemented M8a] Reaching Kingdom wakes the Dragon: the next
-            raid comes 3 minutes later, is 1.5x the usual size and is led by
-            the Dragon. Killing it and clearing the raid shows the victory
+            raid is 1.5x the usual size and is led by the Dragon. (Since
+            M24 the player challenges it from the tier panel.) Killing it and clearing the raid shows the victory
             screen.
     - LOSE: The Keep is destroyed, OR population falls to zero.
             [implemented: end screen with New Game and Main Menu]
@@ -490,6 +490,20 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 
 17. DIRECTION: SIMULATION FIRST (2026-09-24, DECIDED)
 --------------------------------------------------------------------------------
+  SCALE, PACING AND WALLS (M24, 2026-09-24; player's choices): the
+  kingdom should really be built by the Dragon. Tiers now need Village 20
+  people, Town 60 (+8 Townhouses), City 130 (+15 Manors), Kingdom 250 (+30
+  Manors); castle storage 300/450/600/800/1000. At Kingdom the Dragon only
+  stirs: the player challenges it from the tier panel when ready, and it
+  comes 60 s later (raids go on meanwhile). Raid size follows population
+  and tier; raids survived count only up to 4 + 2 x tier, so a long
+  building game doesn't snowball them. Benchmark: ~8.5 ms/frame with 350
+  villagers and 70 raiders. Walls: a wall dragged across a road puts a
+  gate there; the drag shows each tile (green wall, gold gate, red can't,
+  orange can't afford) and a label with segments, gates and total cost;
+  a palisade's panel upgrades the whole connected palisade to stone in one
+  go (Town; gates and towers stay).
+
   THE ROYAL FAMILY AND TREASURY (M23, 2026-09-24): a ruling house lives in
   the castle: a ruler, a spouse and an heir with names and ages, strolling
   the castle grounds by day (inside at night and during raids); click one,

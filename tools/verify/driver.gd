@@ -136,7 +136,9 @@ func _run_step(step: Dictionary) -> String:
 	elif step.has("right_click_tile"):
 		await _click(_screen_of(step.right_click_tile), MOUSE_BUTTON_RIGHT)
 	elif step.has("drag_tile"):
-		await _drag(_screen_of(step.drag_tile[0]), _screen_of(step.drag_tile[1]))
+		# "shot": a screenshot name to take with the button still held (the
+		# drag preview), before letting go.
+		await _drag(_screen_of(step.drag_tile[0]), _screen_of(step.drag_tile[1]), step.get("shot", ""))
 	elif step.has("find_site"):
 		return _find_site(step.find_site)
 	elif step.has("find_crossing"):
@@ -387,7 +389,7 @@ func _click(pos: Vector2, button: MouseButton) -> void:
 		await _frames(2)
 
 
-func _drag(from: Vector2, to: Vector2) -> void:
+func _drag(from: Vector2, to: Vector2, shot := "") -> void:
 	await _move_mouse(from)
 	from = _to_window(from)
 	to = _to_window(to)
@@ -406,6 +408,8 @@ func _drag(from: Vector2, to: Vector2) -> void:
 		Input.parse_input_event(ev)
 		await _frames(1)
 	await _frames(2)
+	if shot != "":
+		await _screenshot(shot)
 	var up := down.duplicate()
 	up.position = to
 	up.global_position = to

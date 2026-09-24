@@ -15,6 +15,9 @@ const HOTKEYS := {KEY_R: "road", KEY_X: "demolish"}
 const COLOR_OK := Color(0.3, 1.0, 0.4, 0.45)
 const COLOR_BAD := Color(1.0, 0.25, 0.2, 0.45)
 const COLOR_BRIDGE := Color(0.35, 0.7, 1.0, 0.5)
+const COLOR_GATE := Color(1.0, 0.8, 0.25, 0.55)
+## Wall tiles you couldn't pay for (the drag runs out of materials there).
+const COLOR_SHORT := Color(1.0, 0.6, 0.15, 0.5)
 
 var world: WorldMap
 var progression: Progression
@@ -80,7 +83,7 @@ func mode_text() -> String:
 				BuildingDefs.cost_text(WorldMap.BRIDGE_COST)
 		Mode.WALL:
 			var wdef := BuildingDefs.get_def(build_id)
-			return "%s — drag to build (%s per segment), right-click to cancel" % [
+			return "%s — drag to build (%s per segment; gates where it crosses a road), right-click to cancel" % [
 				wdef.name, BuildingDefs.cost_text(wdef.cost)]
 		Mode.DEMOLISH:
 			return "Demolish — click a building or road (50% refund)"
@@ -173,16 +176,65 @@ func _try_build() -> void:
 
 ## Places a segment on each free tile of the drag, paying per segment, and
 ## stops when materials run out.
-func _build_wall(tiles: Array[Vector2i]) -> void:
-	var def := BuildingDefs.get_def(build_id)
-	var built := 0
+## What a wall drag would build: per tile {t, id ("" = can't build there),
+## affordable}. Where the wall crosses a road it becomes a gate, so walls
+## never cut the town off.
+func wall_plan(tiles: Array[Vector2i]) -> Array:
+	var plan := []
+	var left := GameState.resources.duplicate()
 	for t in tiles:
-		if world.can_place_building(build_id, t) != "":
+		var id := build_id
+		if world.is_road(t) and not world.occupancy.has(t):
+			id = "gate"
+		if world.can_place_building(id, t) != "":
+			plan.append({"t": t, "id": "", "affordable": false})
 			continue
-		if not GameState.spend(def.cost):
-			message.emit("Ran out of materials after %d segments (%s each)" % [built, BuildingDefs.cost_text(def.cost)])
+		var cost: Dictionary = BuildingDefs.get_def(id).cost
+		var ok := cost.keys().all(func(item: String) -> bool: return left.get(item, 0) >= cost[item])
+		if ok:
+			for item: String in cost:
+				left[item] = left.get(item, 0) - cost[item]
+		plan.append({"t": t, "id": id, "affordable": ok})
+	return plan
+
+
+## "12 segments + 2 gates — 72 stone, 40 wood" for a plan.
+func wall_plan_text(plan: Array) -> String:
+	var walls := 0
+	var gates := 0
+	var total := {}
+	var short := 0
+	for p: Dictionary in plan:
+		if p.id == "":
+			continue
+		if not p.affordable:
+			short += 1
+		if p.id == "gate":
+			gates += 1
+		else:
+			walls += 1
+		var cost: Dictionary = BuildingDefs.get_def(p.id).cost
+		for item: String in cost:
+			total[item] = total.get(item, 0) + cost[item]
+	var text := "%d segment%s" % [walls, "" if walls == 1 else "s"]
+	if gates > 0:
+		text += " + %d gate%s" % [gates, "" if gates == 1 else "s"]
+	text += " — " + BuildingDefs.cost_text(total)
+	if short > 0:
+		text += "  (short for %d)" % short
+	return text
+
+
+func _build_wall(tiles: Array[Vector2i]) -> void:
+	var built := 0
+	for p: Dictionary in wall_plan(tiles):
+		if p.id == "":
+			continue
+		var cost: Dictionary = BuildingDefs.get_def(p.id).cost
+		if not GameState.spend(cost):
+			message.emit("Ran out of materials after %d segments" % built)
 			return
-		world.place_building(build_id, t)
+		world.place_building(p.id, p.t)
 		built += 1
 
 
@@ -253,9 +305,20 @@ func _draw() -> void:
 					color = COLOR_BRIDGE if bridge[t] else COLOR_BAD
 				draw_rect(Rect2(Vector2(t * tile), Vector2(tile, tile)), color)
 		Mode.WALL:
-			for t in _drag_tiles():
-				var color := COLOR_OK if world.can_place_building(build_id, t) == "" else COLOR_BAD
-				draw_rect(Rect2(Vector2(t * tile), Vector2(tile, tile)), color)
+			var plan := wall_plan(_drag_tiles())
+			for p: Dictionary in plan:
+				var color := COLOR_BAD if p.id == "" else (
+					COLOR_SHORT if not p.affordable else (COLOR_GATE if p.id == "gate" else COLOR_OK))
+				draw_rect(Rect2(Vector2(p.t * tile), Vector2(tile, tile)), color)
+			if _dragging:
+				# Length and cost beside the cursor, readable at any zoom.
+				var at := Vector2(hover_tile * tile) + Vector2(tile * 1.2, -4)
+				var size := 14.0 / get_canvas_transform().get_scale().x
+				var text := wall_plan_text(plan)
+				var font := ThemeDB.fallback_font
+				var box := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(size))
+				draw_rect(Rect2(at + Vector2(-4, -box.y * 0.85), box + Vector2(8, 4)), Color(0.1, 0.07, 0.04, 0.8))
+				draw_string(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(size), Color(1, 0.95, 0.75))
 		Mode.DEMOLISH:
 			var rect := Rect2(Vector2(hover_tile * tile), Vector2(tile, tile))
 			if world.occupancy.has(hover_tile):

@@ -2,7 +2,7 @@
 
 The game opens on a title screen: map seed (blank = random), difficulty
 (Easy/Normal/Hard) and a tutorial-hints checkbox, then New Game. In game, a
-top-left panel shows one goal at a time (`Goal N/11: …`) and moves on when
+top-left panel shows one goal at a time (`Goal N/12: …`) and moves on when
 it's done; ✕ hides it. The end screen's Main Menu returns to the title.
 
 ## Sub-features
@@ -26,8 +26,8 @@ it's done; ✕ hides it. The end screen's Main Menu returns to the title.
   `.verify-evidence/menu-title.png`).
 - **Hints.** `tools/verify/run.sh tools/verify/scenarios/tutorial-hints.json`:
   `setup_hints` true; `expect` hint `Press R`; drag a road → hint `build a
-  House`; House → `Woodcutter`; Woodcutter → `Fisher` and text `Goal 4/11`;
-  click `✕` → `text_absent` `Goal 4/11`.
+  House`; House → `Woodcutter`; Woodcutter → `Fisher` and text `Goal 4/12`;
+  click `✕` → `text_absent` `Goal 4/12`.
 
 ## Gotchas
 

@@ -6,6 +6,7 @@ extends PanelContainer
 var progression: Progression
 
 var _body: Label
+var _challenge: Button
 var _refresh_timer := 0.0
 
 
@@ -18,7 +19,18 @@ func _ready() -> void:
 	_body = Label.new()
 	_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_body.custom_minimum_size = Vector2(340, 0)
-	add_child(_body)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 8)
+	add_child(col)
+	col.add_child(_body)
+	_challenge = Button.new()
+	_challenge.text = "Challenge the Dragon"
+	_challenge.tooltip_text = "Call the Dragon's siege: it comes a minute later, leading the largest horde yet. Survive it to win."
+	_challenge.focus_mode = Control.FOCUS_NONE
+	_challenge.pressed.connect(func() -> void:
+		progression.raids.begin_final_siege()
+		_refresh())
+	col.add_child(_challenge)
 	progression.tier_changed.connect(func(_t: int) -> void: _refresh())
 	hide()
 
@@ -45,7 +57,9 @@ func _refresh() -> void:
 		lines.append("")
 		lines.append("Final goal: survive the Dragon's siege.")
 		var raids := progression.raids
-		if raids.phase == RaidDirector.Phase.CALM:
+		if not raids.final_siege:
+			lines.append("The Dragon waits in the mountains. Build up your kingdom, then challenge it when you're ready. Raids go on meanwhile.")
+		elif raids.phase == RaidDirector.Phase.CALM:
 			var t := raids.time_until_raid()
 			lines.append("The Dragon arrives in %d:%02d." % [floori(t / 60.0), floori(t) % 60])
 		else:
@@ -58,4 +72,5 @@ func _refresh() -> void:
 		lines.append("")
 		lines.append("Unlocks: %s" % progression.unlock_summary(next))
 	_body.text = "\n".join(lines)
+	_challenge.visible = progression.raids.can_challenge_dragon()
 	reset_size()

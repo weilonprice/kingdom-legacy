@@ -43,11 +43,13 @@ func _ready() -> void:
 			"done": func() -> bool: return not military.troops().is_empty()},
 		{"text": "Keep growing: homes level up with services (Chapel, Market). Press O for overlays.",
 			"done": func() -> bool: return progression.tier >= 2},
-		{"text": "Town! Iron Mine → Smithy makes weapons. Walls: drag Palisades and Stone Walls.",
+		{"text": "Town! Raise the Keep into a Castle (click it). Walls: drag them; they gate your roads.",
 			"done": func() -> bool: return progression.tier >= 3},
 		{"text": "Goblin lairs make raids bigger. Follow the dark arrows and send a squad.",
 			"done": func() -> bool: return progression.is_max_tier()},
-		{"text": "Kingdom! The Dragon is coming. Towers and archers can hit it in the air.",
+		{"text": "Kingdom! The Dragon waits. Raise the Citadel, then challenge it from the tier panel (T).",
+			"done": func() -> bool: return progression.raids.final_siege},
+		{"text": "The Dragon is coming! Towers and archers can hit it in the air.",
 			"done": func() -> bool: return false},
 	]
 	var row := HBoxContainer.new()

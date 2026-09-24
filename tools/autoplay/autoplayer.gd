@@ -131,6 +131,10 @@ func _act() -> void:
 	_manage_war()
 	_trade(food_min, homes)
 	_grow_castle()
+	# The Dragon waits for a challenge: face it once there's an army.
+	if main.raids.can_challenge_dragon() and main.military.troops().size() >= 18:
+		main.raids.begin_final_siege()
+		_event("challenged the Dragon")
 	# A tower before the first raid, more as raids grow.
 	if game_time > 180.0 and _count("guard_tower") < mini(1 + main.raids.raids_survived, 5) and _try("guard_tower"):
 		return
