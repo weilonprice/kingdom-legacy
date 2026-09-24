@@ -17,8 +17,15 @@ const TICK := 2.0            # game seconds between decisions
 const SNAPSHOT := 60.0       # game seconds between timeline entries
 const AVENUE_SPACING := 3
 const AVENUES := 5           # on each side of the Keep's avenue
-const RESEARCH_ORDER := ["sharp_tools", "crop_rotation", "wheelbarrows", "ledgers", "fletching",
-	"tempered_steel", "masonry"]
+const RESEARCH_ORDER := ["sharp_tools", "crop_rotation", "fletching", "ledgers", "masonry",
+	"tempered_steel", "wheelbarrows"]
+## The town wall: a rectangle around the street grid (tiles from the Keep's
+## entrance). Streets stop growing inside it.
+const WALL_HALF_WIDTH := 25
+const WALL_TOP := -15
+const WALL_BOTTOM := 20
+## A wall tower every this many wall segments (from Town).
+const TOWER_EVERY := 8
 
 var main: Node2D
 var world: WorldMap
@@ -45,7 +52,15 @@ var failures := {}
 var _street_cooldown := 0.0
 ## Edible food made (bread + fish) over roughly the last game minute.
 var _food_window: Array = []   # [game_time, total_edible_made]
-const MAX_AVENUE := 30
+const MAX_AVENUE := 21
+## Buildings worth saving up for: when one is short, its cost is held back
+## from everything lower on the list except income buildings.
+const SAVE_FOR := ["barracks", "guard_tower", "scholars_hall", "stone_tower", "smithy"]
+const INCOME := ["woodcutter", "quarry", "farm", "fisher", "iron_mine"]
+var _reserve := {}
+var _ring: Array[Vector2i] = []
+var _ring_next := 0
+var _ring_done_at := -1.0
 
 
 func _ready() -> void:
@@ -103,6 +118,7 @@ func _process(delta: float) -> void:
 # --- Decisions ---------------------------------------------------------------
 
 func _act() -> void:
+	_reserve = {}
 	var tier: int = main.progression.tier
 	var pop := GameState.population
 	var homes := _count("house") + _count("stone_house")
@@ -116,6 +132,10 @@ func _act() -> void:
 	if game_time > 180.0 and _count("guard_tower") < mini(1 + main.raids.raids_survived, 5) and _try("guard_tower"):
 		return
 	if tier >= 1 and _count("barracks") < 1 and _try("barracks"):
+		return
+	if tier >= 2 and _count("barracks") < 2 and _try("barracks"):
+		return
+	if tier >= 1 and pop >= 25 and _build_walls(wood_reserve):
 		return
 	# Survival first: food, then firewood before winter.
 	if food_min < 6.0 and _count("fisher") < 1 + pop / 12 and _try("fisher", Terrain.WATER):
@@ -164,7 +184,7 @@ func _act() -> void:
 		return
 	if _count("granary") < 1 and _try("granary"):
 		return
-	if _count("guard_tower") < mini(1 + main.raids.raids_survived, 5) and _try("guard_tower"):
+	if _count("guard_tower") < mini(2 + main.raids.raids_survived, 8) and _try("guard_tower"):
 		return
 	if tier >= 1:
 		if _count("barracks") < 1 and _try("barracks"):
@@ -191,12 +211,9 @@ func _act() -> void:
 			return
 		if _count("armory") < 1 and _try("armory"):
 			return
-		if _count("wall_tower") < mini(2 * main.raids.raids_survived, 8) and _try("wall_tower", -1, 9):
+		if _upgrade_ring_towers():
 			return
-	if tier >= 3 and _count("barracks") < 2 and _try("barracks"):
-		return
-	if tier >= 4 and _count("wall_tower") < 16 and _try("wall_tower", -1, 11):
-		return
+
 	_research()
 	_train()
 	if not raid_near and free_housing < 4 and can_grow and _try("house"):
@@ -240,7 +257,7 @@ func _train() -> void:
 		var squad: Squad = main.military.squad_for(b)
 		if GameState.population < 20:
 			return  # every recruit is a villager: grow first
-		var target := clampi(GameState.population / 6, 2, 6)
+		var target := clampi(GameState.population / 5, 3, 6)
 		if squad.troops.size() + main.military.queue_for(b).size() >= target:
 			continue
 		var order := ["knight", "archer", "spearman", "militia"] if tier >= 3 else (
@@ -273,7 +290,12 @@ func _try(id: String, terrain := -1, ring := 0, near := WorldMap.INVALID_TILE) -
 	if not _unlocked(id):
 		return _fail(id, "locked")
 	if not GameState.can_afford(def.cost):
+		# Save up only once the town can spare it (20+ people).
+		if id in SAVE_FOR and _reserve.is_empty() and GameState.population >= 20:
+			_reserve = def.cost.duplicate()
 		return _fail(id, "can't afford")
+	if id not in INCOME and not _affordable_after_reserve(def.cost):
+		return _fail(id, "saving for %s" % JSON.stringify(_reserve))
 	# Keep a firewood reserve going into winter.
 	if def.cost.has("wood") and main.seasons.current() in ["autumn", "winter"] \
 			and id not in ["woodcutter", "fisher", "farm", "house"] \
@@ -292,6 +314,14 @@ func _try(id: String, terrain := -1, ring := 0, near := WorldMap.INVALID_TILE) -
 	_note_action("build " + id)
 	if not milestones.has("first_" + id):
 		milestones["first_" + id] = _minute()
+	return true
+
+
+## Can we pay `cost` and still keep what we're saving up for?
+func _affordable_after_reserve(cost: Dictionary) -> bool:
+	for item: String in cost:
+		if GameState.count(item) - int(_reserve.get(item, 0)) < int(cost[item]):
+			return false
 	return true
 
 
@@ -350,6 +380,83 @@ func _nearest_terrain(terrain: int) -> Vector2i:
 				best_d = d
 				best = t
 	return best
+
+
+# --- Walls ----------------------------------------------------------------------
+
+## The wall's tiles in order round the rectangle.
+func _wall_ring() -> Array[Vector2i]:
+	if _ring.is_empty():
+		var e := world.keep.entrance()
+		var x0 := e.x - WALL_HALF_WIDTH
+		var x1 := e.x + WALL_HALF_WIDTH
+		var y0 := e.y + WALL_TOP
+		var y1 := e.y + WALL_BOTTOM
+		for x in range(x0, x1 + 1):
+			_ring.append(Vector2i(x, y0))
+		for y in range(y0 + 1, y1 + 1):
+			_ring.append(Vector2i(x1, y))
+		for x in range(x1 - 1, x0 - 1, -1):
+			_ring.append(Vector2i(x, y1))
+		for y in range(y1 - 1, y0, -1):
+			_ring.append(Vector2i(x0, y))
+	return _ring
+
+
+## Builds the next stretch of wall (up to 12 segments a tick): palisade until
+## stone walls unlock, a gate wherever a road crosses, a wall tower every
+## TOWER_EVERY segments once they unlock. Tiles that can't hold a wall
+## (water, forest, rock, buildings) are skipped. True if anything was built.
+func _build_walls(reserve: int) -> bool:
+	var ring := _wall_ring()
+	if _ring_next >= ring.size():
+		return false
+	var built := 0
+	while _ring_next < ring.size() and built < 12:
+		var t: Vector2i = ring[_ring_next]
+		var id := "stone_wall" if _unlocked("stone_wall") else "palisade"
+		if world.roads.has(t):
+			id = "gate"
+		elif _ring_next % TOWER_EVERY == 0 and _unlocked("wall_tower"):
+			id = "wall_tower"
+		if world.occupancy.has(t) or world.can_place_building(id, t) != "":
+			_ring_next += 1
+			continue
+		var cost: Dictionary = BuildingDefs.get_def(id).cost
+		if not _affordable_after_reserve(cost) or GameState.count("wood") - cost.get("wood", 0) < reserve:
+			break
+		GameState.spend(cost)
+		world.place_building(id, t)
+		_note_action("build " + id)
+		built += 1
+		_ring_next += 1
+	if _ring_next >= ring.size() and _ring_done_at < 0.0:
+		_ring_done_at = _minute()
+		milestones["wall_closed"] = _ring_done_at
+		_event("town wall finished")
+	return built > 0
+
+
+## From Town: swaps palisade on the ring for wall towers every TOWER_EVERY
+## segments, then for stone walls, as money allows (one per tick).
+func _upgrade_ring_towers() -> bool:
+	var ring := _wall_ring()
+	for i in mini(_ring_next, ring.size()):
+		var t: Vector2i = ring[i]
+		var b: Building = world.occupancy.get(t)
+		if b == null or b.def_id != "palisade":
+			continue
+		var id := "wall_tower" if i % TOWER_EVERY == 0 else "stone_wall"
+		var cost: Dictionary = BuildingDefs.get_def(id).cost
+		if not _unlocked(id) or not GameState.can_afford(cost) or GameState.count("stone") < cost.get("stone", 0) + 40:
+			return false
+		world.remove_building(b)
+		if world.can_place_building(id, t) == "" and GameState.spend(cost):
+			world.place_building(id, t)
+			_note_action("upgrade to " + id)
+			return true
+		return false
+	return false
 
 
 ## Lengthens the avenues (and the spine joining them) by a few tiles, at
