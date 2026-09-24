@@ -31,6 +31,7 @@ var _hints: HintPanel
 var _menu: GameMenu
 var _settings: SettingsPanel
 var _minimap: Minimap
+var _zoom_box: VBoxContainer
 var _game_over: GameOverPanel
 var _squad_panel: SquadPanel
 var _tier_button: Button
@@ -115,6 +116,20 @@ func _ready() -> void:
 	add_child(_minimap)
 	# Under every other panel, so e.g. the building panel's buttons win clicks.
 	move_child(_minimap, 0)
+	_zoom_box = VBoxContainer.new()
+	_zoom_box.add_theme_constant_override("separation", 4)
+	add_child(_zoom_box)
+	move_child(_zoom_box, 1)
+	var cam: CameraController = get_parent().camera
+	for spec: Array in [["+", "Zoom in (+, mouse wheel or pinch)", cam.zoom_in],
+			["−", "Zoom out (-, mouse wheel or pinch)", cam.zoom_out],
+			["⌂", "Show the whole map (Home)", cam.show_whole_map]]:
+		var zb := _button(_zoom_box, spec[0], spec[1])
+		zb.custom_minimum_size = Vector2(36, 34)
+		# The pixel font's + is tiny; these symbols read better in the default font.
+		zb.add_theme_font_override("font", ThemeDB.fallback_font)
+		zb.add_theme_font_size_override("font_size", 20)
+		zb.pressed.connect(spec[2])
 
 	_menu = GameMenu.new()
 	add_child(_menu)
@@ -161,6 +176,9 @@ func _process(delta: float) -> void:
 	_menu.position = (vp - _menu.size) * 0.5
 	_settings.position = (vp - _settings.size) * 0.5
 	_minimap.position = Vector2(vp.x - _minimap.size.x - 8, vp.y - _minimap.size.y - 96)
+	# Zoom buttons sit beside the minimap (or in the corner when it's hidden).
+	var zoom_right := _minimap.position.x - 6 if _minimap.visible else vp.x - 8
+	_zoom_box.position = Vector2(zoom_right - _zoom_box.size.x, vp.y - _zoom_box.size.y - 96)
 	_hints.suppressed = _tier_panel.visible
 	_update_raid_ui(vp)
 	var season: Seasons = get_parent().seasons

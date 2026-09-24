@@ -106,7 +106,9 @@ func _draw_overlay() -> void:
 	var inv := camera.get_canvas_transform().affine_inverse()
 	var tl: Vector2 = inv * view.position
 	var br: Vector2 = inv * view.end
-	_overlay.draw_rect(Rect2(tl * px, (br - tl) * px), Color(1, 1, 1, 0.9), false, 1.0)
+	# Zoomed far out the view is bigger than the map: frame only the map part.
+	var frame := Rect2(tl * px, (br - tl) * px).intersection(Rect2(Vector2.ZERO, Vector2(world.width, world.height) * px * Terrain.TILE_SIZE))
+	_overlay.draw_rect(frame, Color(1, 1, 1, 0.9), false, 1.0)
 
 
 func _gui_input(event: InputEvent) -> void:

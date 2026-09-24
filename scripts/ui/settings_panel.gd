@@ -10,7 +10,8 @@ const PAGES := ["Audio", "Display", "Game", "Controls"]
 const BUS_LABELS := {"Master": "Volume", "SFX": "Effects", "Ambience": "Ambience", "Music": "Music"}
 const CONTROLS := [
 	["WASD / arrows", "Pan the camera (or drag with the middle mouse button)"],
-	["Mouse wheel", "Zoom"],
+	["Wheel, pinch, +/-", "Zoom (Home: whole map)"],
+	["Two-finger scroll", "Pan the camera on a trackpad"],
 	["Space", "Pause / resume"],
 	["Tab, 1–9", "Next build category, pick a building in it"],
 	["R / X", "Road tool / demolish tool"],

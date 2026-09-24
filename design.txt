@@ -2,12 +2,17 @@
 KINGDOM LEGACY — GAME DESIGN OUTLINE
 ================================================================================
 Engine: Godot 4.7 (GDScript)        Art: 32x32 pixel art (PixelLab)
-View: Top-down 2D                   Status: Playable prototype (M0-M6)
-Last updated: 2026-09-22
+View: Top-down 2D                   Status: Playable (M0-M20); direction
+Last updated: 2026-09-24                    change to simulation-first (sec. 17)
 
 
 1. PITCH
 --------------------------------------------------------------------------------
+[2026-09-24] Direction change: Kingdom Legacy leans into SIMULATION. The
+player should feel they are building and running a kingdom around a great
+castle, not just surviving raids. Raids stay, but as a pressure on the
+simulation rather than the point of it. See section 17.
+
 Grow a medieval hamlet into a thriving kingdom, then defend it. A deep city-
 building sim in the spirit of SimCity / Cities: Skylines / Banished, where every
 villager is a visible person hauling goods along the roads you lay, and where
@@ -16,6 +21,11 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 
 2. PILLARS
 --------------------------------------------------------------------------------
+  - [2026-09-24] THE CASTLE IS THE KINGDOM: a large castle at the centre
+    that grows with the realm, that everything depends on, and that is
+    worth walling in and defending. (Section 17.)
+  - [2026-09-24] SIMULATION DEPTH: people with lives, a visible economy and
+    statistics to read, decisions with trade-offs. (Section 17.)
   - A LIVING TOWN: every citizen is an agent you can watch. Goods physically
     move. Bottlenecks are visible, not just numbers.
   - ROADS AND LAYOUT MATTER: distance, road networks and placement drive
@@ -280,7 +290,10 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 11. CONTROLS
 --------------------------------------------------------------------------------
   Pan camera        WASD / Arrow keys / Middle-mouse drag
-  Zoom              Mouse wheel (zooms to cursor)
+  Zoom              Mouse wheel or trackpad pinch (toward the cursor),
+                    +/- keys or the HUD's + / − buttons; Home or ⌂ zooms
+                    out to the whole map. Zoom eases smoothly. (M21)
+  Pan (trackpad)    Two-finger scroll
   Build             R Road, Tab cycles categories, 1-9 picks a building
   Select            Left-click a building to inspect it
   Demolish          X (50% refund)
@@ -458,7 +471,100 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 
 16. OPEN QUESTIONS
 --------------------------------------------------------------------------------
+  Simulation direction (2026-09-24), ANSWERED by the player the same day
+  (recorded in section 17, "DECISIONS"):
+  - Castle size: grows with the tiers (5x5 -> 7x7 -> 9x9), each upgrade a
+    construction project.
+  - Why protect it: the royal family lives there; it holds the treasury
+    and reserves.
+  - Simulation systems, in order: people's lives, stats & graphs, health &
+    disease.
+  - Walls: better wall building (gatehouses, automatic corner towers,
+    cost/length preview).
+  - Zoom: out until the whole map fits on screen. Start with M21 (zoom).
   - Should roads have tiers (dirt -> cobblestone) with speed bonuses?
   - Trade with neighboring kingdoms (beyond travelling merchants)?
   - Hero / lord character that the player controls directly?
   - Campaign of handmade scenarios later, or procedural only?
+
+
+17. DIRECTION: SIMULATION FIRST (2026-09-24, DECIDED)
+--------------------------------------------------------------------------------
+  DECISIONS (player, 2026-09-24):
+    Castle      Grows with the tiers: Keep 5x5 -> Castle 7x7 -> Citadel 9x9.
+                Each upgrade is a construction project (materials delivered,
+                builders at work) with new art per stage.
+    Protect it  (1) The royal family lives in the castle: a named lord, a
+                spouse and an heir. Losing the lord is a crisis; succession
+                matters. (2) The castle holds the treasury and the kingdom's
+                reserve stores; raiders who break in steal and burn them.
+                Not chosen: damage penalties on taxes/happiness, castle
+                garrison and towers.
+    Simulation  In this order: (1) people's lives, (2) stats & graphs,
+                (3) health & disease. Decrees/laws not chosen for now.
+    Walls       Better wall building: gatehouses, towers placed
+                automatically at corners, a cost/length preview while
+                dragging. Not chosen: castle curtain wall, walls as a tier
+                requirement, a wall art pass.
+    Zoom        Trackpad pinch and two-finger scroll, +/- keys, on-screen
+                zoom buttons, smooth zoom; zoom out until the whole map fits.
+    Order       Zoom first (M21), then the growing castle (M22).
+
+  The player's request: more of a simulation feel; a castle that's big
+  enough for its importance and worth protecting; walls; the feeling of
+  actually building a kingdom; zoom in and out. Nothing below is built yet.
+  Items marked [?] wait on the questions in section 16.
+
+  WHERE WE ARE (M20)
+    - The Keep is 3x3 tiles (96 px art), the same footprint at every tier
+      (Keep -> Castle -> Citadel art swaps). Next to a 2x2 house it doesn't
+      read as the centre of a kingdom.
+    - Walls exist: Palisade, Stone Wall, Gate, Wall Tower (Defense tab),
+      dragged like roads. They're optional, and nothing ties them to the
+      castle or to the kingdom's growth.
+    - Zoom: mouse wheel only, 0.35x-3x. On a Mac trackpad it can't zoom.
+      [Fixed in M21: pinch, two-finger pan, +/- keys, HUD buttons, Home
+      for the whole map, 0.21x-3x on a Normal map.]
+    - Simulation: villagers are agents with homes, jobs and needs; goods
+      move physically; happiness, house levels, taxes, seasons, trade.
+      Missing: people's lives (age, families, births, deaths), statistics
+      over time, health, laws.
+
+  A. THE CASTLE
+    - Bigger footprint [?]: e.g. 5x5 as a Keep, growing to 7x7 (Castle) and
+      9x9 (Citadel) with the tiers, new art at each size. The Keep upgrade
+      becomes a construction project (materials delivered, builders work).
+    - Worth protecting [?], candidates:
+        * It houses the lord and the royal family (named, with an heir).
+        * It holds the treasury and the kingdom's reserve stores; raiders
+          who break in steal and burn.
+        * Its garrison and towers shoot; it has visible damage states.
+        * Damage hurts the realm: while it's under attack or damaged, taxes
+          and happiness drop until it's repaired.
+    - Castle HP on the HUD and an alarm when it is attacked.
+
+  B. WALLS AND THE KINGDOM'S SHAPE
+    - Keep today's drag-to-build walls; candidates [?]:
+        * The castle comes with its own curtain wall and gatehouse, raised
+          as part of each castle upgrade.
+        * Town walls with gatehouses and towers, cost preview while
+          dragging, towers placed automatically at corners.
+        * A stone wall ring as a City/Kingdom tier requirement.
+        * Art pass: palisade art, snowy walls, gatehouse.
+
+  C. SIMULATION SYSTEMS (candidates, to prioritise [?])
+    - Lives: ages, families in homes, births, children growing into
+      workers, old age and death; names you can follow.
+    - Statistics: a kingdom ledger with graphs over time (population,
+      food, goods, gold, happiness) and per-building production.
+    - Health: disease that spreads in crowded or dirty quarters, a healer,
+      clean water; plague as an event.
+    - Governance: decrees with trade-offs (rationing, curfew, conscription,
+      festivals), a council, laws.
+    - Food variety and spoilage, better diets for better homes.
+    - Crime and order (guards, a jail).
+
+  D. CAMERA AND ZOOM (no decision needed on the basics)
+    - Trackpad pinch to zoom, two-finger scroll to pan (Mac trackpads).
+    - +/- keys and on-screen zoom buttons; smooth zoom.
+    - Wider range [?]: zoom out far enough to see the whole kingdom.

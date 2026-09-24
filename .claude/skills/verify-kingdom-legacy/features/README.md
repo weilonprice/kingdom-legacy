@@ -53,6 +53,7 @@ tools/verify/run.sh`, `Gotchas`.
 - [Seasons and art](./seasons-and-art.md): the season cycle, winter firewood and frozen fields, seasonal art, trees/props/walls. Scenarios `seasons.json`, `art-showcase.json`.
 - [Rivers and bridges](./rivers-bridges.md): rivers, fords, building/refusing/demolishing bridges. Scenario `rivers-bridges.json`, tool `map_preview.tscn`.
 - [Sound and minimap](./sound-minimap.md): synthesized effects, ambience, volume sliders, the minimap. Scenario `sound-minimap.json`.
+- [Camera and zoom](./camera-zoom.md): wheel, pinch, trackpad pan, +/- keys, HUD zoom buttons, whole-map view. Scenario `camera-zoom.json`.
 - [Forester and regrowth](./forester.md): Forester's Lodge planting, saplings growing into forest, cut forest regrowing, saves. Scenario `forester.json`.
 - [Settings](./settings.md): the Settings window (audio, display, game, controls), Esc menu, F11, edge scrolling, pause on raid, persistence. Scenario `settings.json`.
 - [Merchants and trade](./trade.md): Trading Post, merchant arrival, buying and selling, leaving on raids, saves. Scenario `trade.json`.
