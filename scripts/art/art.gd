@@ -56,14 +56,39 @@ static func facing(motion: Vector2, current: String) -> String:
 	return "south" if motion.y > 0 else "north"
 
 
+## Frames per second of each character animation ("<anim>_<dir>_<n>.png").
+## Missing animations fall back: carry -> walk, anything -> standing pose.
+const ANIM_FPS := {"walk": 8.0, "carry": 8.0, "idle": 4.0, "chop": 9.0, "mine": 9.0,
+	"farm": 7.0, "hammer": 10.0, "pickup": 14.0, "putdown": 14.0}
+## Played once (holding the last frame) rather than looped.
+const ONE_SHOT := ["pickup", "putdown"]
+
+
 ## The frame to draw for `character` facing `direction`: a walk frame while
 ## moving (if the animation exists), else the standing rotation.
 static func character_frame(character: String, direction: String, moving: bool, time: float) -> Texture2D:
-	if moving:
-		var frames := walk_frames(character, direction)
+	return anim_frame(character, direction, "walk" if moving else "", time)
+
+
+## Frame `time` seconds into `anim` ("" = standing). "putdown" is "pickup"
+## played backwards.
+static func anim_frame(character: String, direction: String, anim: String, time: float) -> Texture2D:
+	if anim != "":
+		var frames := anim_frames(character, "pickup" if anim == "putdown" else anim, direction)
+		if frames.is_empty() and anim == "carry":
+			frames = walk_frames(character, direction)
 		if not frames.is_empty():
-			return frames[int(time * WALK_FPS) % frames.size()]
+			var i := int(time * ANIM_FPS.get(anim, WALK_FPS))
+			if anim in ONE_SHOT:
+				i = mini(i, frames.size() - 1)
+				if anim == "putdown":
+					i = frames.size() - 1 - i
+			return frames[i % frames.size()]
 	return texture(CHARACTER_ROTATION % [character, direction])
+
+
+static func anim_frames(character: String, anim: String, direction: String) -> Array:
+	return frames_matching("res://assets/sprites/%s/%s_%s_" % [character, anim, direction] + "%d.png")
 
 
 ## Draws `character` on `canvas` with its feet at the origin. Returns the
@@ -71,7 +96,12 @@ static func character_frame(character: String, direction: String, moving: bool, 
 ## then draws its placeholder).
 static func draw_character(canvas: CanvasItem, character: String, direction: String,
 		moving: bool, time: float) -> float:
-	var tex := character_frame(character, direction, moving, time)
+	return draw_character_anim(canvas, character, direction, "walk" if moving else "", time)
+
+
+static func draw_character_anim(canvas: CanvasItem, character: String, direction: String,
+		anim: String, time: float) -> float:
+	var tex := anim_frame(character, direction, anim, time)
 	if tex == null:
 		return NAN
 	var size := Vector2(tex.get_size())

@@ -74,7 +74,8 @@ merchant in town, "" if none), `camera_near`
 `settings` (`{"game/pan_speed": 1.6}`: values in Settings), `speed` (0 = paused, 1-3),
 `ui_scale` (the window's content scale), `camera_moved` (`{"since": "<state>", "min": n}` or
 `"max"`: tiles the camera moved since that snapshot),
-`castle` (stage title, exact), `castle_building` (bool), `castle_size` / `castle_progress` (0..1) /
+`anims_seen` (list: every villager animation named must have been seen since the run
+started, e.g. `["chop", "carry"]`), `castle` (stage title, exact), `castle_building` (bool), `castle_size` / `castle_progress` (0..1) /
 `builders` / `keep_hp` (in `min`/`max`), `zoom` / `min_zoom` / `fps` (in `min`/`max`), `saplings` / `cleared` / `forest` (counts, in `min`/`max`), `increased` (`{"since": "<state>", "forest": 2}`:
 a metric grew by at least that much), `sapling_at` (alias or offset has a sapling),
 `research_done` (research id), `button_on_screen` (a visible button whose

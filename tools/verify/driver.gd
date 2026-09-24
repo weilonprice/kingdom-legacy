@@ -15,6 +15,8 @@ var report := {"steps": [], "failures": [], "messages": [], "setup_shortcuts": [
 var aliases := {}
 ## Snapshots saved by `state` steps, for expect_same_as.
 var snapshots := {}
+## Every villager animation seen so far (anim -> true), sampled each frame.
+var anims_seen := {}
 
 
 func _ready() -> void:
@@ -68,6 +70,14 @@ func _ready() -> void:
 	var ok: bool = report.failures.is_empty()
 	print("VERIFY DONE %s failures=%d out=%s" % ["PASS" if ok else "FAIL", report.failures.size(), out_dir])
 	get_tree().quit(0 if ok else 1)
+
+
+func _process(_delta: float) -> void:
+	if main == null or not is_instance_valid(main):
+		return
+	for v: Villager in get_tree().get_nodes_in_group("villagers"):
+		if v.visible:
+			anims_seen[v.current_anim()] = true
 
 
 ## Instantiates the game scene under the driver (again, after a load).
@@ -538,6 +548,7 @@ func _snapshot() -> Dictionary:
 		"music_mood": Music.mood,
 		"merchant": main.trade.merchant_name() if main.trade.is_open() else "",
 		"settings": Settings.values.duplicate(),
+		"anims_seen": anims_seen.keys(),
 		"castle": main.castle.title(),
 		"castle_size": world.keep.size.x,
 		"castle_building": main.castle.is_building(),
@@ -703,6 +714,9 @@ func _check(expect: Dictionary) -> String:
 				moved, spec.since, spec.get("min", 0), spec.get("max", "any")])
 	if expect.has("sapling_at") and not world.saplings.has(_tile_of(expect.sapling_at)):
 		problems.append("no sapling at %s" % _tile_of(expect.sapling_at))
+	for anim: String in expect.get("anims_seen", []):
+		if not anims_seen.has(anim):
+			problems.append("no villager seen doing '%s' (seen: %s)" % [anim, ", ".join(anims_seen.keys())])
 	if expect.has("increased"):
 		# {"since": "<state>", "forest": 3}: metric grew by at least that much.
 		var then: Dictionary = snapshots.get(expect.increased.since, s)

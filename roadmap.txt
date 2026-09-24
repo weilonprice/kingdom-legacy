@@ -406,6 +406,8 @@ PHASE 2 — SIMULATION DIRECTION (decided 2026-09-24)
   M22  The castle grows: Keep 5x5 -> Castle 7x7 -> Citadel 9x9, upgrades
        are construction projects (materials hauled in, builders at work),
        new art for each stage; the map start clears room for it   [DONE]
+  M23a Villager animations: chop, mine, farm, hammer, carry, idle,
+       pick up / put down   [DONE]
   M23  The royal family and the treasury: a named lord, spouse and heir
        living in the castle, succession when the lord dies; the treasury
        and reserve stores kept in the castle; raiders who break in steal
@@ -436,7 +438,7 @@ BACKLOG / MAYBE LATER
   - Handmade scenarios / campaign
   - Disease & healthcare
   - Rubble tiles for destroyed buildings (rebuild at a discount)
-  - Attack / death / work animations for characters
+  - Attack / death animations for troops and raiders
   - Key rebinding
   - Rounder forest and rock edges (the "round" tileset style adds a cliff
     rim; needs a different prompt)
