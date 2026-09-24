@@ -104,3 +104,26 @@ losses. The bot defends plainly (no walls, 5 towers, 6 troops), so the next
 step is a competent defender before concluding raids are too strong.
 Food storage is shared by wheat, flour, bread and fish, so unground wheat
 can crowd out bread and fish.
+
+## Round 3 (M15): teaching the bot to defend
+
+Bot-only changes: a town wall (a rectangle round the street grid; palisade,
+then stone walls; gates where roads cross; wall towers every 8 segments from
+Town, replacing palisade), up to 8 guard towers, a second barracks at Town,
+3-6 troops per barracks, earlier Fletching/Masonry/Tempered Steel, and saving
+up for key buildings (barracks, towers, scholars' hall, smithy) once the town
+has 20 people.
+
+Same seeds, 90 minutes: still no win, and results swing a lot by seed
+(19 / 78 / 52 minutes). What held it back:
+- Saving for defense without enough income stalls growth; without saving,
+  it never affords a barracks (2,800 failed tries in one game).
+- Its army was militia only (no weapons yet): 104 trained, 104 lost.
+- It never reached Town in this round, so stone walls, wall towers and
+  archers never came into play.
+- Raid 2 (9-10 raiders, 2 brutes, minutes 13-20) can end a 16-20 person
+  village whose defense is 2-3 guard towers: likely worth softening.
+
+Conclusion: the bot is now the bottleneck, not the game. A competent bot
+needs real economic planning (income-aware budgets per goal), which is a
+project of its own. A human playtest is the better next source of truth.

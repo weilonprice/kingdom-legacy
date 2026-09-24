@@ -348,8 +348,9 @@ M12 — AUTOPLAYER (tool done; balance changes next)
   [x] (M) Balance round 2 (M14): full-load producer trips, faster 2-worker
           mills, raids grow half as fast with population; bot grows on
           food income
-  [ ] (M) Bot defends competently (walls, tower rings, bigger army) to tell
-          "raids too strong" from "bot too weak"
+  [~] (M) Bot defends: walls, gates, tower rings, 2 barracks, saving up
+          (M15). Still loses; the bot's planning is now the bottleneck
+  [ ] (S) Consider softening raid 2 (2 brutes vs a 16-20 person village)
 
   Later
   [ ] Economy tuning from playtests (costs, yields, tier requirements)
