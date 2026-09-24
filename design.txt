@@ -210,7 +210,7 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 --------------------------------------------------------------------------------
   Raids (implemented M2): first at ~7 min, then every 5 min, with a 30s
   warning naming the direction and an arrow to off-screen raiders.
-  Strength (M8b balance): goblins = 2 + pop/8 + raids survived + tier, plus
+  Strength (M14 balance): goblins = 2 + pop/16 + raids survived + tier, plus
   each lair's bonus ramping +1 per raid survived (max +3); brutes from the
   2nd raid on (+1 per tier); orcs, shamans, wolves and trolls as in M7.
   Resulting curve (tier, raids, pop -> raiders / total HP):

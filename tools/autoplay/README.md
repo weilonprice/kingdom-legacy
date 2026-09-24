@@ -77,3 +77,30 @@ The killer now is food. Towns grow to 100-150 people, raids (which scale
 with population, 40 raiders by minute 27) stop work for long stretches, and
 the farm chain is choked: 14 farms grew 228 wheat/min but only ~20 flour/min
 came out of 3-4 mills with a single carter.
+
+## Round 2 (M14)
+
+Game changes: producers (mills, bakeries, smithies) fetch a full load of whole
+batches per trip, keeping the extra at the workplace, instead of one batch
+per trip; mills have 2 millers and grind in 5 s (was 1 and 10 s); goblin
+numbers grow with population half as fast (pop/16, was pop/8).
+Bot changes: 1 mill per 3 farms, carters in proportion to workplaces,
+standing down Call to Arms once raiders thin out, and growing only while
+food income (bread + fish per minute) covers the population by 15%.
+
+Same seeds, 90 minutes: the bot still loses, at minutes 35-49.
+
+| | round 1 | round 2 |
+|---|---|---|
+| survived until (min) | 41-53 | 35-49 |
+| peak population | 36 / 150 / 114 | 80 / 88 / 52 |
+| left starving | 28-216 | 0-56 |
+| villagers killed by raiders | 10-26 | 1-36 |
+| buildings lost | 20-59 | 25-64 |
+
+Starvation is much lower now that the bot grows on income. The main failure
+is defense: seed 99 lost its Keep to raid 4 (~30 raiders) with almost no other
+losses. The bot defends plainly (no walls, 5 towers, 6 troops), so the next
+step is a competent defender before concluding raids are too strong.
+Food storage is shared by wheat, flour, bread and fish, so unground wheat
+can crowd out bread and fish.

@@ -218,15 +218,15 @@ const DEFS := {
 	},
 	"mill": {
 		"name": "Mill",
-		"desc": "Grinds wheat into flour.",
+		"desc": "Two millers grind wheat into flour.",
 		"size": Vector2i(2, 2),
 		"cost": {"wood": 40, "stone": 10},
 		"color": Color(0.85, 0.82, 0.70),
-		"jobs": 1,
+		"jobs": 2,
 		"work": "produce",
 		"input": {"wheat": 4},
 		"output": {"flour": 4},
-		"work_time": 10.0,
+		"work_time": 5.0,
 	},
 	"bakery": {
 		"name": "Bakery",
