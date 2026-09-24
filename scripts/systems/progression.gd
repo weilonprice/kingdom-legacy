@@ -128,7 +128,7 @@ func _advance() -> void:
 	Sound.play("tier")
 	tier_changed.emit(tier)
 	if is_max_tier():
-		raids.begin_final_siege()
+		GameState.notify("The Dragon stirs in the mountains. When your kingdom is ready, challenge it from the tier panel (T).")
 
 
 ## Sets the tier from a save (no announcement, no final-siege trigger).

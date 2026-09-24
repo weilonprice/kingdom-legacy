@@ -1,7 +1,7 @@
 [
   {"setup_hints": true},
   {"wait": 1},
-  {"expect": {"hint": "Press R", "text": "Goal 1/11"}},
+  {"expect": {"hint": "Press R", "text": "Goal 1/12"}},
   {"screenshot": "00-first-hint"},
   {"key": "R"},
   {"drag_tile": [[6, 3], [10, 3]]},
@@ -19,9 +19,9 @@
   {"click_tile": "wc"},
   {"key": "Escape"},
   {"wait_until": {"hint": "Fisher"}, "timeout": 5},
-  {"expect": {"text": "Goal 4/11"}},
+  {"expect": {"text": "Goal 4/12"}},
   {"screenshot": "01-food-hint"},
   {"click_button": "✕"},
   {"wait": 1},
-  {"expect": {"text_absent": "Goal 4/11"}}
+  {"expect": {"text_absent": "Goal 4/12"}}
 ]

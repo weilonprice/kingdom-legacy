@@ -35,8 +35,8 @@ var final_siege := false
 var dragon_spawned := false
 var dragon_slain := false
 
-## Long enough to raise the Citadel (unlocked at Kingdom) before the Dragon.
-const FINAL_SIEGE_DELAY := 600.0
+## Warning time after the player challenges the Dragon.
+const FINAL_SIEGE_DELAY := 60.0
 
 
 func setup(p_world: WorldMap) -> void:
@@ -73,6 +73,10 @@ func call_raid_now() -> void:
 ## Which enemies the next raid brings.
 func composition() -> Dictionary:
 	var tier := progression.tier if progression != null else 0
+	# Raids survived count only up to a cap per tier, so a long game spent
+	# building doesn't snowball the raids: they follow the kingdom's size and
+	# tier instead.
+	var raids_survived := mini(self.raids_survived, 4 + tier * 2)
 	var goblins := 2 + floori(GameState.population / 16.0) + raids_survived + tier
 	# Lairs ramp up: +1 goblin each per raid survived, up to their full bonus,
 	# so the first raid isn't doubled for a brand-new town.
@@ -99,15 +103,21 @@ func composition() -> Dictionary:
 	return mix
 
 
-## Called when the realm becomes a Kingdom: the next raid, after a longer
-## warning, is the Dragon's final siege.
+## The player challenged the Dragon (Kingdom tier, from the tier panel): the
+## next raid, a minute from now, is the Dragon's final siege.
 func begin_final_siege() -> void:
 	if final_siege:
 		return
 	final_siege = true
 	if phase == Phase.CALM:
 		_timer = FINAL_SIEGE_DELAY
-	GameState.notify("The Dragon has woken! It will lay siege to your Kingdom in %d minutes. Raise the Citadel and survive to win." % roundi(FINAL_SIEGE_DELAY / 60.0))
+	GameState.notify("You have challenged the Dragon! It comes in %d seconds. Survive its siege to win." % roundi(FINAL_SIEGE_DELAY))
+
+
+## The Dragon can be challenged: Kingdom tier, not already coming, and no
+## raid under way.
+func can_challenge_dragon() -> bool:
+	return progression != null and progression.is_max_tier() and not final_siege and phase == Phase.CALM
 
 
 ## Raid clock, record and lairs from a save (see SaveGame).

@@ -27,6 +27,7 @@ var trade: Trade
 var castle: Castle
 var _castle_button: Button
 var _court_button: Button
+var _wall_button: Button
 ## Opens the Royal Court (set by the HUD).
 var royal_court: Callable
 var _trade_box: VBoxContainer
@@ -106,6 +107,14 @@ func _ready() -> void:
 			GameState.notify(problem)
 		_refresh())
 	col.add_child(_castle_button)
+	_wall_button = Button.new()
+	_wall_button.focus_mode = Control.FOCUS_NONE
+	_wall_button.pressed.connect(func() -> void:
+		var problem: String = world.upgrade_wall_to_stone(building)
+		if problem != "":
+			GameState.notify(problem)
+		build.select_building(null))
+	col.add_child(_wall_button)
 	_court_button = Button.new()
 	_court_button.text = "Royal Court"
 	_court_button.tooltip_text = "The ruling family, their traits and the treasury (K)"
@@ -196,6 +205,17 @@ func _refresh() -> void:
 			NeedDefs.TAX_RATES[GameState.tax_rate].name, needs.tax_per_minute(), GameState.happiness]
 		text += "\n\n" + _castle_text()
 	_court_button.visible = is_keep and royal_court.is_valid()
+	_wall_button.visible = building.def_id == "palisade"
+	if _wall_button.visible:
+		var n := world.connected_wall(building).filter(func(w: Building) -> bool: return w.def_id == "palisade").size()
+		var per: Dictionary = BuildingDefs.get_def("stone_wall").cost
+		var cost := {}
+		for item: String in per:
+			cost[item] = per[item] * n
+		var locked := progression.locked_reason("buildings", "stone_wall")
+		_wall_button.text = "Upgrade to stone: %d segments (%s)" % [n, BuildingDefs.cost_text(cost)]
+		_wall_button.disabled = locked != "" or not GameState.can_afford(cost)
+		_wall_button.tooltip_text = locked if locked != "" else "Rebuilds this whole palisade in stone (800 HP, fireproof); gates and towers stay."
 	var next := castle.next_stage() if is_keep and castle != null else {}
 	_castle_button.visible = not next.is_empty() and not castle.is_building()
 	if _castle_button.visible:

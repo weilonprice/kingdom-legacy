@@ -37,6 +37,7 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 | `{"expect": {...}}` | Assert on observable state (below); failure marks the run FAIL |
 | `{"screenshot": "name"}` | Save `name.png` (windowed runs only) |
 | `{"state": "name"}` | Save `name.state.json` (resources, buildings, tier, raid, squads, visible text, messages) |
+| `{"drag_tile": [[dx, dy], [dx, dy]], "shot": "name"}` | Drag between two tiles; with `shot`, screenshot while still holding (drag previews) |
 | `{"include": "file.json"}` | Run another scenario's steps inline |
 | `{"expect_same_as": {"state": "before", "keys": [...], "close": {"wood": 5}}}` | Snapshot fields equal an earlier `state` snapshot; `close` resources may differ by that much |
 | `{"setup_grant": {"wood": 100}}` | TEST-ONLY shortcut: adds resources. Logged in `report.setup_shortcuts` |

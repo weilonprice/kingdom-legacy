@@ -150,7 +150,7 @@
  {
   "expect": {
    "buildings": {
-    "house": 4
+    "house": 6
    }
   }
  },
@@ -167,7 +167,7 @@
   "expect": {
    "message": "Game loaded",
    "buildings": {
-    "house": 3
+    "house": 5
    }
   }
  },

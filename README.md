@@ -245,10 +245,11 @@ after its scenarios pass.
 | M19 | Settings menu ✅ |
 | M20 | Forester and forest regrowth ✅ |
 | M21 | Camera: trackpad pinch and pan, zoom keys and buttons, whole-map view ✅ |
+| M24 | Walls that gate roads, cost preview, stone upgrades; a 250-person kingdom; challenge the Dragon when ready ✅ |
 | M23 | The royal family (ruler, spouse, heir with traits, aging and succession) and the treasury raiders can break into ✅ |
 | M23a | Villager animations: chopping, mining, farming, hammering, carrying, picking up and putting down ✅ |
 | M22 | The growing castle: Keep 5×5 → Castle 7×7 → Citadel 9×9, built by builders in reserved grounds ✅ |
-| M24–M27 | **Direction change: simulation first** (planned): better wall building, people's lives, stats & graphs, health & disease. See design.txt §17 |
+| M25–M28 | **Simulation first** (planned): a living kingdom (townsfolk, animals, town effects), people's lives, stats & graphs, health & disease. See design.txt §17 |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 
