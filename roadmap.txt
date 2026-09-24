@@ -405,7 +405,7 @@ PHASE 2 — SIMULATION DIRECTION (decided 2026-09-24)
        buttons, smooth zoom, zoom out to the whole map   [DONE]
   M22  The castle grows: Keep 5x5 -> Castle 7x7 -> Citadel 9x9, upgrades
        are construction projects (materials hauled in, builders at work),
-       new art for each stage; the map start clears room for it
+       new art for each stage; the map start clears room for it   [DONE]
   M23  The royal family and the treasury: a named lord, spouse and heir
        living in the castle, succession when the lord dies; the treasury
        and reserve stores kept in the castle; raiders who break in steal
@@ -445,5 +445,5 @@ BACKLOG / MAYBE LATER
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. M22 the growing castle, M23 royal family and treasury
+  1. M23 royal family and treasury
   2. M24 wall building, then M25-M27 simulation systems

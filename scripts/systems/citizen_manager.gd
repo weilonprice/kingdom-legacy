@@ -94,7 +94,7 @@ func _assign_jobs() -> void:
 			return
 		if not b.has_road:
 			continue
-		var open_slots: int = b.def.get("jobs", 0) - b.workers.size()
+		var open_slots: int = b.job_slots() - b.workers.size()
 		while open_slots > 0 and not idle.is_empty():
 			var worker := _closest(idle, b.entrance())
 			idle.erase(worker)
@@ -116,7 +116,7 @@ func _publish_stats() -> void:
 	var jobs := 0
 	for b in world.buildings:
 		housing += b.housing_capacity()
-		jobs += b.def.get("jobs", 0)
+		jobs += b.job_slots()
 	var employed := villagers.filter(func(v: Villager) -> bool: return v.job != null).size()
 	GameState.set_population(villagers.size(), housing, employed, jobs)
 	if _settlers_arrived > 0 and villagers.is_empty() and not _all_lost_emitted:

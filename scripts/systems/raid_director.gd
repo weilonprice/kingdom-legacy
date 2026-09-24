@@ -35,7 +35,8 @@ var final_siege := false
 var dragon_spawned := false
 var dragon_slain := false
 
-const FINAL_SIEGE_DELAY := 180.0
+## Long enough to raise the Citadel (unlocked at Kingdom) before the Dragon.
+const FINAL_SIEGE_DELAY := 600.0
 
 
 func setup(p_world: WorldMap) -> void:
@@ -106,7 +107,7 @@ func begin_final_siege() -> void:
 	final_siege = true
 	if phase == Phase.CALM:
 		_timer = FINAL_SIEGE_DELAY
-	GameState.notify("The Dragon has woken! It will lay siege to your Kingdom. Survive it to win.")
+	GameState.notify("The Dragon has woken! It will lay siege to your Kingdom in %d minutes. Raise the Citadel and survive to win." % roundi(FINAL_SIEGE_DELAY / 60.0))
 
 
 ## Raid clock, record and lairs from a save (see SaveGame).

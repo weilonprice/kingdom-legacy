@@ -490,6 +490,19 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 
 17. DIRECTION: SIMULATION FIRST (2026-09-24, DECIDED)
 --------------------------------------------------------------------------------
+  M22 (built 2026-09-24): the castle grows in reserved 9x9 grounds at the
+  map centre (nothing else can be built there; the Build/Wall tools outline
+  them). Keep 5x5 -> Castle 7x7 (Town; 150 gold + 250 stone, 150 wood,
+  30 iron; 480 builder-seconds; +600 HP, +100 storage) -> Citadel 9x9
+  (Kingdom; 400 gold + 500 stone, 250 wood, 80 iron; 900 builder-seconds;
+  +1500 HP, +250 storage). Start it from the castle's panel. The castle
+  then has 6 builder jobs, filled by unemployed villagers: they fetch
+  materials from storage (the castle's own store included) to the site,
+  then build; the site shows scaffolding, material stacks and a progress
+  bar. The old castle keeps working. HP and storage = tier value + stage
+  bonus. The Dragon now arrives 10 minutes after Kingdom (was 3), time to
+  raise the Citadel. Saves are version 2 (older saves can't be loaded).
+
   DECISIONS (player, 2026-09-24):
     Castle      Grows with the tiers: Keep 5x5 -> Castle 7x7 -> Citadel 9x9.
                 Each upgrade is a construction project (materials delivered,

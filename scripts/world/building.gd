@@ -35,6 +35,8 @@ var needs_met := {}
 var happiness := NeedDefs.BASE_HAPPINESS
 var level := 1
 var level_timer := 0.0
+## Jobs on top of the def's (the castle's builders during an upgrade).
+var extra_jobs := 0
 var unhappy_time := 0.0
 
 var _attack_cooldown := 0.0
@@ -192,6 +194,15 @@ func _draw_fire(px: Vector2) -> void:
 				Color(1.0, 0.85, 0.3, 0.95))
 
 
+func job_slots() -> int:
+	return def.get("jobs", 0) + extra_jobs
+
+
+## What this building's workers do ("build" for the castle's builders).
+func work_type() -> String:
+	return "build" if extra_jobs > 0 and self == world.keep else def.get("work", "")
+
+
 func is_home() -> bool:
 	return def.get("housing", 0) > 0
 
@@ -279,7 +290,7 @@ func refresh_road_access() -> void:
 func status() -> String:
 	if not has_road:
 		return "No road access! Connect the entrance to a road."
-	if def.get("jobs", 0) > 0 and workers.is_empty():
+	if job_slots() > 0 and workers.is_empty():
 		return "No workers"
 	if def.get("work", "") == "guard" and not is_manned():
 		return "Guard on the way"
@@ -299,8 +310,8 @@ func describe() -> String:
 		lines.append("HP: %d/%d" % [health.hp, health.max_hp])
 	if is_home():
 		lines.append("Residents: %d/%d" % [residents.size(), housing_capacity()])
-	if def.get("jobs", 0) > 0:
-		lines.append("Workers: %d/%d" % [workers.size(), def.jobs])
+	if job_slots() > 0:
+		lines.append("Workers: %d/%d" % [workers.size(), job_slots()])
 	var problem := status()
 	if problem != "":
 		lines.append(problem)
@@ -388,6 +399,8 @@ func _draw() -> void:
 		_draw_fortification()
 		health.draw_bar(self, Vector2(px.x * 0.5, -23.0 if def.has("damage") else -7.0), px.x - 4)
 		return
+	if self == world.keep:
+		_draw_castle_works()
 	var sprite := Art.building(art_id)
 	# Top edge of what's drawn, for the health bar (tall sprites rise above
 	# their footprint).
@@ -419,6 +432,49 @@ func _draw() -> void:
 
 
 ## Coloured block with a door and name, for buildings without a sprite yet.
+## During a castle upgrade: the new footprint as a building site, with
+## scaffolding round its edge, the delivered materials stacked by the gate
+## and a progress bar.
+func _draw_castle_works() -> void:
+	var castle: Castle = world.get_parent().get("castle")
+	if castle == null or not castle.is_building():
+		return
+	var tile := Terrain.TILE_SIZE
+	var s: int = CastleDefs.STAGES[castle.project.stage].size
+	var site_origin := world.castle_grounds.get_center() - Vector2i(s / 2, s / 2)
+	var site := Rect2(Vector2((site_origin - origin) * tile), Vector2(s, s) * tile)
+	draw_rect(site, Color(0.45, 0.33, 0.2, 0.55))
+	var wood := Color(0.55, 0.38, 0.2)
+	var dark := Color(0.3, 0.2, 0.1)
+	# Poles every tile along the edge, with planks between them.
+	for i in s + 1:
+		for p: Vector2 in [site.position + Vector2(i * tile, 0), site.position + Vector2(i * tile, site.size.y)]:
+			draw_line(p + Vector2(0, 4), p - Vector2(0, 22), dark, 3.0)
+			draw_line(p + Vector2(0, 4), p - Vector2(0, 22), wood, 1.5)
+		for p: Vector2 in [site.position + Vector2(0, i * tile), site.position + Vector2(site.size.x, i * tile)]:
+			draw_line(p + Vector2(0, 4), p - Vector2(0, 22), dark, 3.0)
+			draw_line(p + Vector2(0, 4), p - Vector2(0, 22), wood, 1.5)
+	for y_off in [-8.0, -18.0]:
+		for edge: Array in [[site.position, site.position + Vector2(site.size.x, 0)],
+				[site.position + Vector2(0, site.size.y), site.end],
+				[site.position, site.position + Vector2(0, site.size.y)],
+				[site.position + Vector2(site.size.x, 0), site.end]]:
+			draw_line(edge[0] + Vector2(0, y_off), edge[1] + Vector2(0, y_off), wood, 2.0)
+	# Delivered materials, one stack per good, beside the site's gate.
+	var target: Dictionary = CastleDefs.STAGES[castle.project.stage]
+	var x := site.position.x + 6.0
+	for item: String in target.materials:
+		var share := clampf(castle.project.delivered.get(item, 0) / float(target.materials[item]), 0.0, 1.0)
+		var h := 4.0 + 20.0 * share
+		var base := Vector2(x, site.end.y - 6.0)
+		draw_rect(Rect2(base - Vector2(0, h), Vector2(14, h)), ItemDefs.color_of(item))
+		draw_rect(Rect2(base - Vector2(0, h), Vector2(14, h)), dark, false, 1.0)
+		x += 18.0
+	var bar := Rect2(site.position + Vector2(8, site.size.y + 8), Vector2(site.size.x - 16, 6))
+	draw_rect(bar, Color(0, 0, 0, 0.6))
+	draw_rect(Rect2(bar.position, Vector2(bar.size.x * castle.progress(), bar.size.y)), Color(0.95, 0.8, 0.3))
+
+
 func _draw_placeholder(px: Vector2) -> void:
 	var tile := Terrain.TILE_SIZE
 	var base: Color = def.color

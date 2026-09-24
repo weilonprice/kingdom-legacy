@@ -9,7 +9,8 @@ extends RefCounted
 ## Saves can't be made while a raid is warning or under way: enemies in
 ## flight are not stored.
 
-const VERSION := 1
+## 2: the castle grows in reserved grounds (M22); older saves can't load.
+const VERSION := 2
 const SLOT := "savegame"
 const AUTO := "autosave"
 
@@ -22,12 +23,13 @@ static func exists(slot: String) -> bool:
 	return FileAccess.file_exists(path(slot))
 
 
-## The newer of the manual save and the autosave, or "" if neither exists.
+## The newer of the manual save and the autosave, or "" if neither exists
+## (saves from an older version don't count).
 static func latest_slot() -> String:
 	var best := ""
 	var best_time := -1
 	for slot in [SLOT, AUTO]:
-		if exists(slot):
+		if exists(slot) and not read(slot).is_empty():
 			var t := FileAccess.get_modified_time(path(slot))
 			if t > best_time:
 				best_time = t
@@ -120,6 +122,7 @@ static func capture(main: Node) -> Dictionary:
 		"day": main.day_night.day,
 		"season": main.seasons.index,
 		"trade": {"timer": main.trade.timer, "merchant": main.trade.merchant},
+		"castle": main.castle.to_save(),
 		"season_days": main.seasons.days_in,
 		"clock": main.day_night.clock,
 		"tax_rate": GameState.tax_rate,
@@ -143,6 +146,7 @@ static func apply(main: Node, data: Dictionary) -> void:
 	main.progression.restore_tier(int(data.tier))
 
 	world.restore_roads(data.roads.map(func(a: Array) -> Vector2i: return _t(a)))
+	main.castle.restore(data.castle)
 
 	var by_origin := {world.keep.origin: world.keep}
 	for entry: Dictionary in data.buildings:

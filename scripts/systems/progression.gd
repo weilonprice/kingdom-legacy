@@ -1,7 +1,8 @@
 class_name Progression
 extends Node
 ## Tracks the settlement tier. Checks the next tier's requirements every few
-## seconds; on reaching it, unlocks content and upgrades the Keep.
+## seconds; on reaching it, unlocks content and strengthens the castle
+## (its size and look come from Castle, the stage the player has built).
 
 signal tier_changed(tier: int)
 
@@ -10,6 +11,8 @@ const CHECK_INTERVAL := 2.0
 var world: WorldMap
 var raids: RaidDirector
 var research: Research
+## Set by main after setup (it needs the progression itself).
+var castle: Castle
 var tier := 0
 
 var _check_timer := 0.0
@@ -22,7 +25,7 @@ func setup(p_world: WorldMap, p_raids: RaidDirector, p_research: Research) -> vo
 
 
 func _ready() -> void:
-	_apply_keep_upgrade()
+	apply_keep_upgrade()
 
 
 func tier_name(index := -1) -> String:
@@ -111,13 +114,16 @@ func unlock_summary(index: int) -> String:
 	for id: String in unlocks.get("research", []):
 		names.append(ResearchDefs.get_def(id).name)
 	var keep: Dictionary = TierDefs.TIERS[index].keep
-	names.append("%s: %d HP, %d storage" % [keep.title, keep.hp, keep.capacity])
+	names.append("the castle: %d HP, %d storage" % [keep.hp, keep.capacity])
+	for st: Dictionary in CastleDefs.STAGES:
+		if st.get("tier", -1) == index:
+			names.append("the %s upgrade" % st.title)
 	return ", ".join(names)
 
 
 func _advance() -> void:
 	tier += 1
-	_apply_keep_upgrade()
+	apply_keep_upgrade()
 	GameState.notify("Your settlement has grown into a %s! New buildings unlocked." % tier_name())
 	Sound.play("tier")
 	tier_changed.emit(tier)
@@ -128,17 +134,18 @@ func _advance() -> void:
 ## Sets the tier from a save (no announcement, no final-siege trigger).
 func restore_tier(value: int) -> void:
 	tier = value
-	_apply_keep_upgrade()
+	apply_keep_upgrade()
 	tier_changed.emit(tier)
 
 
-func _apply_keep_upgrade() -> void:
+func apply_keep_upgrade() -> void:
 	if world.keep == null:
 		return
 	var keep_def: Dictionary = TierDefs.TIERS[tier].keep
-	world.keep.title = keep_def.title
-	world.keep.art_id = keep_def.get("art", "keep")
+	var st: Dictionary = CastleDefs.STAGES[castle.stage if castle != null else 0]
+	world.keep.title = st.title
+	world.keep.art_id = st.art
 	world.keep.queue_redraw()
-	world.keep.base_capacity = keep_def.capacity
-	world.keep.set_base_hp(keep_def.hp)
+	world.keep.base_capacity = keep_def.capacity + st.capacity_bonus
+	world.keep.set_base_hp(keep_def.hp + st.hp_bonus)
 	world.recompute_capacity()

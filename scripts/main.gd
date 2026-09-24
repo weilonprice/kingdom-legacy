@@ -14,6 +14,7 @@ var day_night: DayNight
 var fire: FireSystem
 var seasons: Seasons
 var trade: Trade
+var castle: Castle
 var build: BuildController
 var camera: CameraController
 var hud: HUD
@@ -78,6 +79,11 @@ func _ready() -> void:
 	progression.setup(world, raids, research)
 	add_child(progression)
 	raids.progression = progression
+
+	castle = Castle.new()
+	castle.setup(world, progression)
+	add_child(castle)
+	progression.castle = castle
 
 	trade = Trade.new()
 	trade.world = world

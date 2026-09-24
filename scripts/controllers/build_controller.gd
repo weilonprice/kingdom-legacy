@@ -206,6 +206,13 @@ func _draw() -> void:
 	var tile := Terrain.TILE_SIZE
 	if selected != null:
 		_draw_selection(selected)
+	if mode in [Mode.BUILD, Mode.WALL] and world.castle_grounds.has_area():
+		# The castle's reserved grounds, so players see why they can't build there.
+		var g := Rect2(Vector2(world.castle_grounds.position * tile), Vector2(world.castle_grounds.size * tile))
+		draw_rect(g, Color(0.95, 0.8, 0.3, 0.12))
+		draw_rect(g, Color(0.95, 0.8, 0.3, 0.8), false, 2.0)
+		draw_string(ThemeDB.fallback_font, g.position + Vector2(4, -6), "Castle grounds",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1, 0.9, 0.5))
 	match mode:
 		Mode.BUILD:
 			var def := BuildingDefs.get_def(build_id)

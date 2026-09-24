@@ -538,6 +538,12 @@ func _snapshot() -> Dictionary:
 		"music_mood": Music.mood,
 		"merchant": main.trade.merchant_name() if main.trade.is_open() else "",
 		"settings": Settings.values.duplicate(),
+		"castle": main.castle.title(),
+		"castle_size": world.keep.size.x,
+		"castle_building": main.castle.is_building(),
+		"castle_progress": snappedf(main.castle.progress(), 0.01),
+		"builders": world.keep.workers.size(),
+		"keep_hp": roundi(world.keep.health.max_hp),
 		"zoom": snappedf(main.camera.zoom.x, 0.001),
 		"fps": Engine.get_frames_per_second(),
 		"min_zoom": snappedf(main.camera.min_zoom(), 0.001),
@@ -621,7 +627,7 @@ func _check(expect: Dictionary) -> String:
 	for id: String in expect.get("buildings_max", {}):
 		if s.buildings.get(id, 0) > int(expect.buildings_max[id]):
 			problems.append("%s count %d > %d" % [id, s.buildings.get(id, 0), expect.buildings_max[id]])
-	for key in ["tier", "raid_phase", "build_mode", "selected_building", "season", "music_mood", "merchant"]:
+	for key in ["tier", "raid_phase", "build_mode", "selected_building", "season", "music_mood", "merchant", "castle"]:
 		if expect.has(key) and s[key] != expect[key]:
 			problems.append("%s '%s' != '%s'" % [key, s[key], expect[key]])
 	if expect.has("text") and not s.visible_text.any(func(t: String) -> bool: return expect.text in t):
@@ -706,6 +712,8 @@ func _check(expect: Dictionary) -> String:
 			var grew := _metric(s, key) - _metric(then, key)
 			if grew < float(expect.increased[key]):
 				problems.append("%s grew %s since %s, want %s+" % [key, grew, expect.increased.since, expect.increased[key]])
+	if expect.has("castle_building") and s.castle_building != expect.castle_building:
+		problems.append("castle_building %s != %s" % [s.castle_building, expect.castle_building])
 	if expect.has("speed") and s.speed != int(expect.speed):
 		problems.append("speed %d != %s" % [s.speed, expect.speed])
 	if expect.has("ui_scale") and not is_equal_approx(s.ui_scale, float(expect.ui_scale)):
@@ -751,7 +759,7 @@ func _sum_by_building(field: String) -> Dictionary:
 ## or a kingdom resource total.
 func _metric(s: Dictionary, key: String) -> float:
 	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning", "lairs",
-			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps"]:
+			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps", "castle_size", "castle_progress", "builders", "keep_hp"]:
 		return float(s[key])
 	return float(s.resources.get(key, 0))
 
