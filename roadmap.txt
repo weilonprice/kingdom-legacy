@@ -350,7 +350,7 @@ M12 — AUTOPLAYER (tool done; balance changes next)
           food income
   [~] (M) Bot defends: walls, gates, tower rings, 2 barracks, saving up
           (M15). Still loses; the bot's planning is now the bottleneck
-  [ ] (S) Consider softening raid 2 (2 brutes vs a 16-20 person village)
+  [x] (S) Softer raid 2 (M16): brutes from the 3rd raid, so raid 2 is goblins only
 
   Later
   [ ] Economy tuning from playtests (costs, yields, tier requirements)

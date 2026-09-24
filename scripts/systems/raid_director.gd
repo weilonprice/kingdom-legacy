@@ -77,9 +77,11 @@ func composition() -> Dictionary:
 	# so the first raid isn't doubled for a brand-new town.
 	for lair in world.lairs():
 		goblins += mini(int(lair.def.raid_bonus), raids_survived)
+	# Brutes from the 3rd raid (the 2nd is goblins only, so a young village
+	# isn't flattened), +1 per tier.
 	var brutes := 0
-	if raids_survived >= 1:
-		brutes = 1 + floori((raids_survived - 1) / 2.0) + tier
+	if raids_survived >= 2:
+		brutes = 1 + floori((raids_survived - 2) / 2.0) + tier
 	# Orcs from the 3rd raid (more at higher tiers), a shaman per 3 orcs,
 	# wolf riders from Town, trolls once the kingdom is well established.
 	var orcs := maxi(0, raids_survived - 2) + (tier if raids_survived >= 2 else 0)
