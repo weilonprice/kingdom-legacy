@@ -135,6 +135,19 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   research.
 
 
+  TRADE (M18): a Trading Post (Village, 60 wood + 20 stone) brings
+  travelling merchants: a caravan every 150 calm seconds walks in from the
+  map edge and trades at the post for 90 s. It keeps trading through a raid
+  warning, leaves when raiders arrive, and the next caravan comes 45 s after
+  the raid. Merchants: Timber merchant (sells wood/stone, wants food), Grain
+  trader (sells wheat/bread/fish, wants wood/stone), Ironmonger (Town+;
+  iron/weapons/armor, wants stone/food), Peddler (a little of everything).
+  Trades are lots of 10: its specialty costs 0.9x base, anything else it
+  carries 1.4x; it pays 1.2x for goods it wants, 0.6x otherwise, out of a
+  limited purse (200-350 gold). Base prices: wood 1, stone 1.5, iron 4,
+  weapons 12, armor 18, wheat 1, flour 2, bread 2.5, fish 2 gold.
+
+
 8. SETTLEMENT TIERS & RESEARCH
 --------------------------------------------------------------------------------
   Implemented (M4, needs-based requirements added in M5) — tiers advance
@@ -425,6 +438,7 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
               seasons cycle with winter firewood and frozen fields
   [DONE]  M10 Rivers with fords; bridges built with the Road tool
   [DONE]  M11 Sound (synthesized effects + ambience, volume sliders), minimap
+  [DONE]  M18 Merchants and trade (Trading Post, four merchant types)
 
 
 16. OPEN QUESTIONS

@@ -41,7 +41,7 @@ var hints_enabled := true
 var season := "autumn"
 ## Running totals for balance tools: goods produced at workplaces, spent on
 ## building/training/research, and used up (food eaten, firewood burned).
-var stats := {"produced": {}, "spent": {}, "used": {}}
+var stats := {"produced": {}, "spent": {}, "used": {}, "bought": {}, "sold": {}}
 ## Where saves go (tests point this elsewhere so they never touch real saves).
 var save_dir := "user://saves"
 ## A save to apply when the game scene starts (set by Load / Continue).
@@ -73,7 +73,7 @@ func reset() -> void:
 	jobs = 0
 	game_over = false
 	season = "autumn"
-	stats = {"produced": {}, "spent": {}, "used": {}}
+	stats = {"produced": {}, "spent": {}, "used": {}, "bought": {}, "sold": {}}
 	modifiers = {}
 	tax_rate = NeedDefs.DEFAULT_TAX_RATE
 	happiness = NeedDefs.BASE_HAPPINESS

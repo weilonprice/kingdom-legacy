@@ -353,6 +353,16 @@ M12 — AUTOPLAYER (tool done; balance changes next)
   [x] (S) Softer raid 2 (M16): brutes from the 3rd raid, so raid 2 is goblins only
   [x] (S) Grain storage (M17): wheat/flour have their own capacity
 
+================================================================================
+M18 — MERCHANTS & TRADE (done)
+================================================================================
+  [x] (M) Trading Post (Village); caravans every 150 calm s, stay 90 s,
+          leave when raiders arrive -> scripts/systems/trade.gd
+  [x] (M) Four merchant types with specialties, stock and purses; lots of
+          10 with buy/sell prices -> scripts/data/trade_defs.gd
+  [x] (S) Trade rows in the Trading Post panel; merchant walks in and out
+  [x] (S) Saves keep the merchant and caravan timer; autoplayer trades
+
   Later
   [ ] Economy tuning from playtests (costs, yields, tier requirements)
 

@@ -117,6 +117,7 @@ static func capture(main: Node) -> Dictionary:
 			"final_siege": main.raids.final_siege},
 		"day": main.day_night.day,
 		"season": main.seasons.index,
+		"trade": {"timer": main.trade.timer, "merchant": main.trade.merchant},
 		"season_days": main.seasons.days_in,
 		"clock": main.day_night.clock,
 		"tax_rate": GameState.tax_rate,
@@ -185,6 +186,14 @@ static func apply(main: Node, data: Dictionary) -> void:
 	main.raids.restore(float(data.raids.timer), int(data.raids.survived), bool(data.raids.final_siege),
 		data.lairs.map(func(l: Dictionary) -> Dictionary: return {"t": _t(l.t), "id": l.id, "hp": float(l.hp)}))
 
+	if data.has("trade"):
+		main.trade.timer = float(data.trade.timer)
+		var m: Dictionary = data.trade.merchant
+		if not m.is_empty() and main.trade.post() != null:
+			main.trade.arrive(m.id, main.trade.post().entrance())
+			main.trade.merchant.stock = _ints(m.stock)
+			main.trade.merchant.gold = int(m.gold)
+			main.trade.merchant.time_left = float(m.time_left)
 	main.seasons.set_season(int(data.get("season", 0)), false)
 	main.seasons.days_in = int(data.get("season_days", 0))
 	main.world.growth_paused = main.seasons.is_winter()

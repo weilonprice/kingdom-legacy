@@ -19,7 +19,7 @@ const TIERS := [
 		"name": "Village",
 		"requires": {"population": 15, "buildings": ["well", "granary"]},
 		"unlocks": {
-			"buildings": ["barracks", "scholars_hall", "stone_house", "chapel", "market", "iron_mine", "smithy"],
+			"buildings": ["barracks", "scholars_hall", "stone_house", "chapel", "market", "iron_mine", "smithy", "trading_post"],
 			"units": ["militia", "spearman"],
 			"research": ["crop_rotation", "sharp_tools", "wheelbarrows", "fletching", "ledgers"],
 		},

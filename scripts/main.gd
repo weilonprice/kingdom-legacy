@@ -13,6 +13,7 @@ var overlay: Overlay
 var day_night: DayNight
 var fire: FireSystem
 var seasons: Seasons
+var trade: Trade
 var build: BuildController
 var camera: CameraController
 var hud: HUD
@@ -78,6 +79,12 @@ func _ready() -> void:
 	progression.setup(world, raids, research)
 	add_child(progression)
 	raids.progression = progression
+
+	trade = Trade.new()
+	trade.world = world
+	trade.raids = raids
+	trade.progression = progression
+	add_child(trade)
 
 	military = Military.new()
 	military.setup(world, citizens)
