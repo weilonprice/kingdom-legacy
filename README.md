@@ -57,6 +57,9 @@ the next raid hits. Made with Godot 4.
 - **Rivers and bridges.** A river winds past every town, with a couple of
   shallow fords. Drag a road across it to build a bridge, then guard the
   crossing: raiders use bridges too.
+- **Foresters.** Woods no longer run out for good: a Forester's Lodge
+  plants saplings that grow into forest, and cleared woodland slowly grows
+  back from its edges.
 - **Settings.** Volume per channel, fullscreen, interface scale, autosave
   interval, camera speed, edge scrolling, and an option to pause when
   raiders are sighted. Esc opens the menu.
@@ -227,6 +230,7 @@ after its scenarios pass.
 | M17 | Grain storage, music ✅ |
 | M18 | Merchants and trade ✅ |
 | M19 | Settings menu ✅ |
+| M20 | Forester and forest regrowth ✅ |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 

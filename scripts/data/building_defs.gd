@@ -130,6 +130,17 @@ const DEFS := {
 		"yield": 4,
 		"work_time": 4.0,
 	},
+	"forester": {
+		"name": "Forester's Lodge",
+		"desc": "Plants saplings on open ground nearby; in about 3 minutes they grow into forest for your woodcutters.",
+		"size": Vector2i(2, 2),
+		"cost": {"wood": 30, "stone": 10},
+		"color": Color(0.28, 0.45, 0.25),
+		"jobs": 1,
+		"work": "forester",
+		"radius": 8,
+		"work_time": 5.0,
+	},
 	"quarry": {
 		"name": "Quarry",
 		"desc": "Cuts nearby rocks for stone.",
@@ -366,7 +377,7 @@ const DEFS := {
 ## Build menu tabs. Road and Demolish are always-visible tools.
 const CATEGORIES := [
 	{"name": "Housing", "items": ["house", "stone_house", "well"]},
-	{"name": "Resources", "items": ["woodcutter", "quarry", "iron_mine"]},
+	{"name": "Resources", "items": ["woodcutter", "forester", "quarry", "iron_mine"]},
 	{"name": "Industry", "items": ["smithy", "armory"]},
 	{"name": "Food", "items": ["farm", "fisher", "mill", "bakery"]},
 	{"name": "Storage", "items": ["stockpile", "granary", "warehouse", "carter", "trading_post"]},

@@ -135,6 +135,14 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   research.
 
 
+  FORESTS (M20): a forest tile gives 3 harvests (12 wood) and then turns to
+  grass. A Forester's Lodge (Hamlet, 30 wood + 10 stone, 1 worker) plants
+  a sapling every ~5 s on open grass within 8 tiles, preferring tiles next
+  to existing trees; a sapling grows into a full forest tile in ~3 minutes
+  (paused in winter). Cleared forest also comes back on its own after 7
+  minutes if it still touches forest. Neither happens on or beside roads,
+  buildings, doors or fields, and building over a sapling removes it.
+
   TRADE (M18): a Trading Post (Village, 60 wood + 20 stone) brings
   travelling merchants: a caravan every 150 calm seconds walks in from the
   map edge and trades at the post for 90 s. It keeps trading through a raid
@@ -445,6 +453,7 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
   [DONE]  M11 Sound (synthesized effects + ambience, volume sliders), minimap
   [DONE]  M18 Merchants and trade (Trading Post, four merchant types)
   [DONE]  M19 Settings menu (audio, display, game options, controls)
+  [DONE]  M20 Forester's Lodge, saplings and forest regrowth
 
 
 16. OPEN QUESTIONS

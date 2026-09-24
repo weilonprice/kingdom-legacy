@@ -330,6 +330,9 @@ func inspect_text() -> String:
 					attack_range_tiles(), def.damage, def.attack_cooldown])
 		"study":
 			lines.append("Scholars studying: %d" % stationed_count())
+		"forester":
+			lines.append("Plants saplings within %d tiles (not beside roads or buildings)." % def.radius)
+			lines.append("Saplings growing nearby: %d" % world.count_saplings(entrance(), def.radius))
 		"produce":
 			lines.append("Recipe: %s → %s  (%ds)" % [
 				BuildingDefs.stack_text(def.input), BuildingDefs.stack_text(def.output), def.work_time])

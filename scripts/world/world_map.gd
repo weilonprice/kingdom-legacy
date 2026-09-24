@@ -26,6 +26,11 @@ var occupancy := {}    # Vector2i -> Building
 var entrances := {}    # Vector2i -> Building
 var reserved := {}     # Vector2i -> Object reserving that resource tile
 var fields := {}       # Vector2i -> {"farm": Building, "stage": FieldStage, "timer": float}
+## Young trees: tile -> game seconds until it's forest (see Forests below).
+var saplings := {}
+## Forest tiles cut down to grass: tile -> seconds since. They grow back on
+## their own after REGROW_DELAY if they still touch the forest.
+var cleared := {}
 var buildings: Array[Building] = []
 var enemies: Array[Enemy] = []
 ## Lairs and their guards: hostile, but not part of a raid.
@@ -65,8 +70,9 @@ func _ready() -> void:
 	add_child(unit_root)
 
 
-## Winter: crops stop growing (see Seasons).
+## Winter: crops and trees stop growing (see Seasons).
 var growth_paused := false
+var _forest_timer := 0.0
 
 
 func _process(delta: float) -> void:
@@ -78,6 +84,10 @@ func _process(delta: float) -> void:
 			field.timer -= delta
 			if field.timer <= 0.0:
 				_set_field_stage(t, FieldStage.RIPE)
+	_forest_timer += delta
+	if _forest_timer >= FOREST_TICK:
+		_grow_forests(_forest_timer)
+		_forest_timer = 0.0
 
 
 # --- Generation -------------------------------------------------------------
@@ -312,6 +322,10 @@ func describe_tile(t: Vector2i) -> String:
 	var left := resource_left[t.y * width + t.x]
 	if left > 0:
 		text += " (%d harvests left)" % left
+	if saplings.has(t):
+		var secs := ceili(saplings[t])
+		text = "Sapling — %s" % ("resting for winter" if growth_paused
+			else "forest in %d:%02d" % [secs / 60, secs % 60])
 	return text
 
 
@@ -421,7 +435,102 @@ func harvest(t: Vector2i, type: int, amount: int) -> int:
 		resource_left[i] -= 1
 		if resource_left[i] <= 0:
 			set_terrain(t, Terrain.GRASS)
+			if type == Terrain.FOREST:
+				cleared[t] = 0.0
 	return amount
+
+
+# --- Forests ------------------------------------------------------------------
+# A Forester plants saplings on open ground; they grow into forest tiles
+# (full harvests) after SAPLING_GROW. Cleared forest also comes back by
+# itself, slowly and only from the forest's edge. Neither happens next to
+# roads, buildings, doors or fields, so trees never swallow the town.
+
+const SAPLING_GROW := 180.0
+const REGROW_DELAY := 420.0
+const FOREST_TICK := 2.0
+
+
+## Open grass with nothing on or beside it that a tree would get in the way of.
+func is_plantable(t: Vector2i) -> bool:
+	if not is_in_bounds(t) or get_terrain(t) != Terrain.GRASS or saplings.has(t) or reserved.has(t):
+		return false
+	for off in NEIGHBORS + [Vector2i.ZERO]:
+		var n: Vector2i = t + off
+		if occupancy.has(n) or roads.has(n) or entrances.has(n) or fields.has(n):
+			return false
+	return true
+
+
+func plant_sapling(t: Vector2i) -> bool:
+	if get_terrain(t) != Terrain.GRASS or saplings.has(t) or occupancy.has(t) or roads.has(t):
+		return false
+	saplings[t] = SAPLING_GROW * randf_range(0.9, 1.1)
+	cleared.erase(t)
+	renderer.nature.refresh_tile(t)
+	return true
+
+
+## 0 = seedling, 1 = young tree.
+func sapling_stage(t: Vector2i) -> int:
+	return 0 if saplings.get(t, 0.0) > SAPLING_GROW * 0.5 else 1
+
+
+## Where a forester at `center` should plant next: the nearest plantable
+## tile, preferring ones that grow an existing wood or plantation.
+func find_plant_site(center: Vector2i, radius: int) -> Vector2i:
+	var best := INVALID_TILE
+	var best_score := INF
+	for dy in range(-radius, radius + 1):
+		for dx in range(-radius, radius + 1):
+			var t := center + Vector2i(dx, dy)
+			if maxi(absi(dx), absi(dy)) < 2 or not is_plantable(t):
+				continue
+			var score := float(dx * dx + dy * dy)
+			if _touches_trees(t):
+				score -= 12.0
+			if score < best_score:
+				best_score = score
+				best = t
+	return best
+
+
+func count_saplings(center: Vector2i, radius: int) -> int:
+	var n := 0
+	for t: Vector2i in saplings:
+		if absi(t.x - center.x) <= radius and absi(t.y - center.y) <= radius:
+			n += 1
+	return n
+
+
+func _touches_trees(t: Vector2i) -> bool:
+	for off in NEIGHBORS:
+		var n: Vector2i = t + off
+		if is_in_bounds(n) and (get_terrain(n) == Terrain.FOREST or saplings.has(n)):
+			return true
+	return false
+
+
+func _grow_forests(dt: float) -> void:
+	for t: Vector2i in saplings.keys():
+		if get_terrain(t) != Terrain.GRASS or occupancy.has(t) or roads.has(t) or fields.has(t):
+			saplings.erase(t)  # built over: the sapling is gone
+			renderer.nature.refresh_tile(t)
+			continue
+		var stage := sapling_stage(t)
+		saplings[t] -= dt
+		if saplings[t] <= 0.0:
+			saplings.erase(t)
+			set_terrain(t, Terrain.FOREST)
+		elif sapling_stage(t) != stage:
+			renderer.nature.refresh_tile(t)
+	for t: Vector2i in cleared.keys():
+		if get_terrain(t) != Terrain.GRASS or occupancy.has(t) or roads.has(t) or fields.has(t):
+			cleared.erase(t)
+			continue
+		cleared[t] += dt
+		if cleared[t] >= REGROW_DELAY and is_plantable(t) and _touches_trees(t):
+			plant_sapling(t)
 
 
 
@@ -706,6 +815,19 @@ func restore_terrain(p_terrain: PackedByteArray, p_resource_left: PackedInt32Arr
 	for y in height:
 		for x in width:
 			_update_nav(Vector2i(x, y))
+
+
+## Saplings and cleared forest from a save: [[x, y, seconds], ...].
+func restore_forests(p_saplings: Array, p_cleared: Array) -> void:
+	var old := saplings.keys()
+	saplings.clear()
+	cleared.clear()
+	for e: Array in p_saplings:
+		saplings[Vector2i(int(e[0]), int(e[1]))] = float(e[2])
+	for e: Array in p_cleared:
+		cleared[Vector2i(int(e[0]), int(e[1]))] = float(e[2])
+	for t: Vector2i in old + saplings.keys():
+		renderer.nature.refresh_tile(t)
 
 
 ## Replaces farm fields with saved ones: [{t, farm, stage, timer}].
