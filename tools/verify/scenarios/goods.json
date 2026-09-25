@@ -257,6 +257,9 @@
   "click_button": "Vineyard"
  },
  {
+  "pan_to": "vineyard"
+ },
+ {
   "click_tile": "vineyard"
  },
  {
@@ -272,6 +275,9 @@
  },
  {
   "click_button": "Winery"
+ },
+ {
+  "pan_to": "winery"
  },
  {
   "click_tile": "winery"

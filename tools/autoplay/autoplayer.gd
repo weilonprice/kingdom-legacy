@@ -607,7 +607,7 @@ func _road_toward(terrain: int) -> void:
 	var target := world.nearest_walkable(goal)
 	if from == WorldMap.INVALID_TILE or target == WorldMap.INVALID_TILE:
 		return
-	var path: Array[Vector2i] = world.find_path(from, target)
+	var path: Array[Vector2i] = world.find_road_path(from, target)
 	var tiles: Array[Vector2i] = []
 	for t in path:
 		if world.get_terrain(t) != Terrain.WATER and not world.occupancy.has(t):

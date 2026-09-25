@@ -147,7 +147,7 @@ func place_lairs(count := LAIR_COUNT) -> void:
 			continue
 		if placed.any(func(p: Vector2i) -> bool: return Vector2(p).distance_to(Vector2(t)) < LAIR_MIN_APART_TILES):
 			continue
-		if not _open_ground(t) or world.find_path(t, goal).is_empty():
+		if not _open_ground(t) or world.find_enemy_path(t, goal).is_empty():
 			continue
 		spawn_lair(t)
 		placed.append(t)
@@ -259,7 +259,7 @@ func _pick_spawn_tile() -> Vector2i:
 				t = Vector2i(0, randi_range(0, world.height - 1))
 			_:
 				t = Vector2i(world.width - 1, randi_range(0, world.height - 1))
-		if world.is_walkable(t) and not world.find_path(t, goal).is_empty():
+		if world.is_walkable(t) and not world.find_enemy_path(t, goal).is_empty():
 			return t
 	return WorldMap.INVALID_TILE
 

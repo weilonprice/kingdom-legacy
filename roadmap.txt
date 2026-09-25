@@ -431,6 +431,9 @@ PHASE 2 — SIMULATION DIRECTION (decided 2026-09-24)
        buildings, beauty from paving   [DONE]
   M29  Public services: bathhouse & physician (health, disease), fire
        brigade, town watch & crime, school   [DONE]
+  M29b Villager variety (five outfits, women's and men's, fully
+       animated) and solid trees and boulders (people work beside them,
+       so chopping and mining show)   [DONE]
   M30  Great works: Cathedral, Guildhall, University, Grand Market Square;
        City needs one, Kingdom two
   Then: people's lives, stats & graphs.

@@ -83,7 +83,7 @@ static func capture(main: Node) -> Dictionary:
 		villagers.append({
 			"name": v.villager_name, "home": _v(v.home.origin) if is_instance_valid(v.home) else null,
 			"job": _v(v.job.origin) if v.job != null else null, "hp": v.health.hp,
-			"missed": v.missed_meals,
+			"missed": v.missed_meals, "outfit": v.outfit,
 		})
 	var squads := []
 	for s: Squad in main.military.squads:
@@ -191,7 +191,8 @@ static func apply(main: Node, data: Dictionary) -> void:
 		if home == null:
 			continue
 		var job: Building = by_origin.get(_t(v.job)) if v.job != null else null
-		main.citizens.restore_villager(home, job, v.name, float(v.hp), int(v.missed))
+		main.citizens.restore_villager(home, job, v.name, float(v.hp), int(v.missed),
+				str(v.get("outfit", "")))
 	main.citizens._settlers_arrived = int(data.settlers_arrived)
 
 	for s: Dictionary in data.squads:

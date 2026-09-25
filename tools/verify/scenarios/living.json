@@ -22,6 +22,7 @@
   {"key": "EQUAL"},
   {"wait": 2},
   {"screenshot": "00-market"},
+  {"expect": {"min": {"outfits": 3}, "max": {"outfit_mismatch": 0}}},
   {"pan_to": "farm"},
   {"wait": 1},
   {"screenshot": "01-farm"},

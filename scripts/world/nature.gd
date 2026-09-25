@@ -120,9 +120,9 @@ func decorate_building(b: Building) -> void:
 
 ## Re-decorate one tile after its terrain, road or building changed.
 func refresh_tile(t: Vector2i) -> void:
-	var want_tree := world.get_terrain(t) == Terrain.FOREST and _hash(t, 1) > TREE_GAP
+	var want_tree := has_tree(world, t)
 	_set_sprite(_trees, t, _tree_texture(t) if want_tree else null, true)
-	var want_rock := world.get_terrain(t) == Terrain.STONE and _hash(t, 11) < ROCK_CHANCE
+	var want_rock := has_boulder(world, t)
 	_set_sprite(_rocks, t, Art.texture(PROP_ART % ROCKS[int(_hash(t, 12) * ROCKS.size()) % ROCKS.size()])
 		if want_rock else null, false)
 	var open := _open(t)
@@ -179,5 +179,19 @@ func _prop_texture(t: Vector2i) -> Texture2D:
 
 ## Stable pseudo-random 0..1 per tile and purpose.
 func _hash(t: Vector2i, salt: int) -> float:
-	var h := hash(Vector3i(t.x, t.y, salt * 7919 + world.map_seed))
+	return tile_hash(world, t, salt)
+
+
+static func tile_hash(p_world: WorldMap, t: Vector2i, salt: int) -> float:
+	var h := hash(Vector3i(t.x, t.y, salt * 7919 + p_world.map_seed))
 	return float(h & 0xFFFF) / 65535.0
+
+
+## Forest tiles that show a tree (the rest are gaps in the wood).
+static func has_tree(p_world: WorldMap, t: Vector2i) -> bool:
+	return p_world.get_terrain(t) == Terrain.FOREST and tile_hash(p_world, t, 1) > TREE_GAP
+
+
+## Rocky tiles that show a boulder (the rest look like open ground).
+static func has_boulder(p_world: WorldMap, t: Vector2i) -> bool:
+	return p_world.get_terrain(t) == Terrain.STONE and tile_hash(p_world, t, 11) < ROCK_CHANCE
