@@ -18,6 +18,7 @@ const APPRENTICE_SPEED := 0.6
 
 const JOB_CLASS := {
 	"smithy": "burgher", "armory": "burgher", "tavern": "burgher",
+	"brewery": "burgher", "toolmaker": "burgher", "weaver": "burgher", "tailor": "burgher", "winery": "burgher",
 	"market": "burgher", "trading_post": "burgher",
 	"scholars_hall": "noble", "chapel": "noble", "barracks": "noble",
 }

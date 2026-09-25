@@ -504,12 +504,41 @@ func _find_site(spec: Dictionary) -> String:
 				var origin := near + Vector2i(dx, dy)
 				if world.can_place_building(id, origin) != "":
 					continue
-				if spec.get("entrance_on_road", false) and not world.is_road(BuildingDefs.entrance_of(origin, size)):
-					continue
+				var door := BuildingDefs.entrance_of(origin, size)
+				if spec.get("entrance_on_road", false) and not world.is_road(door):
+					if not spec.get("connect", false):
+						continue
+					# "connect": lay a road from the door to the nearest street,
+					# as a player would; skip sites whose door can't reach one.
+					var link := _road_link(door, origin, size)
+					if link.is_empty():
+						continue
+					world.place_roads(link)
+					report.setup_shortcuts.append({"road_for": spec["as"], "tiles": link.size()})
 				var cursor := origin + Vector2i(int(size.x * 0.5), int(size.y * 0.5))
 				aliases[spec["as"]] = cursor
 				return "ok (%s at keep%+d,%+d)" % [id, cursor.x - world.keep.entrance().x, cursor.y - world.keep.entrance().y]
 	return "FAIL no site for %s" % id
+
+
+## Tiles for a road from `door` to the nearest existing road (not through
+## the planned footprint), or [] if there's no short way.
+func _road_link(door: Vector2i, origin: Vector2i, size: Vector2i) -> Array[Vector2i]:
+	var best := WorldMap.INVALID_TILE
+	var best_d := INF
+	for t: Vector2i in world.roads:
+		var d := Vector2(t).distance_squared_to(Vector2(door))
+		if d < best_d:
+			best_d = d
+			best = t
+	if best == WorldMap.INVALID_TILE or best_d > 12 * 12:
+		return []
+	var path: Array[Vector2i] = world.find_path(door, best)
+	var footprint := Rect2i(origin, size)
+	if path.is_empty() or path.any(func(t: Vector2i) -> bool:
+			return footprint.has_point(t) or world.occupancy.has(t) or world.entrances.has(t) and t != door):
+		return []
+	return path
 
 
 ## Finds a straight north-south or east-west water crossing near a tile:
@@ -604,6 +633,8 @@ func _snapshot() -> Dictionary:
 		"anims_seen": anims_seen.keys(),
 		"plazas": world.plazas.size(),
 		"classes": _class_counts(),
+		"goods_met": _goods_met(),
+		"used": GameState.stats.used.duplicate(),
 		"apprentices": world.buildings.reduce(func(acc: int, b: Building) -> int: return acc + b.apprentice_count(), 0),
 		"home_art": world.buildings.filter(func(b: Building) -> bool: return b.def.has("level_art")).map(
 			func(b: Building) -> String: return b.sprite_id()),
@@ -662,6 +693,16 @@ func _snapshot() -> Dictionary:
 		"visible_text": _visible_text(main.hud),
 		"messages": report.messages.duplicate(),
 	}
+
+
+## Homes that have each good (NeedDefs.GOODS).
+func _goods_met() -> Dictionary:
+	var met := {}
+	for b in world.buildings:
+		for good: String in NeedDefs.GOODS_ORDER:
+			if b.needs_met.get(good, false):
+				met[good] = met.get(good, 0) + 1
+	return met
 
 
 func _class_counts() -> Dictionary:
@@ -874,6 +915,10 @@ func _sum_by_building(field: String) -> Dictionary:
 func _metric(s: Dictionary, key: String) -> float:
 	if key.begins_with("life."):
 		return float(s.life.get(key.substr(5), 0))
+	if key.begins_with("goods_met."):
+		return float(s.goods_met.get(key.substr(10), 0))
+	if key.begins_with("used."):
+		return float(s.used.get(key.substr(5), 0))
 	if key.begins_with("class."):
 		return float(s.classes.get(key.substr(6), 0))
 	if key == "apprentices":

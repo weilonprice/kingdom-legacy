@@ -14,6 +14,14 @@ const ITEMS := {
 	"bread": {"name": "Bread", "category": "food", "color": Color(0.80, 0.52, 0.25), "edible": true},
 	"fish": {"name": "Fish", "category": "food", "color": Color(0.55, 0.70, 0.85), "edible": true},
 	"gold": {"name": "Gold", "category": "treasury", "color": Color(0.95, 0.80, 0.25)},
+	# Goods homes want (M27b; see NeedDefs.GOODS) and what they're made from.
+	"wool": {"name": "Wool", "category": "materials", "color": Color(0.95, 0.93, 0.86)},
+	"grapes": {"name": "Grapes", "category": "food", "color": Color(0.45, 0.22, 0.55)},
+	"ale": {"name": "Ale", "category": "food", "color": Color(0.85, 0.60, 0.20)},
+	"tools": {"name": "Tools", "category": "materials", "color": Color(0.55, 0.55, 0.60)},
+	"cloth": {"name": "Cloth", "category": "materials", "color": Color(0.35, 0.55, 0.80)},
+	"wine": {"name": "Wine", "category": "food", "color": Color(0.55, 0.10, 0.25)},
+	"fine_clothes": {"name": "Fine Clothes", "category": "materials", "color": Color(0.70, 0.20, 0.55)},
 }
 
 ## Categories limited by storage capacity.

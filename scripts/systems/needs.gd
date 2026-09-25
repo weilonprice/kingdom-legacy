@@ -19,6 +19,8 @@ var last_tax := 0
 
 var _update_timer := 0.0
 var _tax_timer := TAX_INTERVAL
+## Goods used but not yet taken from storage (fractions carry over).
+var _owed := {}
 
 
 func setup(p_world: WorldMap, p_citizens: CitizenManager) -> void:
@@ -67,6 +69,13 @@ func _update_homes(elapsed: float) -> void:
 			met["warmth"] = seasons.warm
 		for need: String in providers:
 			met[need] = providers[need].any(func(p: Building) -> bool: return p.covers(home))
+		var served_by_market: bool = met.get("market", false)
+		for good: String in NeedDefs.GOODS_ORDER:
+			if home == world.keep or home.level < NeedDefs.GOODS[good].from:
+				continue
+			met[good] = served_by_market and GameState.count(good) > 0
+			if met[good]:
+				_owed[good] = _owed.get(good, 0.0) + home.residents.size() * NeedDefs.GOODS[good].rate * elapsed / 60.0
 		home.needs_met = met
 		home.happiness = _happiness(met)
 		_update_level(home, elapsed)
@@ -74,6 +83,19 @@ func _update_homes(elapsed: float) -> void:
 		total += home.happiness
 		home.queue_redraw()
 	GameState.set_happiness(total / list.size() if not list.is_empty() else NeedDefs.BASE_HAPPINESS)
+	_consume_goods()
+
+
+## Takes the whole units of goods homes have used from storage.
+func _consume_goods() -> void:
+	for good: String in _owed:
+		var n := int(_owed[good])
+		if n <= 0:
+			continue
+		n = mini(n, GameState.count(good))
+		if n > 0 and GameState.spend({good: n}):
+			GameState.tally("used", good, n)
+		_owed[good] -= float(int(_owed[good]))
 
 
 func _fed(home: Building) -> bool:

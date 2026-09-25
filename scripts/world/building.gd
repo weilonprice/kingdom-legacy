@@ -363,8 +363,11 @@ func inspect_text() -> String:
 			lines.append("Plants saplings within %d tiles (not beside roads or buildings)." % def.radius)
 			lines.append("Saplings growing nearby: %d" % world.count_saplings(entrance(), def.radius))
 		"produce":
-			lines.append("Recipe: %s → %s  (%ds)" % [
-				BuildingDefs.stack_text(def.input), BuildingDefs.stack_text(def.output), def.work_time])
+			if def.has("input"):
+				lines.append("Recipe: %s → %s  (%ds)" % [
+					BuildingDefs.stack_text(def.input), BuildingDefs.stack_text(def.output), def.work_time])
+			else:
+				lines.append("Produces %s every %ds." % [BuildingDefs.stack_text(def.output), def.work_time])
 
 	if def.has("accepts"):
 		for category: String in def.accepts:
@@ -394,7 +397,8 @@ func inspect_text() -> String:
 		var manor_min: float = BeautyDefs.HOME_LEVEL_MIN[NeedDefs.LEVELS.size() - 1]
 		lines.append("Desirability %d%s" % [roundi(here), "" if here >= manor_min
 			else " (a Manor needs %d: add decorations, keep industry away)" % roundi(manor_min)])
-		for need: String in NeedDefs.ORDER:
+		for need: String in NeedDefs.ORDER + NeedDefs.GOODS_ORDER.filter(func(g: String) -> bool:
+				return level >= NeedDefs.GOODS[g].from):
 			lines.append("  %s %s" % ["✔" if needs_met.get(need, false) else "✘", NeedDefs.NEEDS[need].name])
 		if level < NeedDefs.LEVELS.size():
 			var next: Dictionary = NeedDefs.LEVELS[level]

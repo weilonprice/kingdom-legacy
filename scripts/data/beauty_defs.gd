@@ -14,7 +14,8 @@ const SOURCES := {
 	# Industry and work
 	"woodcutter": [-4.0, 3], "forester": [-1.0, 2], "quarry": [-10.0, 4], "iron_mine": [-12.0, 5],
 	"smithy": [-10.0, 4], "armory": [-8.0, 4], "mill": [-4.0, 3], "bakery": [-2.0, 2], "fisher": [-3.0, 3],
-	"farm": [-2.0, 2],
+	"farm": [-2.0, 2], "brewery": [-3.0, 3], "toolmaker": [-6.0, 3], "sheep_farm": [-2.0, 2],
+	"weaver": [-2.0, 2], "winery": [-2.0, 2], "vineyard": [2.0, 3],
 	# Storage and soldiers
 	"stockpile": [-4.0, 3], "warehouse": [-5.0, 3], "granary": [-2.0, 2], "carter": [-5.0, 3],
 	"barracks": [-6.0, 4],

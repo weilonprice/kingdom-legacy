@@ -13,17 +13,35 @@ const NEEDS := {
 	"religion": {"name": "Religion", "met": 10.0, "unmet": 0.0},
 	"market": {"name": "Market", "met": 10.0, "unmet": 0.0},
 	"tavern": {"name": "Tavern", "met": 10.0, "unmet": 0.0},
+	# Goods, delivered by a market (see GOODS).
+	"ale": {"name": "Ale", "met": 6.0, "unmet": 0.0},
+	"tools": {"name": "Tools", "met": 6.0, "unmet": -4.0},
+	"cloth": {"name": "Cloth", "met": 6.0, "unmet": -4.0},
+	"wine": {"name": "Wine", "met": 10.0, "unmet": -8.0},
+	"fine_clothes": {"name": "Fine Clothes", "met": 10.0, "unmet": -8.0},
 	# Winter only: homes need firewood (see Seasons).
 	"warmth": {"name": "Warmth", "met": 0.0, "unmet": -20.0},
 }
 const ORDER := ["food", "water", "religion", "market", "tavern"]
+## Goods homes want from the Cottage level (`from`) up; the lower classes
+## want the cheaper goods. A home has a good when the kingdom has it in
+## storage and a staffed Market covers the home (its traders deliver).
+## Homes that have it use `rate` per resident per minute.
+const GOODS := {
+	"ale": {"from": 1, "rate": 0.10},
+	"tools": {"from": 2, "rate": 0.05},
+	"cloth": {"from": 2, "rate": 0.05},
+	"wine": {"from": 3, "rate": 0.08},
+	"fine_clothes": {"from": 3, "rate": 0.04},
+}
+const GOODS_ORDER := ["ale", "tools", "cloth", "wine", "fine_clothes"]
 const BASE_HAPPINESS := 50.0
 
 ## Index = house level - 1.
 const LEVELS := [
 	{"name": "Cottage", "needs": ["food"], "tax": 1.0},
-	{"name": "Townhouse", "needs": ["food", "water", "religion"], "tax": 2.0},
-	{"name": "Manor", "needs": ["food", "water", "religion", "market", "tavern"], "tax": 3.5},
+	{"name": "Townhouse", "needs": ["food", "water", "religion", "ale"], "tax": 2.0},
+	{"name": "Manor", "needs": ["food", "water", "religion", "market", "tavern", "ale", "tools", "cloth"], "tax": 3.5},
 ]
 
 ## Gold per resident per minute, and the happiness effect of each rate.
