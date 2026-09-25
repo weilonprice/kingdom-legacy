@@ -705,7 +705,15 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     nobles pay the most tax and demand beauty. Each home gets new, bigger-
     looking art at every level, in its own footprint (and per season).
 
-  M28 ROADS
+  M28 ROADS   [BUILT 2026-09-25]
+    Roads tab: Cobblestone Road (Village, 1 stone a tile, 2.0x walking)
+    and Paved Street (Town, 2 stone + 1 gold, 2.4x); dirt is 1.6x. Drag
+    either over road to upgrade it, or over open ground to lay it new
+    (bridges and plazas are left alone). Traffic: more than 2 walkers on a
+    road tile slow it (down to 45%); the Traffic overlay (O) shows recent
+    road use and rings crowded tiles. A home needs a paved street at its
+    door to become a Manor. Cobbles add +1 and paving +2 desirability to
+    the tiles beside them. Saves keep road tiers.
     Tiers: dirt -> cobblestone -> paved, each faster; drag the Road tool
     over a road to upgrade it (stone). Traffic: crowded roads slow down.
     Big buildings (manors, landmarks, the market square) need a paved road

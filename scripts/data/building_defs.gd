@@ -437,6 +437,7 @@ const CATEGORIES := [
 	{"name": "Storage", "items": ["stockpile", "granary", "warehouse", "carter", "trading_post"]},
 	{"name": "Defense", "items": ["guard_tower", "stone_tower", "barracks", "palisade", "gate", "stone_wall", "wall_tower"]},
 	{"name": "Civic", "items": ["chapel", "market", "tavern", "scholars_hall"]},
+	{"name": "Roads", "items": ["cobble_road", "paved_road"]},
 	{"name": "Decor", "items": ["plaza", "flowerbed", "avenue_tree", "garden", "fountain", "statue", "monument"]},
 ]
 
@@ -446,8 +447,19 @@ static func get_def(id: String) -> Dictionary:
 		return DECOR[id]
 	if id == "plaza":
 		return PLAZA_DEF
+	if ROAD_DEFS.has(id):
+		return ROAD_DEFS[id]
 	return DEFS[id]
 
+
+## Road upgrades, dragged like roads (WorldMap.place_road_tier): over dirt
+## they raise it, over open ground they lay the better road straight away.
+const ROAD_DEFS := {
+	"cobble_road": {"name": "Cobblestone Road", "desc": "Faster than dirt (2.0x walking), a little beauty along it.",
+		"size": Vector2i(1, 1), "cost": {"stone": 1}, "color": Color(0.6, 0.55, 0.5)},
+	"paved_road": {"name": "Paved Street", "desc": "The fastest road (2.4x) and handsome. Manors and great works need one at the door.",
+		"size": Vector2i(1, 1), "cost": {"stone": 2, "gold": 1}, "color": Color(0.85, 0.8, 0.65)},
+}
 
 ## Plazas are paved road tiles dragged out like roads (see WorldMap.place_plazas).
 const PLAZA_DEF := {"name": "Plaza", "desc": "Paved square: walkable like a road, a little beauty, townsfolk gather.",

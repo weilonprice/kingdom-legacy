@@ -82,6 +82,7 @@ merchant in town, "" if none), `camera_near`
 `settings` (`{"game/pan_speed": 1.6}`: values in Settings), `speed` (0 = paused, 1-3),
 `ui_scale` (the window's content scale), `camera_moved` (`{"since": "<state>", "min": n}` or
 `"max"`: tiles the camera moved since that snapshot),
+`cobble_roads` / `paved_roads` / `busy_roads` (road tiles with recent traffic) (in `min`/`max`),
 `goods_met.<good>` (homes that have it) / `used.<item>` (consumed so far) (in `min`/`max`),
 `class.peasant` / `class.burgher` / `class.noble` / `apprentices` (in `min`/`max`), `home_art` (a home is
 drawn with that sprite, e.g. `townhouse`), `plazas` / `home_beauty` (average home desirability) (in `min`/`max`), `decreased` (like `increased`,

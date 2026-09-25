@@ -30,6 +30,7 @@ var _loitering := false
 func setup(p_world: WorldMap, p_life: TownLife, p_kind: String, p_home: Building) -> void:
 	world = p_world
 	life = p_life
+	add_to_group("townsfolk")
 	kind = p_kind
 	home = p_home
 	look = {"child": "child", "shopper": "townswoman", "dog": "dog"}[kind]

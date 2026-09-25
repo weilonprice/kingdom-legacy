@@ -632,6 +632,9 @@ func _snapshot() -> Dictionary:
 		"tax_mod": GameState.mod("tax"),
 		"anims_seen": anims_seen.keys(),
 		"plazas": world.plazas.size(),
+		"cobble_roads": world.road_tiers.values().count(1),
+		"paved_roads": world.road_tiers.values().count(2),
+		"busy_roads": world.road_use.size(),
 		"classes": _class_counts(),
 		"goods_met": _goods_met(),
 		"used": GameState.stats.used.duplicate(),
@@ -924,7 +927,7 @@ func _metric(s: Dictionary, key: String) -> float:
 	if key == "apprentices":
 		return float(s.apprentices)
 	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning", "lairs",
-			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps", "castle_size", "castle_progress", "builders", "keep_hp", "plazas", "home_beauty", "royals_on_map", "happiness_mod", "tax_mod"]:
+			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps", "castle_size", "castle_progress", "builders", "keep_hp", "plazas", "home_beauty", "cobble_roads", "paved_roads", "busy_roads", "royals_on_map", "happiness_mod", "tax_mod"]:
 		return float(s[key])
 	return float(s.resources.get(key, 0))
 

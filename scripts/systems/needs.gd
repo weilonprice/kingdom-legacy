@@ -120,7 +120,8 @@ func _eligible_level(home: Building) -> int:
 	for i in NeedDefs.LEVELS.size():
 		var needs: Array = NeedDefs.LEVELS[i].needs
 		if needs.all(func(n: String) -> bool: return home.needs_met.get(n, false)) \
-				and beauty >= BeautyDefs.HOME_LEVEL_MIN[i]:
+				and beauty >= BeautyDefs.HOME_LEVEL_MIN[i] \
+				and (i < 2 or world.road_tier_at(home.entrance()) >= 2):  # Manors front a paved street
 			level = i + 1
 	return level
 
