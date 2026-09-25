@@ -22,6 +22,8 @@ var map_seed := 0
 var terrain := PackedByteArray()
 var resource_left := PackedInt32Array()
 var roads := {}        # Vector2i -> true
+## Road tiles paved as plazas (a subset of roads; see place_plazas).
+var plazas := {}       # Vector2i -> true
 var occupancy := {}    # Vector2i -> Building
 var entrances := {}    # Vector2i -> Building
 var reserved := {}     # Vector2i -> Object reserving that resource tile
@@ -79,6 +81,8 @@ var _forest_timer := 0.0
 
 
 func _process(delta: float) -> void:
+	if _desirability_dirty:
+		_recompute_desirability()
 	if growth_paused:
 		return
 	for t: Vector2i in fields:
@@ -566,8 +570,10 @@ func can_place_building(id: String, origin: Vector2i) -> String:
 			if not Terrain.is_buildable(get_terrain(t)):
 				return "Must build on clear ground"
 	var e := BuildingDefs.entrance_of(origin, size)
-	if not is_in_bounds(e) or occupancy.has(e) or get_terrain(e) == Terrain.WATER:
+	if not def.get("decor", false) and (not is_in_bounds(e) or occupancy.has(e) or get_terrain(e) == Terrain.WATER):
 		return "Entrance is blocked"
+	if def.get("decor", false):
+		return ""  # decorations have no door
 	if def.has("gather_terrain") and find_resource_tiles(e, def.gather_terrain, def.radius, 1).is_empty():
 		return "No %s nearby" % Terrain.NAMES[def.gather_terrain].to_lower()
 	if def.has("fields") and field_candidates(origin, size, def.field_radius).size() < def.min_fields:
@@ -600,14 +606,16 @@ func place_building(id: String, origin: Vector2i) -> Building:
 		occupancy[t] = b
 		_update_nav(t)
 		renderer.nature.refresh_tile(t)
-	if not BuildingDefs.is_fortification(b.def):
+	if not BuildingDefs.is_fortification(b.def) and not b.def.get("decor", false):
 		entrances[b.entrance()] = b
 	if b.def.has("fields"):
 		_allocate_fields(b)
 	b.refresh_road_access()
 	_redraw_fortifications_around(b)
 	recompute_capacity()
-	renderer.nature.decorate_building(b)
+	if not b.def.get("decor", false):
+		renderer.nature.decorate_building(b)
+	_desirability_dirty = true
 	Sound.play("build", b.center())
 	building_placed.emit(b)
 	return b
@@ -624,6 +632,7 @@ func remove_building(b: Building) -> void:
 		if fields.has(t) and fields[t].farm == b:
 			set_terrain(t, Terrain.GRASS)
 	buildings.erase(b)
+	_desirability_dirty = true
 	_redraw_fortifications_around(b)
 	recompute_capacity()
 	building_removed.emit(b)
@@ -677,6 +686,92 @@ func upgrade_wall_to_stone(b: Building) -> String:
 		place_building("stone_wall", t)
 	GameState.notify("%d palisade segments rebuilt in stone." % palisades.size())
 	return ""
+
+
+# --- Beauty -------------------------------------------------------------------
+
+var desirability := PackedFloat32Array()
+var _desirability_dirty := true
+
+
+## How pleasant a tile is to live by (BeautyDefs): decorations and some
+## civic buildings add, industry and storage subtract.
+func desirability_at(t: Vector2i) -> float:
+	if not is_in_bounds(t) or desirability.is_empty():
+		return 0.0
+	return desirability[t.y * width + t.x]
+
+
+## Average desirability over a building's footprint.
+func building_desirability(b: Building) -> float:
+	var total := 0.0
+	var tiles := b.footprint()
+	for t in tiles:
+		total += desirability_at(t)
+	return total / maxf(tiles.size(), 1.0)
+
+
+func _recompute_desirability() -> void:
+	_desirability_dirty = false
+	desirability.resize(width * height)
+	desirability.fill(0.0)
+	for b in buildings:
+		var src: Array = BeautyDefs.SOURCES.get(b.def_id, [])
+		if not src.is_empty():
+			_spread(b.origin + b.size / 2, src[0], src[1], b.size.x / 2)
+	for t: Vector2i in plazas:
+		_spread(t, BeautyDefs.PLAZA[0], BeautyDefs.PLAZA[1], 0)
+	for i in desirability.size():
+		desirability[i] = clampf(desirability[i], BeautyDefs.MIN, BeautyDefs.MAX)
+
+
+## Adds `value` around `center`, full strength out to `inner` tiles, fading
+## to zero just past `inner + radius`.
+func _spread(center: Vector2i, value: float, radius: int, inner: int) -> void:
+	var reach := radius + inner
+	for dy in range(-reach, reach + 1):
+		for dx in range(-reach, reach + 1):
+			var t := center + Vector2i(dx, dy)
+			if not is_in_bounds(t):
+				continue
+			var d := maxf(Vector2(dx, dy).length() - inner, 0.0)
+			if d > radius + 0.5:
+				continue
+			desirability[t.y * width + t.x] += value * (1.0 - d / (radius + 1.0))
+
+
+## Paves road tiles (laying road first where there's none) as plaza,
+## 3 stone a tile. Returns the number paved; road_problem says why not.
+func place_plazas(tiles: Array[Vector2i]) -> int:
+	road_problem = ""
+	var cost: Dictionary = BuildingDefs.get_def("plaza").cost
+	var paved := 0
+	for t in tiles:
+		if plazas.has(t) or get_terrain(t) == Terrain.WATER:
+			continue
+		if not roads.has(t) and not can_place_road(t):
+			continue
+		if not GameState.spend(cost):
+			road_problem = "Ran out of stone after %d plaza tiles" % paved
+			break
+		if not roads.has(t):
+			var one: Array[Vector2i] = [t]
+			place_roads(one)
+		plazas[t] = true
+		renderer.refresh_tile(t)
+		paved += 1
+	if paved > 0:
+		_desirability_dirty = true
+		roads_changed.emit()
+	return paved
+
+
+func restore_plazas(tiles: Array) -> void:
+	plazas.clear()
+	for t: Vector2i in tiles:
+		if roads.has(t):
+			plazas[t] = true
+	_desirability_dirty = true
 
 
 func in_castle_grounds(t: Vector2i) -> bool:
@@ -787,6 +882,9 @@ func demolish_at(t: Vector2i) -> String:
 	if roads.has(t):
 		if get_terrain(t) == Terrain.WATER:
 			GameState.refund(BRIDGE_COST, 0.5)
+		if plazas.has(t):
+			plazas.erase(t)
+			_desirability_dirty = true
 		roads.erase(t)
 		renderer.refresh_tile(t)
 		_update_nav(t)

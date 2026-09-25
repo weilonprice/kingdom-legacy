@@ -636,3 +636,62 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     - Trackpad pinch to zoom, two-finger scroll to pan (Mac trackpads).
     - +/- keys and on-screen zoom buttons; smooth zoom.
     - Wider range [?]: zoom out far enough to see the whole kingdom.
+
+
+18. KINGDOM BUILDING (PHASE 3, DECIDED 2026-09-24)
+--------------------------------------------------------------------------------
+  The player asked for more city/kingdom building and chose, in any order:
+  town planning with beauty, road tiers and traffic, growing homes and
+  classes, great works, and public services. Built in this order:
+
+  M26 BEAUTY & DESIRABILITY   [BUILT 2026-09-24]
+    Values (BeautyDefs, value within radius, fading): Flowerbed +5 r2,
+    Planted Tree +4 r2, Garden +10 r4, Fountain +15 r5, Statue +12 r4,
+    Royal Monument +25 r7, each Plaza tile +2 r2; castle +10 r6, Chapel +6,
+    Market +3, Well +2, Tavern -2; Woodcutter -4, Quarry -10, Iron Mine
+    -12 r5, Smithy -10, Armory -8, Mill -4, Barracks -6, storage -2..-5.
+    Homes: Townhouse needs >= -10, Manor >= 20. Decor tab: Plaza (drag,
+    3 stone/tile, paves road), Flowerbed and Planted Tree (Hamlet),
+    Garden and Fountain (Village), Statue and Royal Monument (Town).
+    Decorations need no road. Townsfolk gather at plazas, fountains,
+    gardens and monuments. Overlay O -> Desirability; the home panel shows
+    its desirability and what a Manor needs.
+    Every tile has a desirability: decorations and some civic buildings
+    raise it nearby, industry (mines, quarries, smithies, barracks, storage)
+    lowers it. The best homes need enough of it to reach their top levels,
+    so ugly industry near homes holds them back. Decorations: plazas and
+    paving (dragged out like roads, people gather there), fountains (and
+    the well), gardens, flowerbeds and planted trees, statues and a
+    monument to the current ruler (its likeness changes with the throne).
+    A desirability overlay (O) shows the map.
+
+  M27 CLASSES & GROWING HOMES
+    Three classes: peasants (cottages), burghers - craftsmen and merchants
+    (townhouses), nobles (manors). Each class wants different things;
+    nobles pay the most tax and demand beauty. Each home gets new, bigger-
+    looking art at every level, in its own footprint (and per season).
+
+  M28 ROADS
+    Tiers: dirt -> cobblestone -> paved, each faster; drag the Road tool
+    over a road to upgrade it (stone). Traffic: crowded roads slow down.
+    Big buildings (manors, landmarks, the market square) need a paved road
+    at the door. Paved streets add a little desirability.
+
+  M29 PUBLIC SERVICES
+    Bathhouse and physician (disease breaks out in crowded or dirty
+    quarters; bathhouses prevent it, physicians cure it - this replaces the
+    separate health plan), fire brigade (firefighters rush to fires in
+    range), town watch (crime rises in unhappy, crowded quarters - thefts
+    from storage - and a watch house keeps order in its area), school
+    (educated homes speed research; burghers need it).
+
+  M30 GREAT WORKS
+    Cathedral (city-wide happiness and religion), Guildhall (production and
+    trade), University (faster research, the last research), Grand Market
+    Square (serves every home in a wide radius, merchants pay more). Each a
+    multi-stage construction project like the castle. City needs one great
+    work, Kingdom two.
+
+  After Phase 3: people's lives (families, aging, births) and stats &
+  graphs.
+

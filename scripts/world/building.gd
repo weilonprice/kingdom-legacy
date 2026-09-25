@@ -282,7 +282,8 @@ func footprint() -> Array[Vector2i]:
 
 ## The Keep is the kingdom's heart and always counts as connected.
 func refresh_road_access() -> void:
-	has_road = self == world.keep or BuildingDefs.is_fortification(def) or world.is_road(entrance())
+	has_road = self == world.keep or BuildingDefs.is_fortification(def) or def.get("decor", false) \
+		or world.is_road(entrance())
 	queue_redraw()
 
 
@@ -364,9 +365,18 @@ func inspect_text() -> String:
 		lines.append("Provides %s to homes within %d tiles%s." % [
 			NeedDefs.NEEDS[def.provides].name.to_lower(), def.coverage,
 			"" if service_active() else " (inactive: needs road access and a worker)"])
+	var beauty_src: Array = BeautyDefs.SOURCES.get(def_id, [])
+	if def.get("decor", false) and not beauty_src.is_empty():
+		lines.append("Beauty %+d within %d tiles." % [beauty_src[0], beauty_src[1]])
+	elif not beauty_src.is_empty() and beauty_src[0] < 0:
+		lines.append("Unsightly: %d beauty within %d tiles." % [beauty_src[0], beauty_src[1]])
 	if is_home() and def.has("level_bonus"):
 		lines.append("")
 		lines.append("%s — happiness %d/100" % [level_name(), happiness])
+		var here := world.building_desirability(self)
+		var manor_min: float = BeautyDefs.HOME_LEVEL_MIN[NeedDefs.LEVELS.size() - 1]
+		lines.append("Desirability %d%s" % [roundi(here), "" if here >= manor_min
+			else " (a Manor needs %d: add decorations, keep industry away)" % roundi(manor_min)])
 		for need: String in NeedDefs.ORDER:
 			lines.append("  %s %s" % ["✔" if needs_met.get(need, false) else "✘", NeedDefs.NEEDS[need].name])
 		if level < NeedDefs.LEVELS.size():

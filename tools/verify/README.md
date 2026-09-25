@@ -9,6 +9,8 @@ tools/verify/run.sh tools/verify/scenarios/<name>.json   # one fresh game per ru
 tools/verify/cleanup.sh                                  # stop leftover instances
 ```
 
+A run fails if `godot.log` has any `SCRIPT ERROR`, even when every step passed.
+
 `run.sh` options: `--seed N` (default 12345), `--headless` (no window, no
 screenshots), `--timeout S` (default 300). Evidence goes to
 `.verify-evidence/<timestamp>-<scenario>/`: `report.json`, `godot.log`,
@@ -78,7 +80,8 @@ merchant in town, "" if none), `camera_near`
 `settings` (`{"game/pan_speed": 1.6}`: values in Settings), `speed` (0 = paused, 1-3),
 `ui_scale` (the window's content scale), `camera_moved` (`{"since": "<state>", "min": n}` or
 `"max"`: tiles the camera moved since that snapshot),
-`life.children` / `life.shoppers` / `life.dogs` / `life.chickens` / `life.grazers` / `life.birds` /
+`plazas` / `home_beauty` (average home desirability) (in `min`/`max`), `decreased` (like `increased`,
+for a drop), `life.children` / `life.shoppers` / `life.dogs` / `life.chickens` / `life.grazers` / `life.birds` /
 `life.smoke` / `life.glows` / `life.chatting` / `life.folk_visible` (in `min`/`max`: the living-kingdom
 counts), `royal_ruler` / `royal_spouse` / `royal_heir` (title contains the text; `""` = nobody), `royal_crisis`,
 `royal_breached` (bools), `royals_on_map` / `happiness_mod` / `tax_mod` (in `min`/`max`),

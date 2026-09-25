@@ -57,6 +57,10 @@ the next raid hits. Made with Godot 4.
 - **Rivers and bridges.** A river winds past every town, with a couple of
   shallow fords. Drag a road across it to build a bridge, then guard the
   crossing: raiders use bridges too.
+- **Town planning.** Pave plazas, plant gardens and flowerbeds, raise
+  fountains, statues and a monument to your ruler. Every street has a
+  desirability: industry drags it down, beauty lifts it, and only pleasant
+  quarters grow Manors. Press O for the desirability map.
 - **A living kingdom.** Children play in the lanes, townsfolk with baskets
   crowd the market and stop to chat, dogs trot after their owners,
   chickens scratch and sheep graze by the farms, birds cross the sky,
@@ -249,12 +253,14 @@ after its scenarios pass.
 | M19 | Settings menu ✅ |
 | M20 | Forester and forest regrowth ✅ |
 | M21 | Camera: trackpad pinch and pan, zoom keys and buttons, whole-map view ✅ |
+| M26 | Beauty & desirability: plazas, fountains, gardens, trees, statues, a monument to your ruler; Manors need a pleasant quarter ✅ |
 | M25 | A living kingdom: children, townsfolk and dogs, farm animals and birds, chimney smoke, glowing windows, handcarts ✅ |
 | M24 | Walls that gate roads, cost preview, stone upgrades; a 250-person kingdom; challenge the Dragon when ready ✅ |
 | M23 | The royal family (ruler, spouse, heir with traits, aging and succession) and the treasury raiders can break into ✅ |
 | M23a | Villager animations: chopping, mining, farming, hammering, carrying, picking up and putting down ✅ |
 | M22 | The growing castle: Keep 5×5 → Castle 7×7 → Citadel 9×9, built by builders in reserved grounds ✅ |
-| M25–M28 | **Simulation first** (planned): people's lives, stats & graphs, health & disease. See design.txt §17 |
+| M27–M30 | **Kingdom building** (planned): classes & growing homes, road tiers & traffic, public services, great works. See design.txt §18 |
+| later | People's lives, stats & graphs. See design.txt §17–18 |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 

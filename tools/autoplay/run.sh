@@ -23,5 +23,7 @@ for s in ${SEEDS//,/ }; do
     res://tools/autoplay/autoplay.tscn -- --seed="$s" --minutes="$MINUTES" --difficulty="$DIFF" \
     --out="$OUT/seed-$s" > "$OUT/seed-$s/godot.log" 2>&1
   grep "AUTOPLAY" "$OUT/seed-$s/godot.log" | tail -1
+  errors=$(grep -c "SCRIPT ERROR" "$OUT/seed-$s/godot.log")
+  [ "$errors" -gt 0 ] && echo "WARNING: $errors script error(s) in seed-$s/godot.log"
 done
 echo "$OUT"

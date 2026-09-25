@@ -10,7 +10,7 @@ const TIERS := [
 		"name": "Hamlet",
 		"requires": {},
 		"unlocks": {
-			"buildings": ["house", "well", "woodcutter", "forester", "quarry", "farm", "fisher", "mill",
+			"buildings": ["plaza", "flowerbed", "avenue_tree", "house", "well", "woodcutter", "forester", "quarry", "farm", "fisher", "mill",
 				"bakery", "stockpile", "granary", "carter", "guard_tower", "palisade", "gate"],
 		},
 		"keep": {"hp": 800.0, "capacity": 300},
@@ -19,7 +19,8 @@ const TIERS := [
 		"name": "Village",
 		"requires": {"population": 20, "buildings": ["well", "granary"]},
 		"unlocks": {
-			"buildings": ["barracks", "scholars_hall", "stone_house", "chapel", "market", "iron_mine", "smithy", "trading_post"],
+			"buildings": ["barracks", "scholars_hall", "stone_house", "chapel", "market", "iron_mine", "smithy", "trading_post",
+				"garden", "fountain"],
 			"units": ["militia", "spearman"],
 			"research": ["crop_rotation", "sharp_tools", "wheelbarrows", "fletching", "ledgers"],
 		},
@@ -30,7 +31,7 @@ const TIERS := [
 		"requires": {"population": 60, "raids_survived": 2, "buildings": ["barracks", "scholars_hall"],
 			"house_level": {"level": 2, "count": 8}},
 		"unlocks": {
-			"buildings": ["stone_tower", "warehouse", "tavern", "stone_wall", "wall_tower", "armory"],
+			"buildings": ["stone_tower", "warehouse", "tavern", "stone_wall", "wall_tower", "armory", "statue", "monument"],
 			"units": ["archer"],
 			"research": ["tempered_steel", "masonry"],
 		},

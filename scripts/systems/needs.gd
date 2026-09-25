@@ -94,9 +94,11 @@ func _happiness(met: Dictionary) -> float:
 ## Level the home's needs currently qualify it for.
 func _eligible_level(home: Building) -> int:
 	var level := 1
+	var beauty := world.building_desirability(home)
 	for i in NeedDefs.LEVELS.size():
 		var needs: Array = NeedDefs.LEVELS[i].needs
-		if needs.all(func(n: String) -> bool: return home.needs_met.get(n, false)):
+		if needs.all(func(n: String) -> bool: return home.needs_met.get(n, false)) \
+				and beauty >= BeautyDefs.HOME_LEVEL_MIN[i]:
 			level = i + 1
 	return level
 
