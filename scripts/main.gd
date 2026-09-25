@@ -17,6 +17,8 @@ var trade: Trade
 var castle: Castle
 var royals: Royals
 var town_life: TownLife
+var sickness: Sickness
+var crime: Crime
 var town_effects: TownEffects
 var build: BuildController
 var camera: CameraController
@@ -92,6 +94,13 @@ func _ready() -> void:
 	royals.setup(world, progression)
 	add_child(royals)
 	royals.found(world.map_seed)
+
+	sickness = Sickness.new()
+	sickness.setup(world, citizens)
+	add_child(sickness)
+	crime = Crime.new()
+	crime.world = world
+	add_child(crime)
 
 	town_life = TownLife.new()
 	town_life.setup(world)

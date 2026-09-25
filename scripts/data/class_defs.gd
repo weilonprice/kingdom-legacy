@@ -20,7 +20,8 @@ const JOB_CLASS := {
 	"smithy": "burgher", "armory": "burgher", "tavern": "burgher",
 	"brewery": "burgher", "toolmaker": "burgher", "weaver": "burgher", "tailor": "burgher", "winery": "burgher",
 	"market": "burgher", "trading_post": "burgher",
-	"scholars_hall": "noble", "chapel": "noble", "barracks": "noble",
+	"scholars_hall": "noble", "chapel": "noble", "barracks": "noble", "watch_house": "noble",
+	"physician": "burgher", "school": "burgher",
 }
 ## Jobs a higher class may also take (merchants can be nobles).
 const ALSO_NOBLE := ["market", "trading_post"]

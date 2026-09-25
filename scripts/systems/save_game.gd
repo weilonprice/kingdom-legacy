@@ -70,6 +70,7 @@ static func capture(main: Node) -> Dictionary:
 		buildings.append({
 			"id": b.def_id, "origin": _v(b.origin), "hp": b.health.hp,
 			"level": b.level, "level_timer": b.level_timer, "unhappy_time": b.unhappy_time,
+			"sick": b.sick, "sick_time": b.sick_time,
 			"happiness": b.happiness, "inventory": b.inventory, "output": b.output_stock,
 			"input": b.input_stock, "burning": b.burning,
 		})
@@ -172,6 +173,8 @@ static func apply(main: Node, data: Dictionary) -> void:
 		b.output_stock = _ints(entry.output)
 		b.input_stock = _ints(entry.input)
 		b.level = int(entry.level)
+		b.sick = bool(entry.get("sick", false))
+		b.sick_time = float(entry.get("sick_time", 0.0))
 		b.level_timer = float(entry.level_timer)
 		b.unhappy_time = float(entry.unhappy_time)
 		b.happiness = float(entry.happiness)

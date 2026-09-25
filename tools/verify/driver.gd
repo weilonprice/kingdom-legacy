@@ -306,6 +306,20 @@ func _run_step(step: Dictionary) -> String:
 		hb.set_meta("pinned_level", hb.level)
 		hb.queue_redraw()
 		return "ok (%s level %d)" % [hb.title, hb.level]
+	elif step.has("setup_sick"):
+		# Test-only: sickness breaks out at that home.
+		report.setup_shortcuts.append(step)
+		var sh: Building = world.occupancy.get(_tile_of(step.setup_sick))
+		if sh == null or not sh.is_home():
+			return "FAIL no home at %s" % step.setup_sick
+		main.sickness.fall_sick(sh)
+	elif step.has("setup_theft"):
+		# Test-only: a thief from that home tries to rob a storehouse nearby.
+		report.setup_shortcuts.append(step)
+		var th: Building = world.occupancy.get(_tile_of(step.setup_theft))
+		if th == null:
+			return "FAIL no building at %s" % step.setup_theft
+		main.crime._rob_near(th)
 	elif step.has("setup_hints"):
 		GameState.hints_enabled = bool(step.setup_hints)
 		report.setup_shortcuts.append(step)
@@ -632,6 +646,10 @@ func _snapshot() -> Dictionary:
 		"tax_mod": GameState.mod("tax"),
 		"anims_seen": anims_seen.keys(),
 		"plazas": world.plazas.size(),
+		"sick_homes": main.sickness.sick_homes().size(),
+		"thefts": main.crime.thefts,
+		"keep_guarded": main.crime.guarded(world.keep),
+		"educated_homes": main.needs.educated_homes,
 		"cobble_roads": world.road_tiers.values().count(1),
 		"paved_roads": world.road_tiers.values().count(2),
 		"busy_roads": world.road_use.size(),
@@ -845,6 +863,8 @@ func _check(expect: Dictionary) -> String:
 	for anim: String in expect.get("anims_seen", []):
 		if not anims_seen.has(anim):
 			problems.append("no villager seen doing '%s' (seen: %s)" % [anim, ", ".join(anims_seen.keys())])
+	if expect.has("keep_guarded") and s.keep_guarded != expect.keep_guarded:
+		problems.append("keep_guarded %s != %s" % [s.keep_guarded, expect.keep_guarded])
 	if expect.has("home_art") and not expect.home_art in s.home_art:
 		problems.append("no home drawn as '%s' (%s)" % [expect.home_art, ", ".join(s.home_art)])
 	if expect.has("decreased"):
@@ -927,7 +947,7 @@ func _metric(s: Dictionary, key: String) -> float:
 	if key == "apprentices":
 		return float(s.apprentices)
 	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning", "lairs",
-			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps", "castle_size", "castle_progress", "builders", "keep_hp", "plazas", "home_beauty", "cobble_roads", "paved_roads", "busy_roads", "royals_on_map", "happiness_mod", "tax_mod"]:
+			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps", "castle_size", "castle_progress", "builders", "keep_hp", "plazas", "home_beauty", "cobble_roads", "paved_roads", "busy_roads", "sick_homes", "thefts", "educated_homes", "royals_on_map", "happiness_mod", "tax_mod"]:
 		return float(s[key])
 	return float(s.resources.get(key, 0))
 

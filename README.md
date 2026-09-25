@@ -264,6 +264,7 @@ after its scenarios pass.
 | M19 | Settings menu ✅ |
 | M20 | Forester and forest regrowth ✅ |
 | M21 | Camera: trackpad pinch and pan, zoom keys and buttons, whole-map view ✅ |
+| M29 | Public services: bathhouse & physician against sickness, fire brigade, town watch against thieves, schools that speed research ✅ |
 | M28 | Roads: cobblestone and paved streets, traffic and a traffic overlay; Manors need a paved street ✅ |
 | M27b | Goods: ale, tools, cloth, wine and fine clothes from seven new workshops and farms; homes want better goods as they rise ✅ |
 | M27a | Peasants, burghers and nobles: classes from homes, jobs by class, noble captains, new townhouse and manor art ✅ |
@@ -273,7 +274,7 @@ after its scenarios pass.
 | M23 | The royal family (ruler, spouse, heir with traits, aging and succession) and the treasury raiders can break into ✅ |
 | M23a | Villager animations: chopping, mining, farming, hammering, carrying, picking up and putting down ✅ |
 | M22 | The growing castle: Keep 5×5 → Castle 7×7 → Citadel 9×9, built by builders in reserved grounds ✅ |
-| M29–M30 | **Kingdom building** (planned): road tiers & traffic, public services, great works. See design.txt §18 |
+| M30 | **Great works** (planned): Cathedral, Guildhall, University, Grand Market Square. See design.txt §18 |
 | later | People's lives, stats & graphs. See design.txt §17–18 |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
