@@ -9,7 +9,8 @@ const NAMES := ["Off", "Happiness", "Services", "Road access", "Desirability", "
 const NEED_COLORS := {
 	"food": Color(0.95, 0.75, 0.3), "water": Color(0.35, 0.6, 1.0),
 	"religion": Color(0.95, 0.95, 0.95), "market": Color(0.9, 0.4, 0.35),
-	"tavern": Color(0.6, 0.4, 0.2),
+	"tavern": Color(0.6, 0.4, 0.2), "hygiene": Color(0.5, 0.85, 0.95),
+	"order": Color(0.45, 0.45, 0.75), "education": Color(0.95, 0.7, 0.4),
 }
 
 var world: WorldMap

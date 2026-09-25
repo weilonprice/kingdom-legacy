@@ -37,6 +37,9 @@ var level := 1
 var level_timer := 0.0
 ## Jobs on top of the def's (the castle's builders during an upgrade).
 var extra_jobs := 0
+## Homes: disease (see Sickness). Sick residents stay in bed.
+var sick := false
+var sick_time := 0.0
 var unhappy_time := 0.0
 
 var _attack_cooldown := 0.0
@@ -460,6 +463,12 @@ func _draw() -> void:
 
 	if burning:
 		_draw_fire(px)
+	if sick:
+		# A green plague cross over the door.
+		var c := Vector2(px.x * 0.5, top + 6)
+		draw_circle(c, 7.0, Color(0.15, 0.35, 0.1, 0.85))
+		draw_rect(Rect2(c + Vector2(-1.5, -4.5), Vector2(3, 9)), Color(0.6, 1.0, 0.4))
+		draw_rect(Rect2(c + Vector2(-4.5, -1.5), Vector2(9, 3)), Color(0.6, 1.0, 0.4))
 
 	health.draw_bar(self, Vector2(px.x * 0.5, top - 7), minf(px.x - 4, 40))
 

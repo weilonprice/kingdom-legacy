@@ -34,6 +34,12 @@ func progress_ratio() -> float:
 
 
 ## Scholars currently studying across all halls.
+## Educated homes (a School nearby) speed research, 1% each up to +50%.
+func _schooling() -> float:
+	var needs: Needs = world.get_parent().get("needs")
+	return 1.0 + minf(needs.educated_homes * 0.01, 0.5) if needs != null else 1.0
+
+
 ## Scholars at their desks, apprentices (not nobles) counting for less.
 func scholar_power() -> float:
 	var power := 0.0
@@ -71,7 +77,7 @@ func start(id: String, progression: Progression) -> String:
 func _process(delta: float) -> void:
 	if queue.is_empty():
 		return
-	progress += delta * scholar_power() * GameState.mod("research_speed")
+	progress += delta * scholar_power() * GameState.mod("research_speed") * _schooling()
 	if progress >= ResearchDefs.get_def(queue[0]).time:
 		_complete(queue.pop_front())
 

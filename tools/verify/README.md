@@ -59,6 +59,8 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 | `{"setup_keep_hp": 0.4}` | TEST-ONLY: sets the castle's HP to that share of its maximum (a breach needs a raid on). Logged |
 | `{"click_royal": "ruler"}` | Clicks that family member (`ruler`/`spouse`/`heir`) where they stand |
 | `{"setup_home_level": {"home": alias, "level": 3}}` | TEST-ONLY: sets a home's level and pins it there (its residents' class follows). Logged |
+| `{"setup_sick": alias}` | TEST-ONLY: sickness breaks out at that home. Logged |
+| `{"setup_theft": alias}` | TEST-ONLY: a thief from that building robs a storehouse nearby (unless a Town Watch guards it). Logged |
 | `{"find_site": {..., "entrance_on_road": true, "connect": true}}` | Also accepts sites whose door is up to 12 tiles off a street, and lays a road from the door to the nearest street (logged) |
 | `{"setup_hints": true}` | Turns tutorial hints on (the driver starts with them off so they don't cover tiles) |
 | `{"setup_delay_raids": s}` | TEST-ONLY: no natural raid for `s` game seconds. Logged |
@@ -82,6 +84,7 @@ merchant in town, "" if none), `camera_near`
 `settings` (`{"game/pan_speed": 1.6}`: values in Settings), `speed` (0 = paused, 1-3),
 `ui_scale` (the window's content scale), `camera_moved` (`{"since": "<state>", "min": n}` or
 `"max"`: tiles the camera moved since that snapshot),
+`sick_homes` / `thefts` / `educated_homes` (in `min`/`max`), `keep_guarded` (true/false: a Town Watch covers the keep),
 `cobble_roads` / `paved_roads` / `busy_roads` (road tiles with recent traffic) (in `min`/`max`),
 `goods_met.<good>` (homes that have it) / `used.<item>` (consumed so far) (in `min`/`max`),
 `class.peasant` / `class.burgher` / `class.noble` / `apprentices` (in `min`/`max`), `home_art` (a home is

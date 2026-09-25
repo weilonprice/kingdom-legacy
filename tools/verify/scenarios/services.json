@@ -1,0 +1,237 @@
+[
+ {
+  "include": "village-setup.json"
+ },
+ {
+  "setup_delay_raids": 3000
+ },
+ {
+  "setup_grant": {
+   "wood": 400,
+   "stone": 300,
+   "gold": 600,
+   "bread": 300
+  }
+ },
+ {
+  "setup_tier": "Town"
+ },
+ {
+  "click_button": "Housing"
+ },
+ {
+  "click_button": "Civic"
+ },
+ {
+  "find_site": {
+   "building": "physician",
+   "as": "physician",
+   "entrance_on_road": true,
+   "connect": true
+  }
+ },
+ {
+  "click_button": "Physician"
+ },
+ {
+  "click_tile": "physician"
+ },
+ {
+  "find_site": {
+   "building": "fire_station",
+   "as": "fire",
+   "entrance_on_road": true,
+   "connect": true
+  }
+ },
+ {
+  "click_button": "Fire Station"
+ },
+ {
+  "click_tile": "fire"
+ },
+ {
+  "find_site": {
+   "building": "bathhouse",
+   "as": "bath",
+   "entrance_on_road": true,
+   "connect": true
+  }
+ },
+ {
+  "click_button": "Bathhouse"
+ },
+ {
+  "click_tile": "bath"
+ },
+ {
+  "find_site": {
+   "building": "school",
+   "as": "school",
+   "entrance_on_road": true,
+   "connect": true,
+   "near": [
+    0,
+    -1
+   ]
+  }
+ },
+ {
+  "click_button": "School"
+ },
+ {
+  "click_tile": "school"
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "expect": {
+   "buildings_min": {
+    "physician": 1,
+    "fire_station": 1,
+    "bathhouse": 1,
+    "school": 1
+   }
+  }
+ },
+ {
+  "click_button": "4x"
+ },
+ {
+  "wait": 5
+ },
+ {
+  "setup_sick": "h1"
+ },
+ {
+  "expect": {
+   "min": {
+    "sick_homes": 1
+   },
+   "message": "Sickness has broken out"
+  }
+ },
+ {
+  "click_button": "1x"
+ },
+ {
+  "key": "EQUAL"
+ },
+ {
+  "pan_to": "h1"
+ },
+ {
+  "wait": 1
+ },
+ {
+  "screenshot": "00-sick"
+ },
+ {
+  "key": "MINUS"
+ },
+ {
+  "click_button": "4x"
+ },
+ {
+  "wait_until": {
+   "max": {
+    "sick_homes": 0
+   },
+   "message": "physician cured"
+  },
+  "timeout": 120
+ },
+ {
+  "setup_ignite": "school"
+ },
+ {
+  "expect": {
+   "min": {
+    "burning": 1
+   }
+  }
+ },
+ {
+  "wait_until": {
+   "max": {
+    "burning": 0
+   },
+   "message": "Firefighters put out"
+  },
+  "timeout": 120
+ },
+ {
+  "setup_home_level": {
+   "home": "h1",
+   "level": 2
+  }
+ },
+ {
+  "wait_until": {
+   "min": {
+    "educated_homes": 1
+   }
+  },
+  "timeout": 30
+ },
+ {
+  "click_tile": "h1"
+ },
+ {
+  "expect": {
+   "text": "\u2714 School"
+  }
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "state": "before-theft"
+ },
+ {
+  "setup_theft": "h1"
+ },
+ {
+  "expect": {
+   "increased": {
+    "since": "before-theft",
+    "thefts": 1
+   },
+   "message": "Thieves stole"
+  }
+ },
+ {
+  "click_button": "Civic"
+ },
+ {
+  "find_site": {
+   "building": "watch_house",
+   "as": "watch",
+   "entrance_on_road": true,
+   "connect": true,
+   "near": [
+    0,
+    -1
+   ]
+  }
+ },
+ {
+  "click_button": "Town Watch"
+ },
+ {
+  "click_tile": "watch"
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "wait_until": {
+   "keep_guarded": true
+  },
+  "timeout": 60
+ },
+ {
+  "state": "end"
+ }
+]

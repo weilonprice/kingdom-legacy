@@ -719,7 +719,20 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     Big buildings (manors, landmarks, the market square) need a paved road
     at the door. Paved streets add a little desirability.
 
-  M29 PUBLIC SERVICES
+  M29 PUBLIC SERVICES   [BUILT 2026-09-25]
+    Civic tab. Village: Bathhouse (hygiene, +6 happiness in range 8),
+    Physician (1 worker walks to sick homes within 16 tiles and cures
+    them), Fire Station (2 firefighters run to fires within 16 tiles and
+    douse them). Town: Town Watch (order, +4 in range 12; storehouses in
+    range can't be robbed), School (education, range 10; Manors need it,
+    each educated home speeds research 1%, up to +50%).
+    Sickness starts at 30 people: crowded quarters, sick neighbours, no
+    water and ugly streets raise the chance; a bathhouse cuts it to a
+    quarter. The sick stay in bed; untreated, after a while half of a
+    home dies or it recovers. Crime starts at 40 people: unhappy homes
+    (below 45) send thieves to take 8% of one good from an unguarded
+    storehouse nearby. The Services overlay shows the new needs.
+    Saves keep sickness.
     Bathhouse and physician (disease breaks out in crowded or dirty
     quarters; bathhouses prevent it, physicians cure it - this replaces the
     separate health plan), fire brigade (firefighters rush to fires in

@@ -74,6 +74,31 @@ const DEFS := {
 		"coverage": 10,
 		"hp": 300.0,
 	},
+	"bathhouse": {
+		"name": "Bathhouse", "desc": "Clean homes within 8 tiles: happier, and far less prone to disease.",
+		"size": Vector2i(2, 2), "cost": {"wood": 40, "stone": 40}, "color": Color(0.6, 0.75, 0.85),
+		"jobs": 1, "work": "service", "provides": "hygiene", "coverage": 8, "hp": 300.0,
+	},
+	"physician": {
+		"name": "Physician", "desc": "The physician walks to sick homes within 16 tiles and cures them.",
+		"size": Vector2i(2, 2), "cost": {"wood": 40, "stone": 20, "gold": 30}, "color": Color(0.55, 0.75, 0.5),
+		"jobs": 1, "work": "physician", "radius": 16, "work_time": 5.0, "hp": 250.0,
+	},
+	"fire_station": {
+		"name": "Fire Station", "desc": "Firefighters run to any fire within 16 tiles and put it out fast.",
+		"size": Vector2i(2, 2), "cost": {"wood": 50, "stone": 20}, "color": Color(0.8, 0.3, 0.2),
+		"jobs": 2, "work": "firefight", "radius": 16, "work_time": 2.0, "hp": 350.0,
+	},
+	"watch_house": {
+		"name": "Town Watch", "desc": "A magistrate and the watch keep order: no thefts from storage within 12 tiles, and less crime in homes there.",
+		"size": Vector2i(2, 2), "cost": {"wood": 40, "stone": 50, "gold": 40}, "color": Color(0.35, 0.35, 0.5),
+		"jobs": 1, "work": "service", "provides": "order", "coverage": 12, "hp": 500.0,
+	},
+	"school": {
+		"name": "School", "desc": "Educates homes within 10 tiles: burghers want it, Manors need it, and educated homes speed research.",
+		"size": Vector2i(2, 2), "cost": {"wood": 50, "stone": 40, "gold": 50}, "color": Color(0.75, 0.6, 0.4),
+		"jobs": 1, "work": "service", "provides": "education", "coverage": 10, "hp": 300.0,
+	},
 	"market": {
 		"name": "Market",
 		"desc": "A merchant sells wares: provides market access to homes within 10 tiles.",
@@ -436,7 +461,7 @@ const CATEGORIES := [
 	{"name": "Food", "items": ["farm", "fisher", "mill", "bakery", "sheep_farm", "vineyard"]},
 	{"name": "Storage", "items": ["stockpile", "granary", "warehouse", "carter", "trading_post"]},
 	{"name": "Defense", "items": ["guard_tower", "stone_tower", "barracks", "palisade", "gate", "stone_wall", "wall_tower"]},
-	{"name": "Civic", "items": ["chapel", "market", "tavern", "scholars_hall"]},
+	{"name": "Civic", "items": ["chapel", "market", "tavern", "scholars_hall", "bathhouse", "physician", "fire_station", "watch_house", "school"]},
 	{"name": "Roads", "items": ["cobble_road", "paved_road"]},
 	{"name": "Decor", "items": ["plaza", "flowerbed", "avenue_tree", "garden", "fountain", "statue", "monument"]},
 ]

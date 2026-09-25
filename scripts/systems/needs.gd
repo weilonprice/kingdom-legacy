@@ -16,6 +16,8 @@ var citizens: CitizenManager
 var seasons: Seasons
 ## Gold collected at the last tax time, for the HUD.
 var last_tax := 0
+## Homes a School covers (each speeds research 1%, up to +50%).
+var educated_homes := 0
 
 var _update_timer := 0.0
 var _tax_timer := TAX_INTERVAL
@@ -62,13 +64,18 @@ func _update_homes(elapsed: float) -> void:
 		if need != "food":
 			providers[need] = _providers(need)
 	var total := 0.0
+	var educated := 0
 	var list := homes()
 	for home in list:
 		var met := {"food": _fed(home)}
 		if seasons != null and seasons.is_winter():
 			met["warmth"] = seasons.warm
 		for need: String in providers:
+			if need == "education" and home.level < 2:
+				continue  # schooling matters to burghers and nobles
 			met[need] = providers[need].any(func(p: Building) -> bool: return p.covers(home))
+		if met.get("education", false):
+			educated += 1
 		var served_by_market: bool = met.get("market", false)
 		for good: String in NeedDefs.GOODS_ORDER:
 			if home == world.keep or home.level < NeedDefs.GOODS[good].from:
@@ -83,6 +90,7 @@ func _update_homes(elapsed: float) -> void:
 		total += home.happiness
 		home.queue_redraw()
 	GameState.set_happiness(total / list.size() if not list.is_empty() else NeedDefs.BASE_HAPPINESS)
+	educated_homes = educated
 	_consume_goods()
 
 

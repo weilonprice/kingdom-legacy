@@ -10,7 +10,8 @@ const SOURCES := {
 	"flowerbed": [5.0, 2], "avenue_tree": [4.0, 2], "garden": [10.0, 4], "fountain": [15.0, 5],
 	"statue": [12.0, 4], "monument": [25.0, 7],
 	# Civic
-	"keep": [10.0, 6], "chapel": [6.0, 4], "market": [3.0, 3], "well": [2.0, 2], "tavern": [-2.0, 3],
+	"keep": [10.0, 6], "chapel": [6.0, 4], "bathhouse": [2.0, 3], "school": [3.0, 3], "fire_station": [-2.0, 2],
+	"watch_house": [-1.0, 2], "market": [3.0, 3], "well": [2.0, 2], "tavern": [-2.0, 3],
 	# Industry and work
 	"woodcutter": [-4.0, 3], "forester": [-1.0, 2], "quarry": [-10.0, 4], "iron_mine": [-12.0, 5],
 	"smithy": [-10.0, 4], "armory": [-8.0, 4], "mill": [-4.0, 3], "bakery": [-2.0, 2], "fisher": [-3.0, 3],

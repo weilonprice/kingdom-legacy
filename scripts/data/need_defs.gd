@@ -13,6 +13,9 @@ const NEEDS := {
 	"religion": {"name": "Religion", "met": 10.0, "unmet": 0.0},
 	"market": {"name": "Market", "met": 10.0, "unmet": 0.0},
 	"tavern": {"name": "Tavern", "met": 10.0, "unmet": 0.0},
+	"hygiene": {"name": "Bathhouse", "met": 6.0, "unmet": 0.0},
+	"order": {"name": "Town Watch", "met": 4.0, "unmet": 0.0},
+	"education": {"name": "School", "met": 6.0, "unmet": -4.0},
 	# Goods, delivered by a market (see GOODS).
 	"ale": {"name": "Ale", "met": 6.0, "unmet": 0.0},
 	"tools": {"name": "Tools", "met": 6.0, "unmet": -4.0},
@@ -22,7 +25,7 @@ const NEEDS := {
 	# Winter only: homes need firewood (see Seasons).
 	"warmth": {"name": "Warmth", "met": 0.0, "unmet": -20.0},
 }
-const ORDER := ["food", "water", "religion", "market", "tavern"]
+const ORDER := ["food", "water", "religion", "market", "tavern", "hygiene", "order", "education"]
 ## Goods homes want from the Cottage level (`from`) up; the lower classes
 ## want the cheaper goods. A home has a good when the kingdom has it in
 ## storage and a staffed Market covers the home (its traders deliver).
@@ -41,7 +44,7 @@ const BASE_HAPPINESS := 50.0
 const LEVELS := [
 	{"name": "Cottage", "needs": ["food"], "tax": 1.0},
 	{"name": "Townhouse", "needs": ["food", "water", "religion", "ale"], "tax": 2.0},
-	{"name": "Manor", "needs": ["food", "water", "religion", "market", "tavern", "ale", "tools", "cloth"], "tax": 3.5},
+	{"name": "Manor", "needs": ["food", "water", "religion", "market", "tavern", "education", "ale", "tools", "cloth"], "tax": 3.5},
 ]
 
 ## Gold per resident per minute, and the happiness effect of each rate.

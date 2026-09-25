@@ -27,7 +27,7 @@ enum State {
 	TO_PICKUP, TO_SUPPLY, TO_SHELTER, HIDING, TO_POST, STATIONED, TO_BED, SLEEPING,
 	FIGHTING,
 }
-enum Task { NONE, GATHER, PLANT, HARVEST, PRODUCE, PLANT_TREE, BUILD }
+enum Task { NONE, GATHER, PLANT, HARVEST, PRODUCE, PLANT_TREE, BUILD, CURE, DOUSE }
 
 const SPEED := 42.0
 const COLOR_UNEMPLOYED := Color(0.87, 0.75, 0.55)
@@ -121,7 +121,7 @@ func is_guard() -> bool:
 ## Guards, scholars and service workers work from inside their building: they
 ## don't flee raids or go home at night.
 func works_inside() -> bool:
-	return job != null and job.def.get("work", "") in ["guard", "study", "service"]
+	return job != null and job.def.get("work", "") in ["guard", "study", "service", "physician", "firefight"]
 
 
 ## Filling in below the job's class (works slower; see ClassDefs).
@@ -210,12 +210,21 @@ func _process(delta: float) -> void:
 		_step(delta)
 		return
 	match state:
-		State.HIDING, State.STATIONED:
+		State.HIDING:
 			pass
+		State.STATIONED:
+			# Physicians and firefighters wait at their post for a call.
+			if job != null and job.work_type() in ["physician", "firefight"]:
+				timer -= delta
+				if timer <= 0.0:
+					timer = 2.0
+					if _has_call():
+						visible = true
+						_think()
 		State.FIGHTING:
 			_fight(delta)
 		State.SLEEPING:
-			if not world.is_night:
+			if not world.is_night and not is_sick():
 				visible = true
 				_wait("Waking up", randf_range(0.2, 2.0))
 		State.IDLE:
@@ -257,6 +266,8 @@ func current_anim() -> String:
 				return "farm"
 			Task.BUILD:
 				return "hammer"
+			Task.DOUSE:
+				return "pickup"
 			Task.PRODUCE:
 				return "hammer" if job != null and job.def_id in ["smithy", "armory"] else "idle"
 	return "idle"
@@ -289,6 +300,10 @@ func _think() -> void:
 	if carrying != "":
 		_go_deposit()
 		return
+	if is_sick():
+		note = "Sick in bed"
+		_go_to_bed()
+		return
 	if world.is_night and not works_inside():
 		_go_to_bed()
 		return
@@ -303,6 +318,10 @@ func _think() -> void:
 	match job.work_type():
 		"build":
 			_plan_build()
+		"physician":
+			_plan_call("sick")
+		"firefight":
+			_plan_call("fire")
 		"gather":
 			_plan_gather()
 		"farm":
@@ -419,6 +438,42 @@ func _drop_castle_claim() -> void:
 	var castle: Castle = world.get_parent().castle
 	castle.deliver(_castle_claim.item, _castle_claim.amount, false)
 	_castle_claim = {}
+
+
+## A sick home / burning building in this physician's or firefighter's reach.
+func _has_call() -> bool:
+	var reach: float = job.def.radius * Terrain.TILE_SIZE
+	var fire := job.work_type() == "firefight"
+	return world.buildings.any(func(b: Building) -> bool:
+		return (b.burning if fire else b.sick) and b.center().distance_to(job.center()) <= reach)
+
+
+func is_sick() -> bool:
+	return is_instance_valid(home) and home.sick
+
+
+## Physicians and firefighters: head for the nearest sick home / burning
+## building within the job's radius, else wait at the post.
+func _plan_call(kind: String) -> void:
+	var best: Building = null
+	var best_d := INF
+	var reach: float = job.def.radius * Terrain.TILE_SIZE
+	for b in world.buildings:
+		if (b.sick if kind == "sick" else b.burning) and b.center().distance_to(job.center()) <= reach:
+			var d := b.center().distance_squared_to(position)
+			if d < best_d:
+				best_d = d
+				best = b
+	if best != null:
+		var stand := world.approach_tile(best.entrance())
+		if stand != WorldMap.INVALID_TILE and _walk_to(stand):
+			_dest = best
+			task = Task.CURE if kind == "sick" else Task.DOUSE
+			state = State.TO_TARGET
+			_target_tile = WorldMap.INVALID_TILE
+			note = "Hurrying to the sick at a %s" % best.title if kind == "sick" else "Running to the fire at the %s" % best.title
+			return
+	_plan_station()
 
 
 func _plan_forester() -> void:
@@ -657,11 +712,12 @@ func _arrive() -> void:
 			visible = false
 			note = {"guard": "On watch", "study": "Studying"}.get(job.def.work, "Serving customers")
 		State.TO_TARGET:
-			if job == null or (_target_tile == WorldMap.INVALID_TILE and task != Task.BUILD):
+			if job == null or (_target_tile == WorldMap.INVALID_TILE and not task in [Task.BUILD, Task.CURE, Task.DOUSE]):
 				_reset()
 				return
 			state = State.WORKING
-			var look := world.tile_center(_target_tile) if _target_tile != WorldMap.INVALID_TILE else job.center()
+			var look := world.tile_center(_target_tile) if _target_tile != WorldMap.INVALID_TILE else (
+				_dest.center() if task in [Task.CURE, Task.DOUSE] and is_instance_valid(_dest) else job.center())
 			if look.distance_to(position) > 2.0:
 				_facing = Art.facing(look - position, _facing)
 			timer = job.def.get("work_time", 4.0) * _work_multiplier() \
@@ -669,7 +725,8 @@ func _arrive() -> void:
 			note = {Task.GATHER: "Gathering %s" % job.def.get("resource", ""),
 					Task.PLANT: "Planting", Task.HARVEST: "Harvesting",
 					Task.PLANT_TREE: "Planting a sapling",
-					Task.BUILD: "Building the %s" % job.title}.get(task, "Working")
+					Task.BUILD: "Building the %s" % job.title,
+					Task.CURE: "Tending the sick", Task.DOUSE: "Fighting the fire"}.get(task, "Working")
 		State.TO_FETCH:
 			_arrive_fetch()
 		State.TO_WORKPLACE:
@@ -850,6 +907,15 @@ func _finish_work() -> void:
 			world.plant_sapling(_target_tile)
 		Task.BUILD:
 			world.get_parent().castle.add_work(job.def.get("work_time", 4.0) * _work_multiplier())
+		Task.CURE:
+			if is_instance_valid(_dest) and _dest.sick:
+				world.get_parent().sickness.cure(_dest)
+		Task.DOUSE:
+			if is_instance_valid(_dest) and _dest.burning:
+				_dest.extinguish_progress += 0.5
+				if _dest.extinguish_progress >= 1.0:
+					_dest.extinguish()
+					GameState.notify("Firefighters put out the fire at the %s" % _dest.title)
 		Task.HARVEST:
 			amount = world.harvest_field(_target_tile)
 			item = def.resource
