@@ -1,0 +1,223 @@
+[
+ {
+  "include": "village-setup.json"
+ },
+ {
+  "setup_delay_raids": 3000
+ },
+ {
+  "setup_grant": {
+   "wood": 400,
+   "stone": 300,
+   "gold": 600,
+   "bread": 300
+  }
+ },
+ {
+  "expect": {
+   "min": {
+    "class.peasant": 15
+   },
+   "max": {
+    "class.burgher": 0,
+    "class.noble": 0
+   }
+  }
+ },
+ {
+  "click_button": "Civic"
+ },
+ {
+  "find_site": {
+   "building": "chapel",
+   "as": "chapel",
+   "entrance_on_road": true
+  }
+ },
+ {
+  "click_button": "Chapel"
+ },
+ {
+  "click_tile": "chapel"
+ },
+ {
+  "click_button": "Industry"
+ },
+ {
+  "find_site": {
+   "building": "smithy",
+   "as": "smithy",
+   "entrance_on_road": true
+  }
+ },
+ {
+  "click_button": "Smithy"
+ },
+ {
+  "click_tile": "smithy"
+ },
+ {
+  "click_button": "Defense"
+ },
+ {
+  "find_site": {
+   "building": "barracks",
+   "as": "barracks",
+   "entrance_on_road": true
+  }
+ },
+ {
+  "click_button": "Barracks"
+ },
+ {
+  "click_tile": "barracks"
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "wait_until": {
+   "min": {
+    "apprentices": 2
+   }
+  },
+  "timeout": 60
+ },
+ {
+  "click_tile": "smithy"
+ },
+ {
+  "expect": {
+   "text": "(needs burghers)"
+  }
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "state": "before-burghers"
+ },
+ {
+  "setup_home_level": {
+   "home": "h1",
+   "level": 2
+  }
+ },
+ {
+  "setup_home_level": {
+   "home": "h2",
+   "level": 2
+  }
+ },
+ {
+  "wait_until": {
+   "min": {
+    "class.burgher": 4
+   }
+  },
+  "timeout": 30
+ },
+ {
+  "expect": {
+   "home_art": "townhouse"
+  }
+ },
+ {
+  "wait_until": {
+   "decreased": {
+    "since": "before-burghers",
+    "apprentices": 1
+   }
+  },
+  "timeout": 60
+ },
+ {
+  "click_tile": "smithy"
+ },
+ {
+  "expect": {
+   "text": "(burgher)"
+  }
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "setup_tier": "City"
+ },
+ {
+  "setup_grant": {
+   "weapons": 2,
+   "armor": 2,
+   "gold": 200
+  }
+ },
+ {
+  "click_tile": "barracks"
+ },
+ {
+  "click_button": "Knight"
+ },
+ {
+  "expect": {
+   "message": "noble captain"
+  }
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "setup_home_level": {
+   "home": "h3",
+   "level": 3
+  }
+ },
+ {
+  "wait_until": {
+   "min": {
+    "class.noble": 1
+   }
+  },
+  "timeout": 30
+ },
+ {
+  "expect": {
+   "home_art": "manor"
+  }
+ },
+ {
+  "click_tile": "barracks"
+ },
+ {
+  "wait_until": {
+   "text": "A noble captain commands"
+  },
+  "timeout": 60
+ },
+ {
+  "click_button": "Knight"
+ },
+ {
+  "expect": {
+   "text": "Training:"
+  }
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "key": "EQUAL"
+ },
+ {
+  "pan_to": "h2"
+ },
+ {
+  "wait": 1
+ },
+ {
+  "screenshot": "00-homes"
+ },
+ {
+  "state": "end"
+ }
+]

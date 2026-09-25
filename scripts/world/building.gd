@@ -194,6 +194,23 @@ func _draw_fire(px: Vector2) -> void:
 				Color(1.0, 0.85, 0.3, 0.95))
 
 
+## The sprite for this building now (homes change with their level).
+func sprite_id() -> String:
+	if def.has("level_art"):
+		return def.level_art[clampi(level - 1, 0, def.level_art.size() - 1)]
+	return art_id
+
+
+## Workers filling in below their job's class (see ClassDefs).
+func apprentice_count() -> int:
+	return workers.filter(func(v: Villager) -> bool: return v.apprentice).size()
+
+
+## A noble on duty (a Barracks captain can train knights).
+func has_noble_worker() -> bool:
+	return workers.any(func(v: Villager) -> bool: return v.social_class() == "noble" and not v.apprentice)
+
+
 func job_slots() -> int:
 	return def.get("jobs", 0) + extra_jobs
 
@@ -390,15 +407,21 @@ func inspect_text() -> String:
 
 	if is_home():
 		lines.append("")
-		lines.append("Residents: %d/%d" % [residents.size(), housing_capacity()])
+		lines.append("Residents: %d/%d%s" % [residents.size(), housing_capacity(),
+			"" if self == world.keep or not def.has("level_bonus") else " — %s" % ClassDefs.TITLES[clampi(level - 1, 0, 2)].to_lower()])
 		for v in residents:
 			var hunger := "  (hungry)" if v.missed_meals > 0 else ""
 			lines.append("  • %s%s" % [v.villager_name, hunger])
 	if def.get("jobs", 0) > 0:
 		lines.append("")
-		lines.append("Workers: %d/%d" % [workers.size(), def.jobs])
+		var wanted := ClassDefs.job_class(self)
+		lines.append("Workers: %d/%d%s" % [workers.size(), def.jobs,
+			"" if wanted == "peasant" else " (needs %ss)" % wanted])
 		for v in workers:
-			lines.append("  • %s — %s" % [v.villager_name, v.note])
+			lines.append("  • %s (%s%s) — %s" % [v.villager_name, v.social_class(),
+				", apprentice: slower" if v.apprentice else "", v.note])
+		if def_id == "barracks":
+			lines.append("Knights need a noble captain here." if not has_noble_worker() else "A noble captain commands here.")
 	return "\n".join(lines)
 
 
@@ -411,7 +434,7 @@ func _draw() -> void:
 		return
 	if self == world.keep:
 		_draw_castle_works()
-	var sprite := Art.building(art_id)
+	var sprite := Art.building(sprite_id())
 	# Top edge of what's drawn, for the health bar (tall sprites rise above
 	# their footprint).
 	var top := 0.0

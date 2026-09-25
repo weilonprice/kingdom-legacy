@@ -471,11 +471,21 @@ func _stock_text(items: Array[String], include_empty: bool) -> String:
 	return " · ".join(parts) if not parts.is_empty() else "none"
 
 
+## "30 peasants · 8 burghers · 2 nobles"
+func _class_line() -> String:
+	if not is_inside_tree():
+		return ""  # a HUD being replaced by a load
+	var counts := [0, 0, 0]
+	for v in get_tree().get_nodes_in_group("villagers"):
+		counts[ClassDefs.rank(v.social_class())] += 1
+	return "%d peasants · %d burghers · %d nobles" % counts
+
+
 func _refresh_population() -> void:
 	_set_bar(_pop_label, "Pop %d/%d · Jobs %d/%d · ☺%d" % [
 		GameState.population, GameState.housing, GameState.employed, GameState.jobs, GameState.happiness],
-		"Population %d (housing for %d)\nWorkers %d of %d jobs filled\nAverage happiness %d/100 (O shows the map)" % [
-			GameState.population, GameState.housing, GameState.employed, GameState.jobs, GameState.happiness])
+		"Population %d (housing for %d)\n%s\nWorkers %d of %d jobs filled\nAverage happiness %d/100 (O shows the map)" % [
+			GameState.population, GameState.housing, _class_line(), GameState.employed, GameState.jobs, GameState.happiness])
 
 
 func _refresh_speed() -> void:

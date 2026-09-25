@@ -106,6 +106,8 @@ func _eligible_level(home: Building) -> int:
 func _update_level(home: Building, elapsed: float) -> void:
 	if home.def.get("level_bonus", 0) == 0:
 		return  # the Keep houses settlers but doesn't level up
+	if home.has_meta("pinned_level"):
+		return  # held by a test (verify driver's setup_home_level)
 	var target := _eligible_level(home)
 	if target == home.level:
 		home.level_timer = 0.0

@@ -81,7 +81,7 @@ func _smokes(b: Building) -> bool:
 
 
 func _chimney(b: Building) -> Vector2:
-	var sprite := Art.building(b.art_id)
+	var sprite := Art.building(b.sprite_id())
 	var px := Vector2(b.size * Terrain.TILE_SIZE)
 	if sprite == null:
 		return b.position + Vector2(px.x * 0.7, 0)

@@ -39,6 +39,7 @@ const DEFS := {
 		"color": Color(0.71, 0.51, 0.35),
 		"housing": 4,
 		"level_bonus": 2,
+		"level_art": ["house", "townhouse", "manor"],
 		"hp": 150.0,
 	},
 	"well": {
@@ -58,6 +59,7 @@ const DEFS := {
 		"color": Color(0.62, 0.58, 0.54),
 		"housing": 8,
 		"level_bonus": 2,
+		"level_art": ["stone_house", "stone_townhouse", "stone_manor"],
 		"hp": 350.0,
 	},
 	"chapel": {
@@ -287,6 +289,8 @@ const DEFS := {
 		"hp": 450.0,
 		"trains": ["militia", "spearman", "archer", "knight"],
 		"troop_capacity": 6,
+		"jobs": 1,
+		"work": "guard",
 	},
 	"palisade": {
 		"name": "Palisade",

@@ -124,7 +124,19 @@ func works_inside() -> bool:
 	return job != null and job.def.get("work", "") in ["guard", "study", "service"]
 
 
-func set_job(building: Building) -> void:
+## Filling in below the job's class (works slower; see ClassDefs).
+var apprentice := false
+
+
+## The class this villager belongs to, from their home's level.
+func social_class() -> String:
+	if not is_instance_valid(home) or home == world.keep or not home.def.has("level_bonus"):
+		return "peasant"
+	return ClassDefs.NAMES[clampi(home.level - 1, 0, 2)]
+
+
+func set_job(building: Building, as_apprentice := false) -> void:
+	apprentice = as_apprentice
 	job = building
 	job.workers.append(self)
 	_reset()
@@ -132,6 +144,7 @@ func set_job(building: Building) -> void:
 
 func lose_job() -> void:
 	_drop_castle_claim()
+	apprentice = false
 	if job != null:
 		job.workers.erase(self)
 		job = null
@@ -816,7 +829,8 @@ func _arrive_pickup() -> void:
 
 ## Happy households work faster, miserable ones slower.
 func _work_multiplier() -> float:
-	return NeedDefs.work_multiplier(home.happiness) if is_instance_valid(home) else 1.0
+	var m := NeedDefs.work_multiplier(home.happiness) if is_instance_valid(home) else 1.0
+	return m / ClassDefs.APPRENTICE_SPEED if apprentice else m
 
 
 func _finish_work() -> void:

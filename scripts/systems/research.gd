@@ -34,6 +34,18 @@ func progress_ratio() -> float:
 
 
 ## Scholars currently studying across all halls.
+## Scholars at their desks, apprentices (not nobles) counting for less.
+func scholar_power() -> float:
+	var power := 0.0
+	for b in world.buildings:
+		if b.def.get("work", "") != "study":
+			continue
+		for v in b.workers:
+			if v.state == Villager.State.STATIONED:
+				power += ClassDefs.APPRENTICE_SPEED if v.apprentice else 1.0
+	return power
+
+
 func scholars_working() -> int:
 	var n := 0
 	for b in world.buildings:
@@ -59,7 +71,7 @@ func start(id: String, progression: Progression) -> String:
 func _process(delta: float) -> void:
 	if queue.is_empty():
 		return
-	progress += delta * scholars_working() * GameState.mod("research_speed")
+	progress += delta * scholar_power() * GameState.mod("research_speed")
 	if progress >= ResearchDefs.get_def(queue[0]).time:
 		_complete(queue.pop_front())
 

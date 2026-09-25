@@ -87,8 +87,40 @@ func _feed() -> void:
 	_publish_stats()
 
 
+## Fills jobs by class (ClassDefs): first everyone who properly fits, then
+## apprentices of a lower class where nobody fitting is free. Villagers
+## whose class no longer fits their job (their home upgraded) are let go,
+## and an apprentice steps aside when a fitting worker is idle.
 func _assign_jobs() -> void:
+	for v: Villager in villagers:
+		if v.job != null and not v.apprentice and not ClassDefs.fits(v.social_class(), v.job):
+			v.lose_job()
 	var idle: Array = villagers.filter(func(v: Villager) -> bool: return v.job == null)
+	if idle.is_empty():
+		return
+	for b in world.buildings:
+		if not b.has_road or b.job_slots() <= 0:
+			continue
+		# A fitting idle villager replaces an apprentice.
+		for a: Villager in b.workers.duplicate():
+			if not a.apprentice:
+				continue
+			var better := _closest_fitting(idle, b)
+			if better == null:
+				break
+			a.lose_job()
+			idle.erase(better)
+			better.set_job(b)
+			idle.append(a)
+		var open_slots: int = b.job_slots() - b.workers.size()
+		while open_slots > 0:
+			var worker := _closest_fitting(idle, b)
+			if worker == null:
+				break
+			idle.erase(worker)
+			worker.set_job(b)
+			open_slots -= 1
+	# Apprentices: lower-class villagers fill whatever is still open.
 	for b in world.buildings:
 		if idle.is_empty():
 			return
@@ -96,10 +128,32 @@ func _assign_jobs() -> void:
 			continue
 		var open_slots: int = b.job_slots() - b.workers.size()
 		while open_slots > 0 and not idle.is_empty():
-			var worker := _closest(idle, b.entrance())
+			var candidates := idle.filter(func(v: Villager) -> bool:
+				return v.social_class() != "noble" and ClassDefs.rank(v.social_class()) < ClassDefs.rank(ClassDefs.job_class(b)))
+			if candidates.is_empty():
+				break
+			var worker := _closest(candidates, b.entrance())
 			idle.erase(worker)
-			worker.set_job(b)
+			worker.set_job(b, true)
 			open_slots -= 1
+
+
+## The nearest villager who properly fits a job at `b`: an idle one, or one
+## "stepped down" into a lower job (a burgher doing labour) who moves up.
+## A moved worker leaves their old job, which the next pass refills.
+func _closest_fitting(idle: Array, b: Building) -> Villager:
+	var fitting := idle.filter(func(v: Villager) -> bool: return ClassDefs.fits(v.social_class(), b))
+	if fitting.is_empty() and ClassDefs.job_class(b) != "peasant":
+		var stepped := villagers.filter(func(v: Villager) -> bool:
+			return v.job != null and v.job != b and not v.apprentice \
+				and ClassDefs.rank(v.social_class()) > ClassDefs.rank(ClassDefs.job_class(v.job)) \
+				and ClassDefs.fits(v.social_class(), b))
+		if not stepped.is_empty():
+			var mover := _closest(stepped, b.entrance())
+			mover.lose_job()
+			idle.append(mover)
+			return mover
+	return _closest(fitting, b.entrance()) if not fitting.is_empty() else null
 
 
 func _closest(candidates: Array, tile: Vector2i) -> Villager:
@@ -128,7 +182,10 @@ func _publish_stats() -> void:
 ## nearest non-guard worker. Their home slot frees up for a new settler.
 func draft_villager(near: Vector2i) -> bool:
 	var target := world.tile_center(near)
-	var pool := villagers.filter(func(v: Villager) -> bool: return v.job == null)
+	# Peasants answer the call first; nobles only if nobody else is left.
+	var pool := villagers.filter(func(v: Villager) -> bool: return v.job == null and v.social_class() != "noble")
+	if pool.is_empty():
+		pool = villagers.filter(func(v: Villager) -> bool: return not v.is_guard() and v.social_class() != "noble")
 	if pool.is_empty():
 		pool = villagers.filter(func(v: Villager) -> bool: return not v.is_guard())
 	if pool.is_empty():
