@@ -666,6 +666,28 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     A desirability overlay (O) shows the map.
 
   M27 CLASSES & GROWING HOMES
+    Decided (2026-09-24): classes come from home upgrades; nobles also
+    work, at jobs that suit them (scholars, officers, merchants, clergy and
+    magistrates) and pay the most; skilled jobs need burghers, and burghers
+    take labour when there's no skilled work; every class wants goods, the
+    lower classes cheaper ones (full ladder: peasants bread and ale;
+    burghers also tools and cloth; nobles also wine and fine clothes).
+    Split into M27a (classes) and M27b (the goods ladder and its chains:
+    brewery, toolmaker, sheep farm -> weaver -> tailor, vineyard -> winery,
+    luxuries also from merchants).
+    M27a BUILT: Cottage = peasants, Townhouse = burghers, Manor = nobles
+    (castle residents are peasants). Jobs by class (ClassDefs): burghers -
+    smithy, armory, tavern, market, trading post (merchants may be nobles);
+    nobles - scholars, chapel clergy, a Barracks captain (new 1-job post).
+    Mill and bakery stay labour so early bread isn't slowed. When nobody of
+    a job's class is free, a lower-class villager fills in as an apprentice
+    at 60% speed (scholars research at 60%), so nothing is ever stuck; a
+    fitting villager (idle, or a burgher doing labour) replaces an
+    apprentice. Knights can only be trained with a noble captain. Taxes by
+    level 1 / 2 / 3.5. Each home level has its own art (house: cottage,
+    townhouse, manor; stone house: its own three), with winter versions.
+    Panels show residents' class and workers' class/apprentices; the
+    population tooltip counts each class.
     Three classes: peasants (cottages), burghers - craftsmen and merchants
     (townhouses), nobles (manors). Each class wants different things;
     nobles pay the most tax and demand beauty. Each home gets new, bigger-

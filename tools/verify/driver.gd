@@ -295,6 +295,17 @@ func _run_step(step: Dictionary) -> String:
 		if agent == null or not agent.visible:
 			return "FAIL no visible %s on the map" % step.click_royal
 		await _click(get_viewport().get_canvas_transform() * (agent.position + Vector2(0, -12)), MOUSE_BUTTON_LEFT)
+	elif step.has("setup_home_level"):
+		# Test-only: {"home": alias, "level": 3} sets a home's level (its
+		# residents' class follows).
+		report.setup_shortcuts.append(step)
+		var hb: Building = world.occupancy.get(_tile_of(step.setup_home_level.home))
+		if hb == null or not hb.is_home():
+			return "FAIL no home at %s" % step.setup_home_level.home
+		hb.level = int(step.setup_home_level.level)
+		hb.set_meta("pinned_level", hb.level)
+		hb.queue_redraw()
+		return "ok (%s level %d)" % [hb.title, hb.level]
 	elif step.has("setup_hints"):
 		GameState.hints_enabled = bool(step.setup_hints)
 		report.setup_shortcuts.append(step)
@@ -592,6 +603,10 @@ func _snapshot() -> Dictionary:
 		"tax_mod": GameState.mod("tax"),
 		"anims_seen": anims_seen.keys(),
 		"plazas": world.plazas.size(),
+		"classes": _class_counts(),
+		"apprentices": world.buildings.reduce(func(acc: int, b: Building) -> int: return acc + b.apprentice_count(), 0),
+		"home_art": world.buildings.filter(func(b: Building) -> bool: return b.def.has("level_art")).map(
+			func(b: Building) -> String: return b.sprite_id()),
 		"home_beauty": _home_beauty(),
 		"life": {"children": main.town_life.count("child"), "shoppers": main.town_life.count("shopper"),
 			"dogs": main.town_life.count("dog"), "chickens": main.town_life.count("chicken"),
@@ -647,6 +662,13 @@ func _snapshot() -> Dictionary:
 		"visible_text": _visible_text(main.hud),
 		"messages": report.messages.duplicate(),
 	}
+
+
+func _class_counts() -> Dictionary:
+	var counts := {"peasant": 0, "burgher": 0, "noble": 0}
+	for v: Villager in get_tree().get_nodes_in_group("villagers"):
+		counts[v.social_class()] += 1
+	return counts
 
 
 ## Average desirability of the homes (not the castle).
@@ -779,6 +801,8 @@ func _check(expect: Dictionary) -> String:
 	for anim: String in expect.get("anims_seen", []):
 		if not anims_seen.has(anim):
 			problems.append("no villager seen doing '%s' (seen: %s)" % [anim, ", ".join(anims_seen.keys())])
+	if expect.has("home_art") and not expect.home_art in s.home_art:
+		problems.append("no home drawn as '%s' (%s)" % [expect.home_art, ", ".join(s.home_art)])
 	if expect.has("decreased"):
 		var before: Dictionary = snapshots.get(expect.decreased.since, s)
 		for key: String in expect.decreased:
@@ -850,6 +874,10 @@ func _sum_by_building(field: String) -> Dictionary:
 func _metric(s: Dictionary, key: String) -> float:
 	if key.begins_with("life."):
 		return float(s.life.get(key.substr(5), 0))
+	if key.begins_with("class."):
+		return float(s.classes.get(key.substr(6), 0))
+	if key == "apprentices":
+		return float(s.apprentices)
 	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning", "lairs",
 			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps", "castle_size", "castle_progress", "builders", "keep_hp", "plazas", "home_beauty", "royals_on_map", "happiness_mod", "tax_mod"]:
 		return float(s[key])

@@ -77,6 +77,8 @@ func train(barracks: Building, unit_id: String) -> String:
 		return "Barracks is full (%d troops)" % capacity
 	if not barracks.has_road:
 		return "Barracks needs road access"
+	if unit_id == "knight" and not barracks.has_noble_worker():
+		return "Knights need a noble captain at this Barracks (nobles live in Manors)"
 	if not GameState.can_afford(def.cost):
 		return "Not enough resources — needs %s" % BuildingDefs.cost_text(def.cost)
 	if not citizens.draft_villager(barracks.entrance()):

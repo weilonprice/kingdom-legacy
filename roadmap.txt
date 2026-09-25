@@ -422,8 +422,11 @@ PHASE 2 — SIMULATION DIRECTION (decided 2026-09-24)
   M26  Beauty & desirability: decorations (plazas, fountains, gardens,
        trees, statues, the ruler's monument), industry lowers it, the best
        homes need it, desirability overlay   [DONE]
-  M27  Classes & growing homes: peasants, burghers, nobles; new home art
-       per level
+  M27a Classes: peasants, burghers, nobles from home levels; jobs by
+       class with apprentices; noble captains for knights; new home art
+       per level   [DONE]
+  M27b Goods ladder: ale, tools, cloth, wine, fine clothes; brewery,
+       toolmaker, sheep farm, weaver, tailor, vineyard, winery
   M28  Roads: dirt -> cobble -> paved, traffic, paved streets for big
        buildings, beauty from paving
   M29  Public services: bathhouse & physician (health, disease), fire

@@ -22,8 +22,8 @@ const BASE_HAPPINESS := 50.0
 ## Index = house level - 1.
 const LEVELS := [
 	{"name": "Cottage", "needs": ["food"], "tax": 1.0},
-	{"name": "Townhouse", "needs": ["food", "water", "religion"], "tax": 1.5},
-	{"name": "Manor", "needs": ["food", "water", "religion", "market", "tavern"], "tax": 2.0},
+	{"name": "Townhouse", "needs": ["food", "water", "religion"], "tax": 2.0},
+	{"name": "Manor", "needs": ["food", "water", "religion", "market", "tavern"], "tax": 3.5},
 ]
 
 ## Gold per resident per minute, and the happiness effect of each rate.

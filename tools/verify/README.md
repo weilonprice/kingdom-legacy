@@ -58,6 +58,7 @@ from the Keep's entrance (the tile below the Keep's door), or an alias from
 | `{"setup_royal": {"ruler_age": 90, "no_heir": true, "traits": ["just"], "crisis_left": 1}}` | TEST-ONLY: changes the royal family (any of those keys). Logged |
 | `{"setup_keep_hp": 0.4}` | TEST-ONLY: sets the castle's HP to that share of its maximum (a breach needs a raid on). Logged |
 | `{"click_royal": "ruler"}` | Clicks that family member (`ruler`/`spouse`/`heir`) where they stand |
+| `{"setup_home_level": {"home": alias, "level": 3}}` | TEST-ONLY: sets a home's level and pins it there (its residents' class follows). Logged |
 | `{"setup_hints": true}` | Turns tutorial hints on (the driver starts with them off so they don't cover tiles) |
 | `{"setup_delay_raids": s}` | TEST-ONLY: no natural raid for `s` game seconds. Logged |
 
@@ -80,7 +81,8 @@ merchant in town, "" if none), `camera_near`
 `settings` (`{"game/pan_speed": 1.6}`: values in Settings), `speed` (0 = paused, 1-3),
 `ui_scale` (the window's content scale), `camera_moved` (`{"since": "<state>", "min": n}` or
 `"max"`: tiles the camera moved since that snapshot),
-`plazas` / `home_beauty` (average home desirability) (in `min`/`max`), `decreased` (like `increased`,
+`class.peasant` / `class.burgher` / `class.noble` / `apprentices` (in `min`/`max`), `home_art` (a home is
+drawn with that sprite, e.g. `townhouse`), `plazas` / `home_beauty` (average home desirability) (in `min`/`max`), `decreased` (like `increased`,
 for a drop), `life.children` / `life.shoppers` / `life.dogs` / `life.chickens` / `life.grazers` / `life.birds` /
 `life.smoke` / `life.glows` / `life.chatting` / `life.folk_visible` (in `min`/`max`: the living-kingdom
 counts), `royal_ruler` / `royal_spouse` / `royal_heir` (title contains the text; `""` = nobody), `royal_crisis`,

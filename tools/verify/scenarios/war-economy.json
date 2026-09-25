@@ -1,78 +1,373 @@
 [
-  {"include": "village-setup.json"},
-  {"expect": {"min": {"lairs": 2}}},
-  {"click_button": "4x"},
-  {"key": "F9"},
-  {"wait_until": {"raid_phase": "ACTIVE"}, "timeout": 30},
-  {"click_button": "Call to Arms"},
-  {"expect": {"call_to_arms": true, "message": "To arms!", "text": "Stand down"}},
-  {"wait_until": {"min": {"villagers_fighting": 1}}, "timeout": 120},
-  {"screenshot": "00-call-to-arms"},
-  {"wait_until": {"raid_phase": "CALM"}, "timeout": 200},
-  {"expect": {"call_to_arms": false}},
-  {"click_button": "1x"},
-  {"setup_tier": "City"},
-  {"setup_delay_raids": 3000},
-  {"setup_grant": {"bread": 150}},
-  {"key": "R"},
-  {"drag_tile": [[-9, -6], [9, -6]]},
-  {"expect": {"min": {"roads": 40}}},
-  {"key": "Escape"},
-  {"click_button": "Storage"},
-  {"find_site": {"building": "warehouse", "as": "warehouse", "entrance_on_road": true, "near": [5, -8]}},
-  {"click_button": "Warehouse"},
-  {"click_tile": "warehouse"},
-  {"click_button": "Resources"},
-  {"find_site": {"building": "iron_mine", "as": "mine", "entrance_on_road": true}},
-  {"click_button": "Iron Mine"},
-  {"click_tile": "mine"},
-  {"click_button": "Industry"},
-  {"find_site": {"building": "smithy", "as": "smithy", "entrance_on_road": true}},
-  {"click_button": "Smithy"},
-  {"click_tile": "smithy"},
-  {"click_button": "Defense"},
-  {"find_site": {"building": "barracks", "as": "barracks", "entrance_on_road": true, "near": [-5, -8]}},
-  {"click_button": "Barracks"},
-  {"click_tile": "barracks"},
-  {"click_button": "Wall Tower"},
-  {"expect": {"build_mode": "BUILD"}},
-  {"click_tile": [6, -4]},
-  {"key": "Escape"},
-  {"expect": {"buildings": {"iron_mine": 1, "smithy": 1, "barracks": 1, "wall_tower": 1}}},
-  {"click_tile": [6, -4]},
-  {"expect": {"selected_building": "Wall Tower", "text": "Shoots raiders within"}},
-  {"key": "Escape"},
-  {"screenshot": "01-industry-and-wall-tower"},
-  {"setup_spawn": {"enemy": "goblin_brute", "at": [6, -9]}},
-  {"click_button": "4x"},
-  {"wait_until": {"max": {"enemies": 0}}, "timeout": 40},
-  {"wait_until": {"min": {"weapons": 1}}, "timeout": 200},
-  {"screenshot": "02-weapons-forged"},
-  {"click_button": "1x"},
-  {"setup_grant": {"weapons": 3, "armor": 2, "bread": 150}},
-  {"click_tile": "barracks"},
-  {"click_button": "Knight"},
-  {"click_button": "Knight"},
-  {"click_button": "Spearman"},
-  {"expect": {"text": "Training:"}},
-  {"click_button": "4x"},
-  {"wait_until": {"squad_troops_min": 3}, "timeout": 90},
-  {"expect": {"message": "A knight joined"}},
-  {"click_button": "1x"},
-  {"key": "Escape"},
-  {"setup_research": ["tempered_steel"]},
-  {"setup_lair": [0, -12]},
-  {"key": "CTRL+1"},
-  {"expect": {"text": "Squad 1"}},
-  {"right_click_tile": [0, -12]},
-  {"expect": {"squad_mode": "MANUAL"}},
-  {"click_button": "4x"},
-  {"wait": 6},
-  {"screenshot": "03-lair-assault"},
-  {"state": "assault"},
-  {"wait_until": {"message": "Goblin Lair is destroyed"}, "timeout": 150},
-  {"expect": {"min": {"lairs": 2}}},
-  {"screenshot": "04-lair-destroyed"},
-  {"expect": {"game_over": false}},
-  {"state": "end"}
+ {
+  "include": "village-setup.json"
+ },
+ {
+  "expect": {
+   "min": {
+    "lairs": 2
+   }
+  }
+ },
+ {
+  "click_button": "4x"
+ },
+ {
+  "key": "F9"
+ },
+ {
+  "wait_until": {
+   "raid_phase": "ACTIVE"
+  },
+  "timeout": 30
+ },
+ {
+  "click_button": "Call to Arms"
+ },
+ {
+  "expect": {
+   "call_to_arms": true,
+   "message": "To arms!",
+   "text": "Stand down"
+  }
+ },
+ {
+  "wait_until": {
+   "min": {
+    "villagers_fighting": 1
+   }
+  },
+  "timeout": 120
+ },
+ {
+  "screenshot": "00-call-to-arms"
+ },
+ {
+  "wait_until": {
+   "raid_phase": "CALM"
+  },
+  "timeout": 200
+ },
+ {
+  "expect": {
+   "call_to_arms": false
+  }
+ },
+ {
+  "click_button": "1x"
+ },
+ {
+  "setup_tier": "City"
+ },
+ {
+  "setup_delay_raids": 3000
+ },
+ {
+  "setup_grant": {
+   "bread": 150
+  }
+ },
+ {
+  "key": "R"
+ },
+ {
+  "drag_tile": [
+   [
+    -9,
+    -6
+   ],
+   [
+    9,
+    -6
+   ]
+  ]
+ },
+ {
+  "expect": {
+   "min": {
+    "roads": 40
+   }
+  }
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "click_button": "Storage"
+ },
+ {
+  "find_site": {
+   "building": "warehouse",
+   "as": "warehouse",
+   "entrance_on_road": true,
+   "near": [
+    5,
+    -8
+   ]
+  }
+ },
+ {
+  "click_button": "Warehouse"
+ },
+ {
+  "click_tile": "warehouse"
+ },
+ {
+  "click_button": "Resources"
+ },
+ {
+  "find_site": {
+   "building": "iron_mine",
+   "as": "mine",
+   "entrance_on_road": true
+  }
+ },
+ {
+  "click_button": "Iron Mine"
+ },
+ {
+  "click_tile": "mine"
+ },
+ {
+  "click_button": "Industry"
+ },
+ {
+  "find_site": {
+   "building": "smithy",
+   "as": "smithy",
+   "entrance_on_road": true
+  }
+ },
+ {
+  "click_button": "Smithy"
+ },
+ {
+  "click_tile": "smithy"
+ },
+ {
+  "click_button": "Defense"
+ },
+ {
+  "find_site": {
+   "building": "barracks",
+   "as": "barracks",
+   "entrance_on_road": true,
+   "near": [
+    -5,
+    -8
+   ]
+  }
+ },
+ {
+  "click_button": "Barracks"
+ },
+ {
+  "click_tile": "barracks"
+ },
+ {
+  "click_button": "Wall Tower"
+ },
+ {
+  "expect": {
+   "build_mode": "BUILD"
+  }
+ },
+ {
+  "click_tile": [
+   6,
+   -4
+  ]
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "expect": {
+   "buildings": {
+    "iron_mine": 1,
+    "smithy": 1,
+    "barracks": 1,
+    "wall_tower": 1
+   }
+  }
+ },
+ {
+  "click_tile": [
+   6,
+   -4
+  ]
+ },
+ {
+  "expect": {
+   "selected_building": "Wall Tower",
+   "text": "Shoots raiders within"
+  }
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "screenshot": "01-industry-and-wall-tower"
+ },
+ {
+  "setup_spawn": {
+   "enemy": "goblin_brute",
+   "at": [
+    6,
+    -9
+   ]
+  }
+ },
+ {
+  "click_button": "4x"
+ },
+ {
+  "wait_until": {
+   "max": {
+    "enemies": 0
+   }
+  },
+  "timeout": 40
+ },
+ {
+  "wait_until": {
+   "min": {
+    "weapons": 1
+   }
+  },
+  "timeout": 200
+ },
+ {
+  "screenshot": "02-weapons-forged"
+ },
+ {
+  "click_button": "1x"
+ },
+ {
+  "setup_home_level": {
+   "home": "h1",
+   "level": 3
+  }
+ },
+ {
+  "wait_until": {
+   "min": {
+    "class.noble": 1
+   }
+  },
+  "timeout": 30
+ },
+ {
+  "wait": 5
+ },
+ {
+  "setup_grant": {
+   "weapons": 3,
+   "armor": 2,
+   "bread": 150
+  }
+ },
+ {
+  "click_tile": "barracks"
+ },
+ {
+  "click_button": "Knight"
+ },
+ {
+  "click_button": "Knight"
+ },
+ {
+  "click_button": "Spearman"
+ },
+ {
+  "expect": {
+   "text": "Training:"
+  }
+ },
+ {
+  "click_button": "4x"
+ },
+ {
+  "wait_until": {
+   "squad_troops_min": 3
+  },
+  "timeout": 90
+ },
+ {
+  "expect": {
+   "message": "A knight joined"
+  }
+ },
+ {
+  "click_button": "1x"
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "setup_research": [
+   "tempered_steel"
+  ]
+ },
+ {
+  "setup_lair": [
+   0,
+   -12
+  ]
+ },
+ {
+  "key": "CTRL+1"
+ },
+ {
+  "expect": {
+   "text": "Squad 1"
+  }
+ },
+ {
+  "right_click_tile": [
+   0,
+   -12
+  ]
+ },
+ {
+  "expect": {
+   "squad_mode": "MANUAL"
+  }
+ },
+ {
+  "click_button": "4x"
+ },
+ {
+  "wait": 6
+ },
+ {
+  "screenshot": "03-lair-assault"
+ },
+ {
+  "state": "assault"
+ },
+ {
+  "wait_until": {
+   "message": "Goblin Lair is destroyed"
+  },
+  "timeout": 150
+ },
+ {
+  "expect": {
+   "min": {
+    "lairs": 2
+   }
+  }
+ },
+ {
+  "screenshot": "04-lair-destroyed"
+ },
+ {
+  "expect": {
+   "game_over": false
+  }
+ },
+ {
+  "state": "end"
+ }
 ]

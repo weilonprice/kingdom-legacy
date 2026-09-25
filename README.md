@@ -57,6 +57,10 @@ the next raid hits. Made with Godot 4.
 - **Rivers and bridges.** A river winds past every town, with a couple of
   shallow fords. Drag a road across it to build a bridge, then guard the
   crossing: raiders use bridges too.
+- **Peasants, burghers and nobles.** As homes grow from cottages to
+  townhouses to manors, burghers and nobles move in. Skilled trades need
+  burghers, scholars and clergy need nobles, and knights need a noble
+  captain; apprentices fill in (slower) until they arrive.
 - **Town planning.** Pave plazas, plant gardens and flowerbeds, raise
   fountains, statues and a monument to your ruler. Every street has a
   desirability: industry drags it down, beauty lifts it, and only pleasant
@@ -253,13 +257,14 @@ after its scenarios pass.
 | M19 | Settings menu ✅ |
 | M20 | Forester and forest regrowth ✅ |
 | M21 | Camera: trackpad pinch and pan, zoom keys and buttons, whole-map view ✅ |
+| M27a | Peasants, burghers and nobles: classes from homes, jobs by class, noble captains, new townhouse and manor art ✅ |
 | M26 | Beauty & desirability: plazas, fountains, gardens, trees, statues, a monument to your ruler; Manors need a pleasant quarter ✅ |
 | M25 | A living kingdom: children, townsfolk and dogs, farm animals and birds, chimney smoke, glowing windows, handcarts ✅ |
 | M24 | Walls that gate roads, cost preview, stone upgrades; a 250-person kingdom; challenge the Dragon when ready ✅ |
 | M23 | The royal family (ruler, spouse, heir with traits, aging and succession) and the treasury raiders can break into ✅ |
 | M23a | Villager animations: chopping, mining, farming, hammering, carrying, picking up and putting down ✅ |
 | M22 | The growing castle: Keep 5×5 → Castle 7×7 → Citadel 9×9, built by builders in reserved grounds ✅ |
-| M27–M30 | **Kingdom building** (planned): classes & growing homes, road tiers & traffic, public services, great works. See design.txt §18 |
+| M27b–M30 | **Kingdom building** (planned): the goods ladder, road tiers & traffic, public services, great works. See design.txt §18 |
 | later | People's lives, stats & graphs. See design.txt §17–18 |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
