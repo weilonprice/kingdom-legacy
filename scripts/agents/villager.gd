@@ -55,11 +55,19 @@ const NAMES := [
 	"Jocelyn", "Leofric", "Maud", "Osric", "Rowena", "Sigrid", "Tamsin", "Ulric",
 	"Wilfred", "Agnes", "Beatrix", "Cuthbert", "Emmeline", "Gareth", "Ingrid", "Oswin",
 ]
+const WOMEN := ["Edda", "Elspeth", "Hilda", "Isolde", "Jocelyn", "Maud", "Rowena", "Sigrid",
+	"Tamsin", "Agnes", "Beatrix", "Emmeline", "Ingrid"]
+## Sprite sets (assets/sprites/<look>/) for men and women; an animation an
+## outfit lacks falls back to its standing pose.
+const MEN_OUTFITS := ["villager", "villager_elder", "villager_redhead"]
+const WOMEN_OUTFITS := ["villager_woman", "villager_blonde"]
 
 var world: WorldMap
 var home: Building
 var job: Building
 var villager_name := ""
+## Which sprite set draws this villager (see MEN_OUTFITS / WOMEN_OUTFITS).
+var outfit := "villager"
 var state := State.IDLE
 var task := Task.NONE
 var timer := 0.0
@@ -97,6 +105,7 @@ func setup(p_world: WorldMap, p_home: Building) -> void:
 	world = p_world
 	home = p_home
 	villager_name = NAMES.pick_random()
+	outfit = random_outfit(villager_name)
 	add_to_group("villagers")
 	health.changed.connect(queue_redraw)
 	health.died.connect(func() -> void: died.emit(self))
@@ -369,7 +378,7 @@ func _plan_gather() -> void:
 	if not _ensure_pile_space(def.yield):
 		return
 	for t in world.find_resource_tiles(job.entrance(), def.gather_terrain, def.radius, 6):
-		var stand: Vector2i = world.approach_tile(t)
+		var stand: Vector2i = world.approach_tile(t, current_tile())
 		if stand != WorldMap.INVALID_TILE and _walk_to(stand):
 			_claim(t)
 			task = Task.GATHER
@@ -498,6 +507,8 @@ func _plan_produce() -> void:
 		if _walk_to(job.entrance()):
 			state = State.TO_WORKPLACE
 			note = "Going to work"
+		else:
+			_wait("Can't reach workplace", 3.0)
 		return
 	var source := world.stock.nearest_source(input, batch, current_tile(), job)
 	if source != null and _walk_to(source.entrance()):
@@ -931,13 +942,30 @@ func _finish_work() -> void:
 		_wait(note, 0.2)
 
 
+## An outfit that fits the name (women's names get women's outfits).
+static func random_outfit(p_name: String) -> String:
+	return (WOMEN_OUTFITS if p_name in WOMEN else MEN_OUTFITS).pick_random()
+
+
+## [sprite set, animation] to draw: this villager's outfit doing `anim`, or
+## standing idle in it when the outfit has no such animation (it never turns
+## into someone else mid-task).
+func _sprite(anim: String) -> Array:
+	if outfit == "villager" or Art.has_anim(outfit, anim, _facing):
+		return [outfit, anim]
+	if anim == "carry" and Art.has_anim(outfit, "walk", _facing):
+		return [outfit, "walk"]
+	return [outfit, "idle" if Art.has_anim(outfit, "idle", _facing) else ""]
+
+
 func _draw() -> void:
 	var anim := current_anim()
 	var cart := carrying != "" and _moving and job != null and job.def_id == "carter"
 	if cart and _facing != "south":
 		_draw_cart()
-	var top := Art.draw_character_anim(self, "villager", _facing, anim,
-		_once_time if anim in Art.ONE_SHOT else _anim_time)
+	var sprite := _sprite(anim)
+	var top := Art.draw_character_anim(self, sprite[0], _facing, sprite[1],
+		_once_time if sprite[1] in Art.ONE_SHOT else _anim_time)
 	if is_nan(top):
 		top = -8.0
 		var body := COLOR_UNEMPLOYED
@@ -953,7 +981,7 @@ func _draw() -> void:
 			draw_line(Vector2(6 + dx, top + 4), Vector2(6 + dx, top), Color(0.75, 0.75, 0.8), 1.0)
 	# While walking the carry animation shows the load; otherwise a small
 	# box in the goods' colour does.
-	if carrying != "" and not (anim == "carry" and not Art.anim_frames("villager", "carry", _facing).is_empty()):
+	if carrying != "" and sprite[1] != "carry":
 		var c := ItemDefs.color_of(carrying)
 		var box := Rect2(Vector2(4, top + 12), Vector2(7, 7))
 		draw_rect(box, c)

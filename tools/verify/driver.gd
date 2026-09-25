@@ -157,6 +157,19 @@ func _run_step(step: Dictionary) -> String:
 		main.camera.position = world.tile_center(_tile_of(step.pan_to))
 		report.setup_shortcuts.append(step)
 		await _frames(3)
+	elif step.has("pan_to_anim"):
+		# Test-only: centres the camera on a villager playing that animation
+		# (waiting up to 30 game-independent seconds for one to start).
+		report.setup_shortcuts.append(step)
+		var until := Time.get_ticks_msec() + 30000
+		while Time.get_ticks_msec() < until:
+			for v: Villager in get_tree().get_nodes_in_group("villagers"):
+				if v.current_anim() == step.pan_to_anim:
+					main.camera.position = v.position
+					await _frames(3)
+					return "ok (%s, %s)" % [v.villager_name, v.outfit]
+			await _frames(1)
+		return "FAIL no villager played '%s' within 30 s" % step.pan_to_anim
 	elif step.has("screenshot"):
 		return await _screenshot(step.screenshot)
 	elif step.has("state"):
@@ -547,7 +560,7 @@ func _road_link(door: Vector2i, origin: Vector2i, size: Vector2i) -> Array[Vecto
 			best = t
 	if best == WorldMap.INVALID_TILE or best_d > 12 * 12:
 		return []
-	var path: Array[Vector2i] = world.find_path(door, best)
+	var path: Array[Vector2i] = world.find_road_path(door, best)
 	var footprint := Rect2i(origin, size)
 	if path.is_empty() or path.any(func(t: Vector2i) -> bool:
 			return footprint.has_point(t) or world.occupancy.has(t) or world.entrances.has(t) and t != door):
@@ -646,6 +659,10 @@ func _snapshot() -> Dictionary:
 		"tax_mod": GameState.mod("tax"),
 		"anims_seen": anims_seen.keys(),
 		"plazas": world.plazas.size(),
+		"outfits": _outfits().size(),
+		"on_obstacle": _on_obstacle(),
+		"villager_notes": _villager_notes(),
+		"outfit_mismatch": _outfit_mismatches(),
 		"sick_homes": main.sickness.sick_homes().size(),
 		"thefts": main.crime.thefts,
 		"keep_guarded": main.crime.guarded(world.keep),
@@ -947,7 +964,7 @@ func _metric(s: Dictionary, key: String) -> float:
 	if key == "apprentices":
 		return float(s.apprentices)
 	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning", "lairs",
-			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps", "castle_size", "castle_progress", "builders", "keep_hp", "plazas", "home_beauty", "cobble_roads", "paved_roads", "busy_roads", "sick_homes", "thefts", "educated_homes", "royals_on_map", "happiness_mod", "tax_mod"]:
+			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps", "castle_size", "castle_progress", "builders", "keep_hp", "plazas", "home_beauty", "cobble_roads", "paved_roads", "busy_roads", "on_obstacle", "outfits", "outfit_mismatch", "sick_homes", "thefts", "educated_homes", "royals_on_map", "happiness_mod", "tax_mod"]:
 		return float(s[key])
 	return float(s.resources.get(key, 0))
 
@@ -960,3 +977,40 @@ func _write_json(name: String, data: Variant) -> void:
 func _frames(n: int) -> void:
 	for i in n:
 		await get_tree().process_frame
+
+
+## Distinct villager outfits in use.
+func _outfits() -> Dictionary:
+	var seen := {}
+	for v: Villager in get_tree().get_nodes_in_group("villagers"):
+		seen[v.outfit] = true
+	return seen
+
+
+## Villagers whose outfit doesn't match their name (a man in a dress).
+func _outfit_mismatches() -> int:
+	var n := 0
+	for v: Villager in get_tree().get_nodes_in_group("villagers"):
+		var woman: bool = v.villager_name in Villager.WOMEN
+		if woman != (v.outfit in Villager.WOMEN_OUTFITS):
+			n += 1
+	return n
+
+
+## People standing on a tree or rock tile (they should walk around them).
+func _on_obstacle() -> int:
+	var n := 0
+	for group in ["villagers", "townsfolk", "troops"]:
+		for a: Node2D in get_tree().get_nodes_in_group(group):
+			if a.visible and world.is_obstacle(world.world_to_tile(a.position)):
+				n += 1
+	return n
+
+
+## How many villagers show each status note (for debugging stuck workers).
+func _villager_notes() -> Dictionary:
+	var notes := {}
+	for v: Villager in get_tree().get_nodes_in_group("villagers"):
+		var key := "%s: %s" % [v.job.title if v.job != null else "-", v.note]
+		notes[key] = notes.get(key, 0) + 1
+	return notes

@@ -200,10 +200,12 @@ func draft_villager(near: Vector2i) -> bool:
 
 
 ## Recreates a saved villager (see SaveGame).
-func restore_villager(home: Building, job: Building, name: String, hp: float, missed: int) -> void:
+func restore_villager(home: Building, job: Building, name: String, hp: float, missed: int,
+		outfit := "") -> void:
 	var v := Villager.new()
 	v.setup(world, home)
 	v.villager_name = name
+	v.outfit = outfit if outfit != "" else Villager.random_outfit(name)
 	v.died.connect(_on_villager_died)
 	world.unit_root.add_child(v)
 	home.residents.append(v)

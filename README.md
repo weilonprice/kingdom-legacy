@@ -264,6 +264,7 @@ after its scenarios pass.
 | M19 | Settings menu ✅ |
 | M20 | Forester and forest regrowth ✅ |
 | M21 | Camera: trackpad pinch and pan, zoom keys and buttons, whole-map view ✅ |
+| M29b | Villager variety: five outfits for men and women; trees and boulders are solid, so woodcutters and miners work beside them ✅ |
 | M29 | Public services: bathhouse & physician against sickness, fire brigade, town watch against thieves, schools that speed research ✅ |
 | M28 | Roads: cobblestone and paved streets, traffic and a traffic overlay; Manors need a paved street ✅ |
 | M27b | Goods: ale, tools, cloth, wine and fine clothes from seven new workshops and farms; homes want better goods as they rise ✅ |

@@ -740,6 +740,19 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     from storage - and a watch house keeps order in its area), school
     (educated homes speed research; burghers need it).
 
+  VILLAGER VARIETY & SOLID TREES   [BUILT 2026-09-25]
+    Five villager outfits with every animation: the original man, a
+    red-haired young man, a grey-bearded elder, a woman in a green dress
+    and headscarf, a blonde woman in an apron. Women's names get women's
+    outfits; saves keep them. Trees and boulders are solid: villagers,
+    townsfolk, troops, royals and merchants walk around them, and
+    woodcutters and miners work from the tile beside, so their chopping and
+    mining show instead of hiding under the tree. Only what you can see
+    blocks: gaps in a wood and rocky ground without a boulder stay open,
+    and a road laid through a wood clears it. Raiders avoid woods and rocks
+    but can push through (4x cost) so no town is unreachable; farm animals
+    turn back.
+
   M30 GREAT WORKS
     Cathedral (city-wide happiness and religion), Guildhall (production and
     trade), University (faster research, the last research), Grand Market

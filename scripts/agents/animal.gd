@@ -37,7 +37,12 @@ func _process(delta: float) -> void:
 	var to_goal := _goal - position
 	if to_goal.length() > 1.0:
 		var step := minf(SPEEDS[kind] * delta, to_goal.length())
-		position += to_goal.normalized() * step
+		var next := position + to_goal.normalized() * step
+		# Never wander into a tree, a rock or a building; stop and graze instead.
+		if not world.is_walkable(world.world_to_tile(next)):
+			_goal = position
+			return
+		position = next
 		if absf(to_goal.x) > 0.5:
 			_flip = to_goal.x < 0.0
 		queue_redraw()

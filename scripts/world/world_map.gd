@@ -64,6 +64,9 @@ var unit_root: Node2D
 var astar := AStarGrid2D.new()
 ## Raiders: walls and gates are passable but costly (they smash through).
 var enemy_astar := AStarGrid2D.new()
+## Routes for new roads: like `astar` but through trees and boulders
+## (laying a road clears them).
+var road_astar := AStarGrid2D.new()
 
 
 func _ready() -> void:
@@ -133,12 +136,18 @@ func generate(seed_value: int) -> void:
 
 	renderer.rebuild()
 
-	for grid in [astar, enemy_astar]:
+	for grid in [astar, enemy_astar, road_astar]:
 		grid.region = Rect2i(0, 0, width, height)
 		grid.cell_size = Vector2(T, T)
 		grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
 		grid.default_compute_heuristic = AStarGrid2D.HEURISTIC_OCTILE
 		grid.default_estimate_heuristic = AStarGrid2D.HEURISTIC_OCTILE
+	# Roads are laid in straight runs; a diagonal link between two trees
+	# would leave walkers unable to squeeze through.
+	road_astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
+	road_astar.default_compute_heuristic = AStarGrid2D.HEURISTIC_MANHATTAN
+	road_astar.default_estimate_heuristic = AStarGrid2D.HEURISTIC_MANHATTAN
+	for grid in [astar, enemy_astar, road_astar]:
 		grid.update()
 	for y in height:
 		for x in width:
@@ -371,6 +380,16 @@ func describe_tile(t: Vector2i) -> String:
 
 # --- Pathfinding ------------------------------------------------------------
 
+## How much more raiders dislike marching through woods and rocks.
+const OBSTACLE_ENEMY_COST := 4.0
+
+
+## Trees and boulders block walking (unless a road crosses them). Forest
+## gaps and rocky ground without a boulder look open, so they stay open.
+func is_obstacle(t: Vector2i) -> bool:
+	return (Nature.has_tree(self, t) or Nature.has_boulder(self, t)) and not roads.has(t)
+
+
 func _update_nav(t: Vector2i) -> void:
 	# Water is solid unless a bridge crosses it.
 	var water := get_terrain(t) == Terrain.WATER and not roads.has(t)
@@ -379,15 +398,25 @@ func _update_nav(t: Vector2i) -> void:
 	var fortification: bool = b != null and BuildingDefs.is_fortification(b.def)
 	var gate: bool = b != null and b.def.get("gate", false)
 
-	var solid: bool = water or (b != null and not gate)
+	# Trees and rocks: people walk around them and work them from beside.
+	var obstacle := is_obstacle(t)
+
+	var solid: bool = water or obstacle or (b != null and not gate)
 	astar.set_point_solid(t, solid)
 	if not solid:
 		astar.set_point_weight_scale(t, ground_cost)
+	var road_solid: bool = water or (b != null and not gate)
+	road_astar.set_point_solid(t, road_solid)
+	if not road_solid:
+		road_astar.set_point_weight_scale(t, ground_cost)
 
+	# Raiders avoid woods and rocks too, but can still push through when a
+	# town is ringed by them (so every town can be reached).
 	var enemy_solid: bool = water or (b != null and not fortification)
 	enemy_astar.set_point_solid(t, enemy_solid)
 	if not enemy_solid:
-		enemy_astar.set_point_weight_scale(t, b.def.siege_cost if fortification else ground_cost)
+		var cost: float = b.def.siege_cost if fortification else ground_cost
+		enemy_astar.set_point_weight_scale(t, cost * (OBSTACLE_ENEMY_COST if obstacle else 1.0))
 
 
 func find_path(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
@@ -400,15 +429,35 @@ func find_path(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
 	return astar.get_id_path(from, to)
 
 
-## Where to stand to work tile `t`: the tile itself, or a walkable neighbor
-## (e.g. the shore next to water).
-func approach_tile(t: Vector2i) -> Vector2i:
+## Where to stand to work tile `t`: the tile itself, or the walkable
+## neighbor nearest `from` (the shore by water, the edge of a wood). Tiles
+## just north of a tree come last: its crown would hide whoever works there.
+func approach_tile(t: Vector2i, from := INVALID_TILE) -> Vector2i:
 	if is_walkable(t):
 		return t
+	var best := INVALID_TILE
+	var best_score := INF
 	for offset in NEIGHBORS:
-		if is_walkable(t + offset):
-			return t + offset
-	return INVALID_TILE
+		var n: Vector2i = t + offset
+		if not is_walkable(n):
+			continue
+		var score := 0.0 if from == INVALID_TILE else float(n.distance_squared_to(from))
+		var below: Vector2i = n + Vector2i(0, 1)
+		if is_in_bounds(below) and Nature.has_tree(self, below):
+			score += 1000.0
+		if score < best_score:
+			best = n
+			best_score = score
+	return best
+
+
+## Route for a new road from `from` to `to`: through trees and boulders
+## (the road clears them) but not buildings or water.
+func find_road_path(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
+	if not is_in_bounds(from) or not is_in_bounds(to) or road_astar.is_point_solid(to) \
+			or road_astar.is_point_solid(from):
+		return []
+	return road_astar.get_id_path(from, to)
 
 
 ## Route for raiders: walls and gates count as (costly) passable tiles.

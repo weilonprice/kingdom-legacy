@@ -87,6 +87,13 @@ static func anim_frame(character: String, direction: String, anim: String, time:
 	return texture(CHARACTER_ROTATION % [character, direction])
 
 
+## True if `character` has art for `anim` ("" = standing) facing `direction`.
+static func has_anim(character: String, anim: String, direction: String) -> bool:
+	if anim == "":
+		return texture(CHARACTER_ROTATION % [character, direction]) != null
+	return not anim_frames(character, "pickup" if anim == "putdown" else anim, direction).is_empty()
+
+
 static func anim_frames(character: String, anim: String, direction: String) -> Array:
 	return frames_matching("res://assets/sprites/%s/%s_%s_" % [character, anim, direction] + "%d.png")
 
