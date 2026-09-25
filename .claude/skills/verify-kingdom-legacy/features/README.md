@@ -53,6 +53,7 @@ tools/verify/run.sh`, `Gotchas`.
 - [Seasons and art](./seasons-and-art.md): the season cycle, winter firewood and frozen fields, seasonal art, trees/props/walls. Scenarios `seasons.json`, `art-showcase.json`.
 - [Rivers and bridges](./rivers-bridges.md): rivers, fords, building/refusing/demolishing bridges. Scenario `rivers-bridges.json`, tool `map_preview.tscn`.
 - [Sound and minimap](./sound-minimap.md): synthesized effects, ambience, volume sliders, the minimap. Scenario `sound-minimap.json`.
+- [Beauty and desirability](./beauty.md): Decor tab (plaza drag, flowerbed, tree, garden, fountain, statue, Royal Monument), desirability overlay, Manor gating. Scenario `beauty.json`.
 - [A living kingdom](./living.md): children, townsfolk, dogs, farm animals, birds, chimney smoke, window glow, handcarts. Scenario `living.json`.
 - [Wall building and the Dragon challenge](./walls-building.md): gates on roads, drag preview, stone upgrade, challenging the Dragon. Scenario `walls-building.json`.
 - [Royal family and treasury](./royals.md): the court panel, royals on the map, traits, succession, crisis, castle breach, saves. Scenario `royals.json`.

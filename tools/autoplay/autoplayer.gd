@@ -182,6 +182,13 @@ func _act() -> void:
 		return
 	if _count("quarry") < 1 + pop / 20 and _try("quarry", Terrain.STONE):
 		return
+	# Beautify: a garden (or flowerbeds before Village) by homes that are
+	# held back from Manor by a dull or ugly neighbourhood.
+	var plain := _plain_home()
+	if plain != null and GameState.count("gold") > 80:
+		var decor := "garden" if _unlocked("garden") else "flowerbed"
+		if _try(decor, -1, 0, plain.entrance()):
+			return
 	# Replant: a Forester beside any woodcutter whose woods are thinning.
 	var thinning := _thinning_woodcutter()
 	if thinning != null and _count("forester") < 1 + _count("woodcutter") / 4 \
@@ -386,6 +393,15 @@ func _grow_castle() -> void:
 	if castle.start_upgrade() == "":
 		_note_action("castle " + next.title)
 		milestones["castle_" + next.title] = _minute()
+
+
+## A Townhouse whose desirability is below what a Manor needs.
+func _plain_home() -> Building:
+	var need: float = BeautyDefs.HOME_LEVEL_MIN[2]
+	for b in world.buildings:
+		if b.is_home() and b != world.keep and b.level >= 2 and world.building_desirability(b) < need:
+			return b
+	return null
 
 
 ## A woodcutter with little forest left in reach and no Forester near it.

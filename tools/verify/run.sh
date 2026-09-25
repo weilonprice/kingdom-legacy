@@ -43,5 +43,12 @@ else
 fi
 rm -f "$OUT/pid"
 grep -E "^VERIFY (READY|DONE|FAIL)|SCRIPT ERROR" "$OUT/godot.log"
+# A script error at runtime fails the run even if every expect passed: the
+# game kept going, but something it does (maybe only every few seconds) broke.
+ERRORS=$(grep -c "SCRIPT ERROR" "$OUT/godot.log")
+if [ "$ERRORS" -gt 0 ] && [ "$STATUS" -eq 0 ]; then
+  echo "FAIL: $ERRORS script error(s) in godot.log"
+  STATUS=1
+fi
 echo "exit=$STATUS evidence=$OUT"
 exit $STATUS

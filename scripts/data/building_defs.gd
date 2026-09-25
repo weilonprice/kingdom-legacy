@@ -375,6 +375,21 @@ const DEFS := {
 }
 
 ## Build menu tabs. Road and Demolish are always-visible tools.
+const DECOR := {
+	"flowerbed": {"name": "Flowerbed", "desc": "Flowers make a street nicer to live on (+beauty nearby).",
+		"size": Vector2i(1, 1), "cost": {"wood": 5, "gold": 5}, "color": Color(0.85, 0.4, 0.5), "hp": 60.0, "decor": true},
+	"avenue_tree": {"name": "Planted Tree", "desc": "A tree in a stone planter to line an avenue (+beauty nearby).",
+		"size": Vector2i(1, 1), "cost": {"wood": 8, "gold": 5}, "color": Color(0.3, 0.6, 0.3), "hp": 80.0, "decor": true},
+	"garden": {"name": "Garden", "desc": "Hedges, flowers and a bench: a pleasant spot for the neighbourhood.",
+		"size": Vector2i(2, 2), "cost": {"wood": 20, "stone": 10, "gold": 20}, "color": Color(0.4, 0.7, 0.35), "hp": 150.0, "decor": true},
+	"fountain": {"name": "Fountain", "desc": "A fountain for the town square. Townsfolk gather here.",
+		"size": Vector2i(2, 2), "cost": {"stone": 50, "gold": 40}, "color": Color(0.5, 0.65, 0.85), "hp": 300.0, "decor": true},
+	"statue": {"name": "Statue", "desc": "A stone knight on a plinth, a proud sight for any street.",
+		"size": Vector2i(1, 1), "cost": {"stone": 60, "gold": 60}, "color": Color(0.7, 0.7, 0.7), "hp": 300.0, "decor": true},
+	"monument": {"name": "Royal Monument", "desc": "A statue of your ruler. It changes when the throne passes. Great beauty nearby.",
+		"size": Vector2i(2, 2), "cost": {"stone": 150, "gold": 200}, "color": Color(0.8, 0.7, 0.4), "hp": 500.0, "decor": true},
+}
+
 const CATEGORIES := [
 	{"name": "Housing", "items": ["house", "stone_house", "well"]},
 	{"name": "Resources", "items": ["woodcutter", "forester", "quarry", "iron_mine"]},
@@ -383,11 +398,21 @@ const CATEGORIES := [
 	{"name": "Storage", "items": ["stockpile", "granary", "warehouse", "carter", "trading_post"]},
 	{"name": "Defense", "items": ["guard_tower", "stone_tower", "barracks", "palisade", "gate", "stone_wall", "wall_tower"]},
 	{"name": "Civic", "items": ["chapel", "market", "tavern", "scholars_hall"]},
+	{"name": "Decor", "items": ["plaza", "flowerbed", "avenue_tree", "garden", "fountain", "statue", "monument"]},
 ]
 
 
 static func get_def(id: String) -> Dictionary:
+	if DECOR.has(id):
+		return DECOR[id]
+	if id == "plaza":
+		return PLAZA_DEF
 	return DEFS[id]
+
+
+## Plazas are paved road tiles dragged out like roads (see WorldMap.place_plazas).
+const PLAZA_DEF := {"name": "Plaza", "desc": "Paved square: walkable like a road, a little beauty, townsfolk gather.",
+	"size": Vector2i(1, 1), "cost": {"stone": 3}, "color": Color(0.7, 0.7, 0.65)}
 
 
 ## Walls and gates: 1x1, no entrance, block civilians (gates excepted).

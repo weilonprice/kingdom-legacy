@@ -418,11 +418,25 @@ PHASE 2 — SIMULATION DIRECTION (decided 2026-09-24)
   M25  A living kingdom: townsfolk life (chatting, children playing,
        crowds at market and tavern), animals (chickens, cows, sheep, dogs,
        birds), town effects (chimney smoke, lit windows, carts)   [DONE]
-  M26  People's lives: ages, families, births, children growing into
+  PHASE 3 — KINGDOM BUILDING (decided 2026-09-24; design.txt section 18)
+  M26  Beauty & desirability: decorations (plazas, fountains, gardens,
+       trees, statues, the ruler's monument), industry lowers it, the best
+       homes need it, desirability overlay   [DONE]
+  M27  Classes & growing homes: peasants, burghers, nobles; new home art
+       per level
+  M28  Roads: dirt -> cobble -> paved, traffic, paved streets for big
+       buildings, beauty from paving
+  M29  Public services: bathhouse & physician (health, disease), fire
+       brigade, town watch & crime, school
+  M30  Great works: Cathedral, Guildhall, University, Grand Market Square;
+       City needs one, Kingdom two
+  Then: people's lives, stats & graphs.
+
+  (earlier plan, now after Phase 3) People's lives: ages, families, births, children growing into
        workers, old age and death, named citizens to follow
-  M27  Stats & graphs: a kingdom ledger with graphs over time and
+  (earlier plan) Stats & graphs: a kingdom ledger with graphs over time and
        per-building production
-  M28  Health & disease: illness in crowded or dirty quarters, healers,
+  (earlier plan, folded into M29) Health & disease: illness in crowded or dirty quarters, healers,
        clean water, plague events
 
   Not chosen for now: castle damage penalties, castle garrison/towers,
@@ -451,4 +465,6 @@ BACKLOG / MAYBE LATER
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. M26-M28 simulation systems (people's lives, stats & graphs, health)
+  1. Phase 3: M26 beauty, M27 classes & homes, M28 roads, M29 services,
+     M30 great works
+  2. Then people's lives, stats & graphs

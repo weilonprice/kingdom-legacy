@@ -48,6 +48,18 @@ func found(seed_value: int) -> void:
 
 func _ready() -> void:
 	world.keep.health.changed.connect(_on_castle_hurt)
+	world.building_placed.connect(func(b: Building) -> void:
+		if b.def_id == "monument":
+			_dress_monument(b))
+
+
+## The Royal Monument shows whoever sits on the throne.
+func _dress_monument(b: Building) -> void:
+	if ruler.is_empty():
+		return
+	b.art_id = "monument_king" if ruler.male else "monument_queen"
+	b.title = "Monument to %s" % title_of("ruler")
+	b.queue_redraw()
 
 
 # --- Names and titles ----------------------------------------------------------
@@ -176,6 +188,10 @@ func _after_change() -> void:
 			mods[key] = cur
 	GameState.set_royal_mods(mods)
 	_refresh_agents()
+	if world != null:
+		for b in world.buildings:
+			if b.def_id == "monument":
+				_dress_monument(b)
 	changed.emit()
 
 

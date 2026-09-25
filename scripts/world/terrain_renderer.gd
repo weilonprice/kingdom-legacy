@@ -30,6 +30,7 @@ const CROP_SOURCE := 10
 
 var world: WorldMap
 var bridges: BridgeLayer
+var plaza_layer: PlazaLayer
 ## Trees and props (see Nature). When there's tree art, forests are drawn as
 ## grass with trees standing on it instead of the forest tileset.
 var nature: Nature
@@ -131,6 +132,9 @@ func _build_layers() -> void:
 
 
 func _add_bridge_layer() -> void:
+	plaza_layer = PlazaLayer.new()
+	plaza_layer.world = world
+	add_child(plaza_layer)
 	bridges = BridgeLayer.new()
 	bridges.world = world
 	add_child(bridges)
@@ -147,6 +151,7 @@ func rebuild() -> void:
 				_paint_overlay_cell(o, Vector2i(x, y))
 	nature.rebuild()
 	bridges.queue_redraw()
+	plaza_layer.queue_redraw()
 
 
 ## Call after a tile's terrain or road status changes.
@@ -160,6 +165,8 @@ func refresh_tile(t: Vector2i) -> void:
 	nature.refresh_tile(t)
 	if bridges != null:
 		bridges.queue_redraw()
+	if plaza_layer != null:
+		plaza_layer.queue_redraw()
 
 
 func _paint_base(t: Vector2i) -> void:

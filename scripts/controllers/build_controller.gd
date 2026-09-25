@@ -9,7 +9,7 @@ signal building_selected(building: Building)
 ## A member of the royal family was clicked (role: ruler/spouse/heir).
 signal royal_clicked(role: String)
 
-enum Mode { NONE, BUILD, ROAD, WALL, DEMOLISH }
+enum Mode { NONE, BUILD, ROAD, WALL, DEMOLISH, PLAZA }
 
 const HOTKEYS := {KEY_R: "road", KEY_X: "demolish"}
 const COLOR_OK := Color(0.3, 1.0, 0.4, 0.45)
@@ -46,6 +46,12 @@ func select(id: String) -> void:
 	match id:
 		"road":
 			mode = Mode.ROAD
+		"plaza":
+			var plocked := progression.locked_reason("buildings", "plaza") if progression != null else ""
+			if plocked != "":
+				message.emit("Plaza: %s" % plocked)
+				return
+			mode = Mode.PLAZA
 		"demolish":
 			mode = Mode.DEMOLISH
 		_:
@@ -81,6 +87,8 @@ func mode_text() -> String:
 		Mode.ROAD:
 			return "Road — drag to lay a path (across water it builds a bridge: %s per tile), right-click to cancel" % \
 				BuildingDefs.cost_text(WorldMap.BRIDGE_COST)
+		Mode.PLAZA:
+			return "Plaza — drag to pave a square (3 stone a tile; walkable like road), right-click to cancel"
 		Mode.WALL:
 			var wdef := BuildingDefs.get_def(build_id)
 			return "%s — drag to build (%s per segment; gates where it crosses a road), right-click to cancel" % [
@@ -143,7 +151,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		Mode.BUILD:
 			if event.pressed:
 				_try_build()
-		Mode.ROAD, Mode.WALL:
+		Mode.ROAD, Mode.WALL, Mode.PLAZA:
 			if event.pressed:
 				_dragging = true
 				_drag_start = hover_tile
@@ -152,6 +160,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				_dragging = false
 				if mode == Mode.ROAD:
 					world.place_roads(tiles)
+					_emit_if(world.road_problem)
+				elif mode == Mode.PLAZA:
+					world.place_plazas(tiles)
 					_emit_if(world.road_problem)
 				else:
 					_build_wall(tiles)
@@ -304,6 +315,11 @@ func _draw() -> void:
 				if bridge.has(t):
 					color = COLOR_BRIDGE if bridge[t] else COLOR_BAD
 				draw_rect(Rect2(Vector2(t * tile), Vector2(tile, tile)), color)
+		Mode.PLAZA:
+			for t in _drag_tiles():
+				var ok := (world.is_road(t) or world.can_place_road(t)) and world.get_terrain(t) != Terrain.WATER \
+					and not world.plazas.has(t)
+				draw_rect(Rect2(Vector2(t * tile), Vector2(tile, tile)), Color(0.8, 0.8, 0.75, 0.5) if ok else COLOR_BAD)
 		Mode.WALL:
 			var plan := wall_plan(_drag_tiles())
 			for p: Dictionary in plan:

@@ -591,6 +591,8 @@ func _snapshot() -> Dictionary:
 		"happiness_mod": GameState.mod("happiness", 0.0),
 		"tax_mod": GameState.mod("tax"),
 		"anims_seen": anims_seen.keys(),
+		"plazas": world.plazas.size(),
+		"home_beauty": _home_beauty(),
 		"life": {"children": main.town_life.count("child"), "shoppers": main.town_life.count("shopper"),
 			"dogs": main.town_life.count("dog"), "chickens": main.town_life.count("chicken"),
 			"grazers": main.town_life.count("sheep") + main.town_life.count("cow"),
@@ -645,6 +647,17 @@ func _snapshot() -> Dictionary:
 		"visible_text": _visible_text(main.hud),
 		"messages": report.messages.duplicate(),
 	}
+
+
+## Average desirability of the homes (not the castle).
+func _home_beauty() -> float:
+	var homes := world.buildings.filter(func(b: Building) -> bool: return b.is_home() and b != world.keep)
+	if homes.is_empty():
+		return 0.0
+	var total := 0.0
+	for h: Building in homes:
+		total += world.building_desirability(h)
+	return snappedf(total / homes.size(), 0.1)
 
 
 ## The dragon's HP as a percentage, or -1 when none is on the map.
@@ -766,6 +779,14 @@ func _check(expect: Dictionary) -> String:
 	for anim: String in expect.get("anims_seen", []):
 		if not anims_seen.has(anim):
 			problems.append("no villager seen doing '%s' (seen: %s)" % [anim, ", ".join(anims_seen.keys())])
+	if expect.has("decreased"):
+		var before: Dictionary = snapshots.get(expect.decreased.since, s)
+		for key: String in expect.decreased:
+			if key == "since":
+				continue
+			var fell := _metric(before, key) - _metric(s, key)
+			if fell < float(expect.decreased[key]):
+				problems.append("%s fell %s since %s, want %s+" % [key, fell, expect.decreased.since, expect.decreased[key]])
 	if expect.has("increased"):
 		# {"since": "<state>", "forest": 3}: metric grew by at least that much.
 		var then: Dictionary = snapshots.get(expect.increased.since, s)
@@ -830,7 +851,7 @@ func _metric(s: Dictionary, key: String) -> float:
 	if key.begins_with("life."):
 		return float(s.life.get(key.substr(5), 0))
 	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning", "lairs",
-			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps", "castle_size", "castle_progress", "builders", "keep_hp", "royals_on_map", "happiness_mod", "tax_mod"]:
+			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps", "castle_size", "castle_progress", "builders", "keep_hp", "plazas", "home_beauty", "royals_on_map", "happiness_mod", "tax_mod"]:
 		return float(s[key])
 	return float(s.resources.get(key, 0))
 

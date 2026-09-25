@@ -67,7 +67,7 @@ func _process(delta: float) -> void:
 		_step(delta)
 		return
 	_pause -= delta
-	if _loitering and _chat <= 0.0 and randf() < delta * 0.25 and life.someone_near(self, 40.0):
+	if _loitering and _chat <= 0.0 and randf() < delta * 0.5 and life.someone_near(self, 64.0):
 		_chat = CHAT_TIME
 	if _pause <= 0.0:
 		_next()

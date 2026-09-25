@@ -107,6 +107,7 @@ static func capture(main: Node) -> Dictionary:
 		"terrain": Marshalls.raw_to_base64(world.terrain),
 		"resource_left": Marshalls.raw_to_base64(world.resource_left.to_byte_array()),
 		"roads": world.roads.keys().map(func(t: Vector2i) -> Array: return _v(t)),
+		"plazas": world.plazas.keys().map(func(t: Vector2i) -> Array: return _v(t)),
 		"buildings": buildings,
 		"fields": fields,
 		"saplings": world.saplings.keys().map(func(t: Vector2i) -> Array: return [t.x, t.y, world.saplings[t]]),
@@ -148,6 +149,7 @@ static func apply(main: Node, data: Dictionary) -> void:
 	main.progression.restore_tier(int(data.tier))
 
 	world.restore_roads(data.roads.map(func(a: Array) -> Vector2i: return _t(a)))
+	world.restore_plazas(data.get("plazas", []).map(func(a: Array) -> Vector2i: return _t(a)))
 	main.castle.restore(data.castle)
 	main.royals.restore(data.royals)
 

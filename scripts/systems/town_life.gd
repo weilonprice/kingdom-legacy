@@ -15,7 +15,7 @@ const PEOPLE_PER_DOG := 15
 const MAX := {"child": 24, "shopper": 20, "dog": 10}
 const CHICKENS_PER_FARM := 3
 ## Where townsfolk like to gather.
-const GATHERING := ["market", "well", "tavern", "chapel", "trading_post"]
+const GATHERING := ["market", "well", "tavern", "chapel", "trading_post", "fountain", "garden", "monument", "statue"]
 
 var world: WorldMap
 var folk: Array[Townsfolk] = []
@@ -40,8 +40,8 @@ func _process(delta: float) -> void:
 	if _timer > 0.0:
 		return
 	_timer = CHECK
-	folk = folk.filter(func(f: Townsfolk) -> bool: return is_instance_valid(f))
-	animals = animals.filter(func(a: Animal) -> bool: return is_instance_valid(a))
+	folk.assign(folk.filter(func(f: Townsfolk) -> bool: return is_instance_valid(f)))
+	animals.assign(animals.filter(func(a: Animal) -> bool: return is_instance_valid(a)))
 	var homes := world.buildings.filter(func(b: Building) -> bool:
 		return b.is_home() and b != world.keep and not b.residents.is_empty())
 	if homes.is_empty():
@@ -125,6 +125,9 @@ func someone_near(me: Townsfolk, radius: float) -> bool:
 ## A gathering place (market, well, tavern...) for a townsperson to visit,
 ## favouring ones close to home.
 func gathering_spot(me: Townsfolk) -> Vector2i:
+	# Plazas are the town's squares: a favourite place to meet.
+	if not world.plazas.is_empty() and randf() < 0.4:
+		return world.plazas.keys().pick_random()
 	var spots := world.buildings.filter(func(b: Building) -> bool: return b.def_id in GATHERING and b.has_road)
 	if spots.is_empty():
 		return WorldMap.INVALID_TILE
