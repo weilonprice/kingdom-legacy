@@ -675,6 +675,18 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
     Split into M27a (classes) and M27b (the goods ladder and its chains:
     brewery, toolmaker, sheep farm -> weaver -> tailor, vineyard -> winery,
     luxuries also from merchants).
+    M27b BUILT: goods (NeedDefs.GOODS): ale from Cottages up (+6
+    happiness; Townhouses need it), tools and cloth from Townhouses up
+    (+6/-4; Manors need them), wine and fine clothes for Manors (+10/-8).
+    A home has a good when the kingdom has it in storage and a staffed
+    Market covers the home; homes use 0.10 ale, 0.05 tools, 0.05 cloth,
+    0.08 wine, 0.04 fine clothes per resident per minute. Chains: Brewery
+    (3 wheat -> 2 ale), Toolmaker (1 iron -> 2 tools), Sheep Farm (2 wool),
+    Weaver (2 wool -> 1 cloth) - Village; Vineyard (2 grapes), Winery (3
+    grapes -> 1 wine), Tailor (2 cloth -> 1 fine clothes) - Town. Burghers
+    run the workshops. A Cloth & wine merchant (Town+) sells cloth, wine
+    and fine clothes; the Peddler carries some ale and cloth. New art for
+    all seven buildings, with winter versions.
     M27a BUILT: Cottage = peasants, Townhouse = burghers, Manor = nobles
     (castle residents are peasants). Jobs by class (ClassDefs): burghers -
     smithy, armory, tavern, market, trading post (merchants may be nobles);

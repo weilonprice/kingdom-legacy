@@ -218,6 +218,23 @@ func _act() -> void:
 			return
 		if _count("market") < 1 + homes / 12 and _try("market"):
 			return
+		# Goods homes want (M27b): ale first, then tools and cloth, then the
+		# nobles' wine and fine clothes once there's a Town.
+		if _count("market") >= 1:
+			if _count("brewery") < 1 + homes / 15 and _try("brewery"):
+				return
+			if pop >= 30 and _count("sheep_farm") < 1 and _try("sheep_farm"):
+				return
+			if pop >= 30 and _count("weaver") < 1 and _try("weaver"):
+				return
+			if pop >= 30 and _count("toolmaker") < 1 and _count("iron_mine") >= 1 and _try("toolmaker"):
+				return
+			if tier >= 2 and _count("vineyard") < 1 and _try("vineyard"):
+				return
+			if tier >= 2 and _count("winery") < 1 and _count("vineyard") >= 1 and _try("winery"):
+				return
+			if tier >= 2 and _count("tailor") < 1 and _count("weaver") >= 1 and _try("tailor"):
+				return
 		var workplaces := _count("farm") + _count("mill") + _count("bakery") + _count("woodcutter") + _count("quarry")
 		if _count("carter") < 1 + workplaces / 8 and pop >= 20 and _try("carter"):
 			return

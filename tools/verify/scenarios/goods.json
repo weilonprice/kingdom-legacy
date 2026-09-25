@@ -1,0 +1,312 @@
+[
+ {
+  "include": "village-setup.json"
+ },
+ {
+  "setup_delay_raids": 3000
+ },
+ {
+  "setup_grant": {
+   "gold": 600,
+   "wheat": 100,
+   "iron": 30,
+   "bread": 200
+  }
+ },
+ {
+  "click_button": "Storage"
+ },
+ {
+  "find_site": {
+   "building": "stockpile",
+   "as": "stockpile",
+   "entrance_on_road": true,
+   "near": [
+    -8,
+    0
+   ],
+   "connect": true
+  }
+ },
+ {
+  "click_button": "Stockpile"
+ },
+ {
+  "click_tile": "stockpile"
+ },
+ {
+  "find_site": {
+   "building": "carter",
+   "as": "carter",
+   "entrance_on_road": true,
+   "connect": true
+  }
+ },
+ {
+  "click_button": "Carter"
+ },
+ {
+  "click_tile": "carter"
+ },
+ {
+  "click_button": "Civic"
+ },
+ {
+  "find_site": {
+   "building": "market",
+   "as": "market",
+   "entrance_on_road": true,
+   "connect": true
+  }
+ },
+ {
+  "click_button": "Market"
+ },
+ {
+  "click_tile": "market"
+ },
+ {
+  "click_button": "Industry"
+ },
+ {
+  "find_site": {
+   "building": "brewery",
+   "as": "brewery",
+   "entrance_on_road": true,
+   "connect": true
+  }
+ },
+ {
+  "click_button": "Brewery"
+ },
+ {
+  "click_tile": "brewery"
+ },
+ {
+  "find_site": {
+   "building": "toolmaker",
+   "as": "toolmaker",
+   "entrance_on_road": true,
+   "connect": true
+  }
+ },
+ {
+  "click_button": "Toolmaker"
+ },
+ {
+  "click_tile": "toolmaker"
+ },
+ {
+  "find_site": {
+   "building": "weaver",
+   "as": "weaver",
+   "entrance_on_road": true,
+   "connect": true
+  }
+ },
+ {
+  "click_button": "Weaver"
+ },
+ {
+  "click_tile": "weaver"
+ },
+ {
+  "click_button": "Food"
+ },
+ {
+  "find_site": {
+   "building": "sheep_farm",
+   "as": "sheep",
+   "entrance_on_road": true,
+   "connect": true
+  }
+ },
+ {
+  "click_button": "Sheep Farm"
+ },
+ {
+  "click_tile": "sheep"
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "expect": {
+   "buildings_min": {
+    "market": 1,
+    "brewery": 1,
+    "toolmaker": 1,
+    "weaver": 1,
+    "sheep_farm": 1
+   }
+  }
+ },
+ {
+  "click_tile": "sheep"
+ },
+ {
+  "expect": {
+   "text": "Produces"
+  }
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "wait_until": {
+   "min": {
+    "ale": 2,
+    "tools": 2,
+    "cloth": 1
+   }
+  },
+  "timeout": 180
+ },
+ {
+  "wait_until": {
+   "min": {
+    "goods_met.ale": 2
+   }
+  },
+  "timeout": 60
+ },
+ {
+  "click_tile": "h1"
+ },
+ {
+  "expect": {
+   "text": "\u2714 Ale"
+  }
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "wait_until": {
+   "min": {
+    "used.ale": 1
+   }
+  },
+  "timeout": 120
+ },
+ {
+  "setup_tier": "Town"
+ },
+ {
+  "setup_home_level": {
+   "home": "h1",
+   "level": 3
+  }
+ },
+ {
+  "setup_grant": {
+   "wine": 20,
+   "fine_clothes": 10,
+   "tools": 10,
+   "cloth": 10
+  }
+ },
+ {
+  "wait_until": {
+   "min": {
+    "goods_met.wine": 1,
+    "goods_met.fine_clothes": 1,
+    "goods_met.tools": 1
+   }
+  },
+  "timeout": 30
+ },
+ {
+  "click_tile": "h1"
+ },
+ {
+  "expect": {
+   "text": "\u2714 Wine"
+  }
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "wait_until": {
+   "min": {
+    "used.wine": 1
+   }
+  },
+  "timeout": 120
+ },
+ {
+  "click_button": "Industry"
+ },
+ {
+  "click_button": "Food"
+ },
+ {
+  "find_site": {
+   "building": "vineyard",
+   "as": "vineyard",
+   "entrance_on_road": true,
+   "near": [
+    10,
+    0
+   ],
+   "connect": true
+  }
+ },
+ {
+  "click_button": "Vineyard"
+ },
+ {
+  "click_tile": "vineyard"
+ },
+ {
+  "click_button": "Industry"
+ },
+ {
+  "find_site": {
+   "building": "winery",
+   "as": "winery",
+   "entrance_on_road": true,
+   "connect": true
+  }
+ },
+ {
+  "click_button": "Winery"
+ },
+ {
+  "click_tile": "winery"
+ },
+ {
+  "key": "Escape"
+ },
+ {
+  "state": "before-wine"
+ },
+ {
+  "wait_until": {
+   "increased": {
+    "since": "before-wine",
+    "wine": 1
+   }
+  },
+  "timeout": 240
+ },
+ {
+  "click_button": "1x"
+ },
+ {
+  "key": "EQUAL"
+ },
+ {
+  "pan_to": "brewery"
+ },
+ {
+  "wait": 1
+ },
+ {
+  "screenshot": "00-goods"
+ },
+ {
+  "state": "end"
+ }
+]

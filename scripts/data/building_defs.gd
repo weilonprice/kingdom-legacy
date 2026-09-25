@@ -185,6 +185,26 @@ const DEFS := {
 		"work_time": 12.0,
 		"hp": 300.0,
 	},
+	"toolmaker": {
+		"name": "Toolmaker", "desc": "Makes tools from iron. Burghers and nobles want tools.",
+		"size": Vector2i(2, 2), "cost": {"wood": 40, "stone": 30}, "color": Color(0.5, 0.5, 0.55),
+		"jobs": 1, "work": "produce", "input": {"iron": 1}, "output": {"tools": 2}, "work_time": 12.0,
+	},
+	"weaver": {
+		"name": "Weaver", "desc": "Weaves wool into cloth. Burghers and nobles want cloth.",
+		"size": Vector2i(2, 2), "cost": {"wood": 40, "stone": 10}, "color": Color(0.4, 0.55, 0.8),
+		"jobs": 1, "work": "produce", "input": {"wool": 2}, "output": {"cloth": 1}, "work_time": 12.0,
+	},
+	"tailor": {
+		"name": "Tailor", "desc": "Sews cloth into fine clothes for the nobility.",
+		"size": Vector2i(2, 2), "cost": {"wood": 40, "stone": 30, "gold": 40}, "color": Color(0.7, 0.2, 0.55),
+		"jobs": 1, "work": "produce", "input": {"cloth": 2}, "output": {"fine_clothes": 1}, "work_time": 16.0,
+	},
+	"winery": {
+		"name": "Winery", "desc": "Presses grapes into wine for the nobility.",
+		"size": Vector2i(2, 2), "cost": {"wood": 40, "stone": 40}, "color": Color(0.55, 0.1, 0.25),
+		"jobs": 1, "work": "produce", "input": {"grapes": 3}, "output": {"wine": 1}, "work_time": 14.0,
+	},
 	"armory": {
 		"name": "Armory",
 		"desc": "Hammers iron into plate armor for knights.",
@@ -240,6 +260,21 @@ const DEFS := {
 		"input": {"wheat": 4},
 		"output": {"flour": 4},
 		"work_time": 5.0,
+	},
+	"brewery": {
+		"name": "Brewery", "desc": "Brews ale from wheat. Every home wants ale; Townhouses need it.",
+		"size": Vector2i(2, 2), "cost": {"wood": 40, "stone": 20}, "color": Color(0.7, 0.5, 0.2),
+		"jobs": 1, "work": "produce", "input": {"wheat": 3}, "output": {"ale": 2}, "work_time": 10.0,
+	},
+	"sheep_farm": {
+		"name": "Sheep Farm", "desc": "A shepherd raises sheep for wool.",
+		"size": Vector2i(3, 3), "cost": {"wood": 40}, "color": Color(0.85, 0.85, 0.75),
+		"jobs": 1, "work": "produce", "output": {"wool": 2}, "work_time": 10.0,
+	},
+	"vineyard": {
+		"name": "Vineyard", "desc": "Rows of vines: a vintner harvests grapes for the winery.",
+		"size": Vector2i(3, 3), "cost": {"wood": 40, "stone": 10}, "color": Color(0.4, 0.55, 0.25),
+		"jobs": 1, "work": "produce", "output": {"grapes": 2}, "work_time": 10.0,
 	},
 	"bakery": {
 		"name": "Bakery",
@@ -397,8 +432,8 @@ const DECOR := {
 const CATEGORIES := [
 	{"name": "Housing", "items": ["house", "stone_house", "well"]},
 	{"name": "Resources", "items": ["woodcutter", "forester", "quarry", "iron_mine"]},
-	{"name": "Industry", "items": ["smithy", "armory"]},
-	{"name": "Food", "items": ["farm", "fisher", "mill", "bakery"]},
+	{"name": "Industry", "items": ["smithy", "armory", "toolmaker", "brewery", "weaver", "tailor", "winery"]},
+	{"name": "Food", "items": ["farm", "fisher", "mill", "bakery", "sheep_farm", "vineyard"]},
 	{"name": "Storage", "items": ["stockpile", "granary", "warehouse", "carter", "trading_post"]},
 	{"name": "Defense", "items": ["guard_tower", "stone_tower", "barracks", "palisade", "gate", "stone_wall", "wall_tower"]},
 	{"name": "Civic", "items": ["chapel", "market", "tavern", "scholars_hall"]},

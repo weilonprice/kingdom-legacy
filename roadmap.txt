@@ -426,7 +426,7 @@ PHASE 2 — SIMULATION DIRECTION (decided 2026-09-24)
        class with apprentices; noble captains for knights; new home art
        per level   [DONE]
   M27b Goods ladder: ale, tools, cloth, wine, fine clothes; brewery,
-       toolmaker, sheep farm, weaver, tailor, vineyard, winery
+       toolmaker, sheep farm, weaver, tailor, vineyard, winery   [DONE]
   M28  Roads: dirt -> cobble -> paved, traffic, paved streets for big
        buildings, beauty from paving
   M29  Public services: bathhouse & physician (health, disease), fire

@@ -20,7 +20,7 @@ const TIERS := [
 		"requires": {"population": 20, "buildings": ["well", "granary"]},
 		"unlocks": {
 			"buildings": ["barracks", "scholars_hall", "stone_house", "chapel", "market", "iron_mine", "smithy", "trading_post",
-				"garden", "fountain"],
+				"garden", "fountain", "brewery", "toolmaker", "sheep_farm", "weaver"],
 			"units": ["militia", "spearman"],
 			"research": ["crop_rotation", "sharp_tools", "wheelbarrows", "fletching", "ledgers"],
 		},
@@ -31,7 +31,7 @@ const TIERS := [
 		"requires": {"population": 60, "raids_survived": 2, "buildings": ["barracks", "scholars_hall"],
 			"house_level": {"level": 2, "count": 8}},
 		"unlocks": {
-			"buildings": ["stone_tower", "warehouse", "tavern", "stone_wall", "wall_tower", "armory", "statue", "monument"],
+			"buildings": ["stone_tower", "warehouse", "tavern", "stone_wall", "wall_tower", "armory", "statue", "monument", "tailor", "vineyard", "winery"],
 			"units": ["archer"],
 			"research": ["tempered_steel", "masonry"],
 		},

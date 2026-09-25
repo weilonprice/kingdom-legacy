@@ -438,7 +438,7 @@ func _plan_produce() -> void:
 	var output: String = job.def.output.keys()[0]
 	if not _ensure_pile_space(job.def.output[output]):
 		return
-	if job.input_stock.get(input, 0) >= batch:
+	if input == "" or job.input_stock.get(input, 0) >= batch:
 		# A hauler delivered it: just walk over and work.
 		if _walk_to(job.entrance()):
 			state = State.TO_WORKPLACE
@@ -787,7 +787,7 @@ func _arrive_workplace() -> void:
 		carrying = ""
 		carry_amount = 0
 		queue_redraw()
-	elif not job.take_input(job.input_item(), job.input_batch()):
+	elif job.input_item() != "" and not job.take_input(job.input_item(), job.input_batch()):
 		_wait("Waiting for %s" % job.input_item(), 2.0)
 		return
 	task = Task.PRODUCE
