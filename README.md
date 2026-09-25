@@ -57,6 +57,10 @@ the next raid hits. Made with Godot 4.
 - **Rivers and bridges.** A river winds past every town, with a couple of
   shallow fords. Drag a road across it to build a bridge, then guard the
   crossing: raiders use bridges too.
+- **A living kingdom.** Children play in the lanes, townsfolk with baskets
+  crowd the market and stop to chat, dogs trot after their owners,
+  chickens scratch and sheep graze by the farms, birds cross the sky,
+  chimneys smoke and windows glow at night.
 - **A royal family.** A ruling house lives in the castle and strolls its
   grounds. The ruler's traits shape the realm (Just, Greedy, Builder,
   Warlike, Wise, Thrifty); rulers age and die, heirs inherit, and a ruler
@@ -245,11 +249,12 @@ after its scenarios pass.
 | M19 | Settings menu ✅ |
 | M20 | Forester and forest regrowth ✅ |
 | M21 | Camera: trackpad pinch and pan, zoom keys and buttons, whole-map view ✅ |
+| M25 | A living kingdom: children, townsfolk and dogs, farm animals and birds, chimney smoke, glowing windows, handcarts ✅ |
 | M24 | Walls that gate roads, cost preview, stone upgrades; a 250-person kingdom; challenge the Dragon when ready ✅ |
 | M23 | The royal family (ruler, spouse, heir with traits, aging and succession) and the treasury raiders can break into ✅ |
 | M23a | Villager animations: chopping, mining, farming, hammering, carrying, picking up and putting down ✅ |
 | M22 | The growing castle: Keep 5×5 → Castle 7×7 → Citadel 9×9, built by builders in reserved grounds ✅ |
-| M25–M28 | **Simulation first** (planned): a living kingdom (townsfolk, animals, town effects), people's lives, stats & graphs, health & disease. See design.txt §17 |
+| M25–M28 | **Simulation first** (planned): people's lives, stats & graphs, health & disease. See design.txt §17 |
 
 Details are in [roadmap.txt](roadmap.txt) and [design.txt](design.txt).
 

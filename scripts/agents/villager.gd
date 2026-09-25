@@ -853,6 +853,9 @@ func _finish_work() -> void:
 
 func _draw() -> void:
 	var anim := current_anim()
+	var cart := carrying != "" and _moving and job != null and job.def_id == "carter"
+	if cart and _facing != "south":
+		_draw_cart()
 	var top := Art.draw_character_anim(self, "villager", _facing, anim,
 		_once_time if anim in Art.ONE_SHOT else _anim_time)
 	if is_nan(top):
@@ -875,9 +878,24 @@ func _draw() -> void:
 		var box := Rect2(Vector2(4, top + 12), Vector2(7, 7))
 		draw_rect(box, c)
 		draw_rect(box, c.darkened(0.5), false, 1.0)
+	if cart and _facing == "south":
+		_draw_cart()
 	if missed_meals > 0:
 		draw_circle(Vector2(-6, top + 2), 2.5, Color(0.9, 0.15, 0.1))
 	health.draw_bar(self, Vector2(0, top - 4), 12)
+
+
+## The carter's handcart, pushed ahead of the hauler (the prop art, smaller).
+func _draw_cart() -> void:
+	var tex := Art.texture("res://assets/sprites/props/cart.png")
+	if tex == null:
+		return
+	var ahead: Vector2 = {"east": Vector2(12, 2), "west": Vector2(-12, 2), "north": Vector2(0, -6),
+		"south": Vector2(0, 8)}[_facing]
+	var s := 0.6
+	draw_set_transform(ahead, 0.0, Vector2(-s if _facing == "west" else s, s))
+	draw_texture(tex, -Vector2(tex.get_size()) * Vector2(0.5, 0.8))
+	draw_set_transform(Vector2.ZERO)
 
 
 func set_missed_meals(value: int) -> void:

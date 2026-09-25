@@ -591,6 +591,13 @@ func _snapshot() -> Dictionary:
 		"happiness_mod": GameState.mod("happiness", 0.0),
 		"tax_mod": GameState.mod("tax"),
 		"anims_seen": anims_seen.keys(),
+		"life": {"children": main.town_life.count("child"), "shoppers": main.town_life.count("shopper"),
+			"dogs": main.town_life.count("dog"), "chickens": main.town_life.count("chicken"),
+			"grazers": main.town_life.count("sheep") + main.town_life.count("cow"),
+			"birds": main.town_life.birds.count(), "smoke": main.town_effects.puffs.size(),
+			"glows": main.town_effects.glows,
+			"chatting": main.town_life.folk.filter(func(f: Townsfolk) -> bool: return is_instance_valid(f) and f.is_chatting()).size(),
+			"folk_visible": main.town_life.folk.filter(func(f: Townsfolk) -> bool: return is_instance_valid(f) and f.visible).size()},
 		"castle": main.castle.title(),
 		"castle_size": world.keep.size.x,
 		"castle_building": main.castle.is_building(),
@@ -820,6 +827,8 @@ func _sum_by_building(field: String) -> Dictionary:
 ## Numeric state for min/max: population, roads, happiness, villagers_awake,
 ## or a kingdom resource total.
 func _metric(s: Dictionary, key: String) -> float:
+	if key.begins_with("life."):
+		return float(s.life.get(key.substr(5), 0))
 	if key in ["population", "roads", "happiness", "villagers_awake", "enemies", "burning", "lairs",
 			"villagers_fighting", "boss_hp", "bridges", "music_notes", "saplings", "cleared", "forest", "zoom", "min_zoom", "fps", "castle_size", "castle_progress", "builders", "keep_hp", "royals_on_map", "happiness_mod", "tax_mod"]:
 		return float(s[key])
