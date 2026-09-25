@@ -11,6 +11,10 @@ signal royal_clicked(role: String)
 
 enum Mode { NONE, BUILD, ROAD, WALL, DEMOLISH, PLAZA }
 
+## Road tool: 0 lays dirt road, 1 cobblestone, 2 paved street (see
+## WorldMap.place_road_tier).
+var road_tier := 0
+
 const HOTKEYS := {KEY_R: "road", KEY_X: "demolish"}
 const COLOR_OK := Color(0.3, 1.0, 0.4, 0.45)
 const COLOR_BAD := Color(1.0, 0.25, 0.2, 0.45)
@@ -46,6 +50,14 @@ func select(id: String) -> void:
 	match id:
 		"road":
 			mode = Mode.ROAD
+			road_tier = 0
+		"cobble_road", "paved_road":
+			var rlocked := progression.locked_reason("buildings", id) if progression != null else ""
+			if rlocked != "":
+				message.emit("%s: %s" % [BuildingDefs.get_def(id).name, rlocked])
+				return
+			mode = Mode.ROAD
+			road_tier = 1 if id == "cobble_road" else 2
 		"plaza":
 			var plocked := progression.locked_reason("buildings", "plaza") if progression != null else ""
 			if plocked != "":
@@ -84,6 +96,10 @@ func mode_text() -> String:
 		Mode.BUILD:
 			var def := BuildingDefs.get_def(build_id)
 			return "Placing %s (%s) — right-click to cancel" % [def.name, BuildingDefs.cost_text(def.cost)]
+		Mode.ROAD when road_tier > 0:
+			var rdef := BuildingDefs.get_def(["", "cobble_road", "paved_road"][road_tier])
+			return "%s — drag over roads to upgrade them or lay new (%s a tile), right-click to cancel" % [
+				rdef.name, BuildingDefs.cost_text(rdef.cost)]
 		Mode.ROAD:
 			return "Road — drag to lay a path (across water it builds a bridge: %s per tile), right-click to cancel" % \
 				BuildingDefs.cost_text(WorldMap.BRIDGE_COST)
@@ -158,7 +174,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif _dragging:
 				var tiles := _drag_tiles()  # before clearing the flag it depends on
 				_dragging = false
-				if mode == Mode.ROAD:
+				if mode == Mode.ROAD and road_tier > 0:
+					world.place_road_tier(tiles, road_tier)
+					_emit_if(world.road_problem)
+				elif mode == Mode.ROAD:
 					world.place_roads(tiles)
 					_emit_if(world.road_problem)
 				elif mode == Mode.PLAZA:

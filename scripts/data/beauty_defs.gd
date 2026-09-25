@@ -22,6 +22,8 @@ const SOURCES := {
 }
 ## Each paved plaza tile.
 const PLAZA := [2.0, 2]
+## Road tiles by tier (dirt, cobblestone, paved): [value, radius].
+const PAVING := [[0.0, 0], [1.0, 1], [2.0, 1]]
 const MIN := -40.0
 const MAX := 80.0
 ## Homes need at least this much desirability to reach a level (index =

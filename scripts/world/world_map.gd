@@ -24,6 +24,13 @@ var resource_left := PackedInt32Array()
 var roads := {}        # Vector2i -> true
 ## Road tiles paved as plazas (a subset of roads; see place_plazas).
 var plazas := {}       # Vector2i -> true
+## Upgraded road tiles: 1 cobblestone, 2 paved street (absent = dirt).
+var road_tiers := {}   # Vector2i -> int
+## Walkers on each tile right now (villagers and townsfolk), and how busy
+## each road tile has been lately (for the Traffic overlay).
+var traffic := {}      # Vector2i -> int
+var road_use := {}     # Vector2i -> float
+var _traffic_timer := 0.0
 var occupancy := {}    # Vector2i -> Building
 var entrances := {}    # Vector2i -> Building
 var reserved := {}     # Vector2i -> Object reserving that resource tile
@@ -83,6 +90,10 @@ var _forest_timer := 0.0
 func _process(delta: float) -> void:
 	if _desirability_dirty:
 		_recompute_desirability()
+	_traffic_timer -= delta
+	if _traffic_timer <= 0.0:
+		_count_traffic(0.5 - _traffic_timer)
+		_traffic_timer = 0.5
 	if growth_paused:
 		return
 	for t: Vector2i in fields:
@@ -310,11 +321,22 @@ func is_walkable(t: Vector2i) -> bool:
 
 
 ## Villagers move faster on roads and slower through woods.
+## Road speed by tier (dirt, cobblestone, paved).
+const ROAD_SPEEDS := [1.6, 2.0, 2.4]
+const ROAD_TIER_NAMES := ["Dirt road", "Cobblestone road", "Paved street"]
+## More walkers than this on one road tile slow everyone on it.
+const TRAFFIC_FREE := 2
+const TRAFFIC_SLOWDOWN := 0.2
+const TRAFFIC_MIN := 0.45
+
+
 func speed_multiplier(t: Vector2i) -> float:
 	if not is_in_bounds(t):
 		return 1.0
 	if roads.has(t):
-		return 1.6
+		var crowd: int = traffic.get(t, 0)
+		var jam := 1.0 if crowd <= TRAFFIC_FREE else maxf(1.0 / (1.0 + TRAFFIC_SLOWDOWN * (crowd - TRAFFIC_FREE)), TRAFFIC_MIN)
+		return ROAD_SPEEDS[road_tiers.get(t, 0)] * jam
 	if get_terrain(t) == Terrain.FOREST:
 		return 0.7
 	return 1.0
@@ -326,7 +348,12 @@ func describe_tile(t: Vector2i) -> String:
 	if occupancy.has(t):
 		return occupancy[t].describe()
 	if roads.has(t):
-		return "Bridge" if get_terrain(t) == Terrain.WATER else "Road"
+		if get_terrain(t) == Terrain.WATER:
+			return "Bridge"
+		if plazas.has(t):
+			return "Plaza"
+		var busy: int = traffic.get(t, 0)
+		return ROAD_TIER_NAMES[road_tiers.get(t, 0)] + (" — crowded" if busy > TRAFFIC_FREE else "")
 	if fields.has(t):
 		return "Field — %s" % ["Tilled", "Growing", "Ripe"][fields[t].stage]
 	var text: String = Terrain.NAMES[get_terrain(t)]
@@ -721,6 +748,9 @@ func _recompute_desirability() -> void:
 			_spread(b.origin + b.size / 2, src[0], src[1], b.size.x / 2)
 	for t: Vector2i in plazas:
 		_spread(t, BeautyDefs.PLAZA[0], BeautyDefs.PLAZA[1], 0)
+	for t: Vector2i in road_tiers:
+		var paving: Array = BeautyDefs.PAVING[road_tiers[t]]
+		_spread(t, paving[0], paving[1], 0)
 	for i in desirability.size():
 		desirability[i] = clampf(desirability[i], BeautyDefs.MIN, BeautyDefs.MAX)
 
@@ -764,6 +794,65 @@ func place_plazas(tiles: Array[Vector2i]) -> int:
 		_desirability_dirty = true
 		roads_changed.emit()
 	return paved
+
+
+## Lays or upgrades road to `tier` (1 cobblestone, 2 paved) along `tiles`.
+## New road where there's none; dirt or cobbles are raised; bridges and
+## plazas are left alone. Returns tiles done; road_problem says why not.
+func place_road_tier(tiles: Array[Vector2i], tier: int) -> int:
+	road_problem = ""
+	var cost: Dictionary = BuildingDefs.get_def(["", "cobble_road", "paved_road"][tier]).cost
+	var done := 0
+	for t in tiles:
+		if get_terrain(t) == Terrain.WATER or plazas.has(t) or road_tiers.get(t, 0) >= tier:
+			continue
+		if not roads.has(t) and not can_place_road(t):
+			continue
+		if not GameState.spend(cost):
+			road_problem = "Ran out after %d tiles (%s each)" % [done, BuildingDefs.cost_text(cost)]
+			break
+		if not roads.has(t):
+			var one: Array[Vector2i] = [t]
+			place_roads(one)
+		road_tiers[t] = tier
+		renderer.refresh_tile(t)
+		done += 1
+	if done > 0:
+		_desirability_dirty = true
+		roads_changed.emit()
+	return done
+
+
+func road_tier_at(t: Vector2i) -> int:
+	return road_tiers.get(t, 0) if roads.has(t) else -1
+
+
+func restore_road_tiers(saved: Array) -> void:
+	road_tiers.clear()
+	for e: Array in saved:
+		var t := Vector2i(int(e[0]), int(e[1]))
+		if roads.has(t):
+			road_tiers[t] = int(e[2])
+	_desirability_dirty = true
+
+
+## Counts walkers per tile, and adds to each road tile's recent use (which
+## fades over a couple of minutes).
+func _count_traffic(elapsed: float) -> void:
+	traffic.clear()
+	for group in ["villagers", "townsfolk"]:
+		for w in get_tree().get_nodes_in_group(group):
+			if w.visible:
+				var t := world_to_tile(w.position)
+				traffic[t] = traffic.get(t, 0) + 1
+	var fade := pow(0.5, elapsed / 60.0)
+	for t: Vector2i in road_use.keys():
+		road_use[t] *= fade
+		if road_use[t] < 0.05:
+			road_use.erase(t)
+	for t: Vector2i in traffic:
+		if roads.has(t):
+			road_use[t] = road_use.get(t, 0.0) + traffic[t] * elapsed
 
 
 func restore_plazas(tiles: Array) -> void:
@@ -882,8 +971,9 @@ func demolish_at(t: Vector2i) -> String:
 	if roads.has(t):
 		if get_terrain(t) == Terrain.WATER:
 			GameState.refund(BRIDGE_COST, 0.5)
-		if plazas.has(t):
+		if plazas.has(t) or road_tiers.has(t):
 			plazas.erase(t)
+			road_tiers.erase(t)
 			_desirability_dirty = true
 		roads.erase(t)
 		renderer.refresh_tile(t)

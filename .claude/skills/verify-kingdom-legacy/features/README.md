@@ -53,6 +53,7 @@ tools/verify/run.sh`, `Gotchas`.
 - [Seasons and art](./seasons-and-art.md): the season cycle, winter firewood and frozen fields, seasonal art, trees/props/walls. Scenarios `seasons.json`, `art-showcase.json`.
 - [Rivers and bridges](./rivers-bridges.md): rivers, fords, building/refusing/demolishing bridges. Scenario `rivers-bridges.json`, tool `map_preview.tscn`.
 - [Sound and minimap](./sound-minimap.md): synthesized effects, ambience, volume sliders, the minimap. Scenario `sound-minimap.json`.
+- [Roads](./roads.md): cobblestone and paved streets, traffic and the Traffic overlay, the Manor paved-street rule. Scenario `roads.json`.
 - [Goods](./goods.md): ale, tools, cloth, wine, fine clothes; the seven new producers; market delivery and consumption. Scenario `goods.json`.
 - [Classes](./classes.md): peasants/burghers/nobles from home levels, jobs by class, apprentices, noble captains, home art per level. Scenario `classes.json`.
 - [Beauty and desirability](./beauty.md): Decor tab (plaza drag, flowerbed, tree, garden, fountain, statue, Royal Monument), desirability overlay, Manor gating. Scenario `beauty.json`.

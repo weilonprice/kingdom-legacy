@@ -397,6 +397,8 @@ func inspect_text() -> String:
 		var manor_min: float = BeautyDefs.HOME_LEVEL_MIN[NeedDefs.LEVELS.size() - 1]
 		lines.append("Desirability %d%s" % [roundi(here), "" if here >= manor_min
 			else " (a Manor needs %d: add decorations, keep industry away)" % roundi(manor_min)])
+		if world.road_tier_at(entrance()) < 2:
+			lines.append("A Manor needs a paved street at the door.")
 		for need: String in NeedDefs.ORDER + NeedDefs.GOODS_ORDER.filter(func(g: String) -> bool:
 				return level >= NeedDefs.GOODS[g].from):
 			lines.append("  %s %s" % ["✔" if needs_met.get(need, false) else "✘", NeedDefs.NEEDS[need].name])

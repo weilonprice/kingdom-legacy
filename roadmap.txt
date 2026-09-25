@@ -428,7 +428,7 @@ PHASE 2 — SIMULATION DIRECTION (decided 2026-09-24)
   M27b Goods ladder: ale, tools, cloth, wine, fine clothes; brewery,
        toolmaker, sheep farm, weaver, tailor, vineyard, winery   [DONE]
   M28  Roads: dirt -> cobble -> paved, traffic, paved streets for big
-       buildings, beauty from paving
+       buildings, beauty from paving   [DONE]
   M29  Public services: bathhouse & physician (health, disease), fire
        brigade, town watch & crime, school
   M30  Great works: Cathedral, Guildhall, University, Grand Market Square;

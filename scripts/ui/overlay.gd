@@ -3,9 +3,9 @@ extends Node2D
 ## Map overlays, cycled with O: happiness heatmap on homes, service coverage
 ## (which needs each home has), and road access for every building.
 
-enum Mode { OFF, HAPPINESS, SERVICES, ROADS, BEAUTY }
+enum Mode { OFF, HAPPINESS, SERVICES, ROADS, BEAUTY, TRAFFIC }
 
-const NAMES := ["Off", "Happiness", "Services", "Road access", "Desirability"]
+const NAMES := ["Off", "Happiness", "Services", "Road access", "Desirability", "Traffic"]
 const NEED_COLORS := {
 	"food": Color(0.95, 0.75, 0.3), "water": Color(0.35, 0.6, 1.0),
 	"religion": Color(0.95, 0.95, 0.95), "market": Color(0.9, 0.4, 0.35),
@@ -42,6 +42,17 @@ func _draw_beauty() -> void:
 				HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color.WHITE)
 
 
+## How busy each road has been lately: yellow to red; crowded tiles ringed.
+func _draw_traffic() -> void:
+	var tile := Terrain.TILE_SIZE
+	for t: Vector2i in world.road_use:
+		var k := clampf(world.road_use[t] / 60.0, 0.0, 1.0)
+		draw_rect(Rect2(Vector2(t * tile), Vector2(tile, tile)), Color(1.0, 1.0 - k, 0.1, 0.25 + 0.4 * k))
+	for t: Vector2i in world.traffic:
+		if world.roads.has(t) and world.traffic[t] > WorldMap.TRAFFIC_FREE:
+			draw_rect(Rect2(Vector2(t * tile), Vector2(tile, tile)), Color(1, 0.1, 0.1, 0.9), false, 2.0)
+
+
 func cycle() -> String:
 	mode = ((mode + 1) % NAMES.size()) as Mode
 	queue_redraw()
@@ -57,6 +68,9 @@ func _draw() -> void:
 	var font := ThemeDB.fallback_font
 	if mode == Mode.BEAUTY:
 		_draw_beauty()
+		return
+	if mode == Mode.TRAFFIC:
+		_draw_traffic()
 		return
 	for b in world.buildings:
 		var rect := Rect2(b.position, Vector2(b.size * Terrain.TILE_SIZE))
