@@ -16,6 +16,8 @@ var seasons: Seasons
 var trade: Trade
 var castle: Castle
 var royals: Royals
+var town_life: TownLife
+var town_effects: TownEffects
 var build: BuildController
 var camera: CameraController
 var hud: HUD
@@ -90,6 +92,13 @@ func _ready() -> void:
 	royals.setup(world, progression)
 	add_child(royals)
 	royals.found(world.map_seed)
+
+	town_life = TownLife.new()
+	town_life.setup(world)
+	add_child(town_life)
+	town_effects = TownEffects.new()
+	town_effects.world = world
+	world.add_child(town_effects)
 
 	trade = Trade.new()
 	trade.world = world

@@ -78,7 +78,9 @@ merchant in town, "" if none), `camera_near`
 `settings` (`{"game/pan_speed": 1.6}`: values in Settings), `speed` (0 = paused, 1-3),
 `ui_scale` (the window's content scale), `camera_moved` (`{"since": "<state>", "min": n}` or
 `"max"`: tiles the camera moved since that snapshot),
-`royal_ruler` / `royal_spouse` / `royal_heir` (title contains the text; `""` = nobody), `royal_crisis`,
+`life.children` / `life.shoppers` / `life.dogs` / `life.chickens` / `life.grazers` / `life.birds` /
+`life.smoke` / `life.glows` / `life.chatting` / `life.folk_visible` (in `min`/`max`: the living-kingdom
+counts), `royal_ruler` / `royal_spouse` / `royal_heir` (title contains the text; `""` = nobody), `royal_crisis`,
 `royal_breached` (bools), `royals_on_map` / `happiness_mod` / `tax_mod` (in `min`/`max`),
 `anims_seen` (list: every villager animation named must have been seen since the run
 started, e.g. `["chop", "carry"]`), `castle` (stage title, exact), `castle_building` (bool), `castle_size` / `castle_progress` (0..1) /

@@ -490,6 +490,20 @@ goblins, orcs and trolls raid in escalating waves that test the town you built.
 
 17. DIRECTION: SIMULATION FIRST (2026-09-24, DECIDED)
 --------------------------------------------------------------------------------
+  A LIVING KINGDOM (M25, 2026-09-24; player's choices: townsfolk life,
+  animals, town effects). None of it touches the economy (TownLife,
+  TownEffects). As the town grows it gains: children (1 per 3 homes, max
+  24) running about and chasing each other near home; townsfolk with
+  baskets (1 per 10 people, max 20) going between home and the market,
+  well, tavern, chapel and trading post, stopping to chat (speech bubbles)
+  when they meet; dogs (1 per 15 people, max 10) trotting after villagers;
+  3 chickens at every farm and a cow or two sheep grazing beside it;
+  flocks of birds crossing the sky by day. Chimneys smoke on lived-in homes
+  and working bakeries, smithies, armories and taverns (more in winter),
+  homes and the castle glow warmly at night (a canvas layer the night tint
+  doesn't dim), and the Carter's Yard haulers push handcarts. Townsfolk go
+  indoors at night and during raids.
+
   SCALE, PACING AND WALLS (M24, 2026-09-24; player's choices): the
   kingdom should really be built by the Dragon. Tiers now need Village 20
   people, Town 60 (+8 Townhouses), City 130 (+15 Manors), Kingdom 250 (+30

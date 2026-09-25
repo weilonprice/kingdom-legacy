@@ -417,7 +417,7 @@ PHASE 2 — SIMULATION DIRECTION (decided 2026-09-24)
        challenged by the player   [DONE]
   M25  A living kingdom: townsfolk life (chatting, children playing,
        crowds at market and tavern), animals (chickens, cows, sheep, dogs,
-       birds), town effects (chimney smoke, lit windows, carts, banners)
+       birds), town effects (chimney smoke, lit windows, carts)   [DONE]
   M26  People's lives: ages, families, births, children growing into
        workers, old age and death, named citizens to follow
   M27  Stats & graphs: a kingdom ledger with graphs over time and
@@ -451,4 +451,4 @@ BACKLOG / MAYBE LATER
 ================================================================================
 SUGGESTED ORDER OF WORK (NEXT FEW SESSIONS)
 ================================================================================
-  1. M25 a living kingdom, then M26-M28 simulation systems
+  1. M26-M28 simulation systems (people's lives, stats & graphs, health)
